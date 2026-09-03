@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-purple: #6C4DF6;
+  --brand-blue: #2563EB;
+  --brand-cyan: #06B6D4;
+  --brand-pink: #EC4899;
+  --brand-orange: #F97316;
+  --brand-yellow: #FACC15;
+  --bg-dark-base: #080812;
+  --bg-dark-surface: #0B0B18;
+  --bg-dark-card: #101022;
+  --bg-dark-elevated: #16162E;
+}
+
+html {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  background-color: #080812;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.light {
+  background-color: #F8F9FC;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100%;
+  background-color: #080812;
+  color: #FFFFFF;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.light body {
+  background-color: #F8F9FC;
+  color: #0F172A;
+}
+
+/* Studio Surfaces & Card styles */
+.studio-dark-base {
+  background-color: #080812;
+  color: #FFFFFF;
+}
+
+html.light .studio-dark-base {
+  background-color: #F8F9FC;
+  color: #0F172A;
+}
+
+.studio-dark-card {
+  background-color: #101022;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s ease;
+}
+
+html.light .studio-dark-card {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  color: #0F172A;
+}
+
+.studio-dark-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.studio-dark-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(108, 77, 246, 0.5);
+  box-shadow: 0 20px 40px -10px rgba(108, 77, 246, 0.25), 0 0 20px -5px rgba(6, 182, 212, 0.2);
+}
+
+/* CMYK registration marks & print patterns */
+.cmyk-dot-c { background-color: #06B6D4; box-shadow: 0 0 8px #06B6D4; }
+.cmyk-dot-m { background-color: #EC4899; box-shadow: 0 0 8px #EC4899; }
+.cmyk-dot-y { background-color: #FACC15; box-shadow: 0 0 8px #FACC15; }
+.cmyk-dot-k { background-color: #FFFFFF; box-shadow: 0 0 8px #FFFFFF; }
+html.light .cmyk-dot-k { background-color: #0F172A; box-shadow: 0 0 8px rgba(0,0,0,0.3); }
+
+/* Subtle print studio geometric grid pattern */
+.print-grid-bg {
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 32px 32px, 64px 64px, 64px 64px;
+}
+
+html.light .print-grid-bg {
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.04) 1px, transparent 0),
+    linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+}
+
+/* Halftone print dot matrix */
+.print-halftone-pattern {
+  background-image: radial-gradient(rgba(108, 77, 246, 0.15) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+
+/* Glow effects */
+.glow-purple {
+  box-shadow: 0 0 35px -5px rgba(108, 77, 246, 0.4);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 35px -5px rgba(6, 182, 212, 0.4);
+}
+
+.glow-pink {
+  box-shadow: 0 0 35px -5px rgba(236, 72, 153, 0.4);
+}
+
+.text-gradient-purple-cyan {
+  background: linear-gradient(135deg, #6C4DF6 0%, #2563EB 50%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-pink-orange {
+  background: linear-gradient(135deg, #EC4899 0%, #F97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080812;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #F8F9FC;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e1e38;
+  border-radius: 9999px;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6C4DF6;
+}
+
+/* Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
