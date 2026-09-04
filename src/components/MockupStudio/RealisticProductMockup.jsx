@@ -93,7 +93,7 @@ export function RealisticProductMockup({
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-[620px] aspect-square flex items-center justify-center transition-transform duration-200 select-none"
+      className="relative w-full max-w-[660px] aspect-square flex items-center justify-center transition-transform duration-200 select-none"
       style={{ transform: `scale(${zoom})` }}
     >
       {/* Studio Backdrop & Contact Shadow */}
@@ -147,54 +147,55 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
   const isLeft = side === 'left';
   const isRight = side === 'right';
 
-  // SVG Silhouette Path
+  // Organic 3D Tailored Garment Silhouette Path (Smooth Curves, No Rigid Polygons)
   const getBodyPath = () => {
     if (isLeft) {
-      return "M 42 16 Q 50 14 58 18 L 68 30 L 62 58 L 52 52 L 54 88 L 34 88 L 36 50 L 30 46 L 36 28 Z";
+      return "M 42 16 C 46 14 54 14 58 17 C 64 24 67 30 68 34 C 66 46 63 56 61 58 C 56 55 53 53 52 52 L 53 88 C 45 89 39 89 33 88 L 35 50 C 32 48 30 46 30 44 C 32 36 34 26 36 24 Z";
     }
     if (isRight) {
-      return "M 58 16 Q 50 14 42 18 L 32 30 L 38 58 L 48 52 L 46 88 L 66 88 L 64 50 L 70 46 L 64 28 Z";
+      return "M 58 16 C 54 14 46 14 42 17 C 36 24 33 30 32 34 C 34 46 37 56 39 58 C 44 55 47 53 48 52 L 47 88 C 55 89 61 89 67 88 L 65 50 C 68 48 70 46 70 44 C 68 36 66 26 64 24 Z";
     }
     if (isBack) {
+      // High ergonomic back neckline
       if (isOversized) {
-        return "M 30 18 L 40 21 Q 50 18 60 21 L 70 18 L 94 30 L 82 56 L 74 50 L 74 90 L 26 90 L 26 50 L 18 56 L 6 30 Z";
+        return "M 30 18 C 34 19 39 20 42 20.5 C 47 18.5 53 18.5 58 20.5 C 61 20 66 19 70 18 C 79 22 88 27 94 30 C 93 38 88 52 82 56 C 78 54 75 51 74 50 L 74 90 C 58 91 42 91 26 90 L 26 50 C 25 51 22 54 18 56 C 12 52 7 38 6 30 C 12 27 21 22 30 18 Z";
       }
-      return "M 32 18 L 42 21 Q 50 18 58 21 L 68 18 L 90 28 L 80 50 L 72 46 L 72 88 L 28 88 L 28 46 L 20 50 L 10 28 Z";
+      return "M 32 18 C 36 19 40 20 43 20.5 C 47 18.5 53 18.5 57 20.5 C 60 20 64 19 68 18 C 76 21 84 25 89 28 C 88 34 85 45 80 50 C 77 49 74 47 72 46 C 72 54 71 78 72 88 C 58 89.5 42 89.5 28 88 C 29 78 28 54 28 46 C 26 47 23 49 20 50 C 15 45 12 34 11 28 C 16 25 24 21 32 18 Z";
     }
+    // Front with natural crew neck scoop
     if (isOversized) {
-      return "M 30 18 L 40 23 C 46 25 54 25 60 23 L 70 18 L 94 30 L 82 56 L 74 50 L 74 90 L 26 90 L 26 50 L 18 56 L 6 30 Z";
+      return "M 30 18 C 34 19 39 20 42 22 C 47 25.5 53 25.5 58 22 C 61 20 66 19 70 18 C 79 22 88 27 94 30 C 93 38 88 52 82 56 C 78 54 75 51 74 50 L 74 90 C 58 91 42 91 26 90 L 26 50 C 25 51 22 54 18 56 C 12 52 7 38 6 30 C 12 27 21 22 30 18 Z";
     }
-    return "M 32 18 L 42 23 C 47 25 53 25 58 23 L 68 18 L 90 28 L 80 50 L 72 46 L 72 88 L 28 88 L 28 46 L 20 50 L 10 28 Z";
+    return "M 32 18 C 36 19 40 20 43 22 C 47 25.5 53 25.5 57 22 C 60 20 64 19 68 18 C 76 21 84 25 89 28 C 88 34 85 45 80 50 C 77 49 74 47 72 46 C 72 54 71 78 72 88 C 58 89.5 42 89.5 28 88 C 29 78 28 54 28 46 C 26 47 23 49 20 50 C 15 45 12 34 11 28 C 16 25 24 21 32 18 Z";
   };
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <svg viewBox="0 0 100 100" className="w-full h-full object-contain overflow-visible">
         <defs>
-          {/* Micro Cotton Weave Pattern */}
-          <pattern id="cottonWeave" width="2" height="2" patternUnits="userSpaceOnUse">
-            <rect width="2" height="2" fill="none" />
-            <path d="M 0 1 L 2 1 M 1 0 L 1 2" stroke="#000000" strokeWidth="0.15" strokeOpacity="0.18" />
-          </pattern>
-
-          {/* Directional Studio Shading Gradient */}
-          <linearGradient id="tshirtStudioLight" x1="0%" y1="0%" x2="100%" y2="100%">
+          {/* Volumetric 3D Torso Lighting (Smooth Softbox Studio Light) */}
+          <radialGradient id="tshirtVolume" cx="50%" cy="38%" r="55%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
-            <stop offset="40%" stopColor="#ffffff" stopOpacity="0.05" />
-            <stop offset="70%" stopColor="#000000" stopOpacity="0.15" />
+            <stop offset="55%" stopColor="#000000" stopOpacity="0.04" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0.38" />
+          </radialGradient>
+
+          {/* Directional Rim Light Gradient */}
+          <linearGradient id="tshirtRimLight" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.25" />
+            <stop offset="12%" stopColor="#ffffff" stopOpacity="0.05" />
+            <stop offset="88%" stopColor="#000000" stopOpacity="0.05" />
+            <stop offset="100%" stopColor="#000000" stopOpacity="0.3" />
           </linearGradient>
 
-          {/* Torso Depth Gradient */}
-          <linearGradient id="torsoShadow" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.1" />
-            <stop offset="60%" stopColor="#000000" stopOpacity="0.05" />
-            <stop offset="100%" stopColor="#000000" stopOpacity="0.35" />
-          </linearGradient>
+          {/* Soft Drop Shadow & Ambient Occlusion Filter */}
+          <filter id="softAo" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="1.4" />
+          </filter>
         </defs>
 
         {/* ========================================================
-           LAYER 1: DYNAMIC FABRIC BASE COLOR
+           LAYER 1: SMOOTH FABRIC BASE COLOR
            ======================================================== */}
         <path
           d={getBodyPath()}
@@ -203,77 +204,92 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
         />
 
         {/* ========================================================
-           LAYER 2: COTTON TEXTURE GRAIN (Multiply)
+           LAYER 2: 3D VOLUMETRIC STUDIO SHADING (Soft Spherical Light)
            ======================================================== */}
         <path
           d={getBodyPath()}
-          fill="url(#cottonWeave)"
+          fill="url(#tshirtVolume)"
           style={{ mixBlendMode: 'multiply' }}
+          opacity="0.92"
         />
 
         {/* ========================================================
-           LAYER 3: NATURAL FOLDS & TORSO SHADOWS (Multiply)
+           LAYER 3: STUDIO RIM LIGHT & LATERAL DEPTH
            ======================================================== */}
-        <g style={{ mixBlendMode: 'multiply' }} opacity="0.85">
-          {/* Main directional torso shading */}
-          <path d={getBodyPath()} fill="url(#torsoShadow)" />
+        <path
+          d={getBodyPath()}
+          fill="url(#tshirtRimLight)"
+          style={{ mixBlendMode: 'overlay' }}
+          opacity="0.8"
+        />
 
-          {/* Natural Armpit & Side Crease Shadows */}
+        {/* ========================================================
+           LAYER 4: NATURAL SOFT FABRIC DRAPES & SEAM AO (Gaussian Softened)
+           ======================================================== */}
+        <g style={{ mixBlendMode: 'multiply' }} opacity="0.6">
           {!isLeft && !isRight && (
             <>
-              {/* Left Armpit Fold */}
-              <path d="M 28 46 Q 36 54 34 68 Q 30 56 28 46" fill="#000000" opacity="0.35" />
-              <path d="M 32 48 Q 42 62 38 78 Q 34 64 32 48" fill="#000000" opacity="0.2" />
+              {/* Soft Armpit Ambient Shadows (Gentle Curves with Blur, No Harsh Polygons) */}
+              <path
+                d="M 27 46 C 31 52 32 64 30 72 C 28 62 27 52 27 46 Z"
+                fill="#000000"
+                filter="url(#softAo)"
+                opacity="0.45"
+              />
+              <path
+                d="M 73 46 C 69 52 68 64 70 72 C 72 62 73 52 73 46 Z"
+                fill="#000000"
+                filter="url(#softAo)"
+                opacity="0.45"
+              />
 
-              {/* Right Armpit Fold */}
-              <path d="M 72 46 Q 64 54 66 68 Q 70 56 72 46" fill="#000000" opacity="0.35" />
-              <path d="M 68 48 Q 58 62 62 78 Q 66 64 68 48" fill="#000000" opacity="0.2" />
-
-              {/* Subtle Waist Drape Folds */}
-              <path d="M 36 78 Q 50 82 64 78 Q 50 85 36 78" fill="#000000" opacity="0.25" />
-              <path d="M 30 86 Q 50 89 70 86 Q 50 91 30 86" fill="#000000" opacity="0.3" />
-
-              {/* Front vs Back Specific Shading */}
+              {/* Front vs Back Natural Creases */}
               {isBack ? (
                 <>
-                  {/* Upper Back / Shoulder Blades */}
-                  <path d="M 36 28 Q 44 38 42 54 Q 38 42 36 28" fill="#000000" opacity="0.2" />
-                  <path d="M 64 28 Q 56 38 58 54 Q 62 42 64 28" fill="#000000" opacity="0.2" />
-                  {/* Spine Depth Crease */}
-                  <line x1="50" y1="28" x2="50" y2="76" stroke="#000000" strokeWidth="1.2" strokeOpacity="0.16" strokeLinecap="round" />
+                  {/* Subtle Spine Contour Line */}
+                  <line
+                    x1="50"
+                    y1="24"
+                    x2="50"
+                    y2="78"
+                    stroke="#000000"
+                    strokeWidth="1.2"
+                    strokeOpacity="0.18"
+                    strokeLinecap="round"
+                    filter="url(#softAo)"
+                  />
+                  {/* Soft Shoulder Blade Shading */}
+                  <ellipse cx="38" cy="38" rx="6" ry="12" fill="#000000" opacity="0.1" filter="url(#softAo)" />
+                  <ellipse cx="62" cy="38" rx="6" ry="12" fill="#000000" opacity="0.1" filter="url(#softAo)" />
                 </>
               ) : (
-                /* Front Chest Drape Curves */
-                <path d="M 40 32 Q 50 38 60 32 Q 50 36 40 32" fill="#000000" opacity="0.15" />
+                <>
+                  {/* Gentle Chest Contour */}
+                  <path
+                    d="M 38 34 C 44 38 56 38 62 34"
+                    stroke="#000000"
+                    strokeWidth="1.2"
+                    strokeOpacity="0.15"
+                    fill="none"
+                    filter="url(#softAo)"
+                  />
+                  {/* Waist Gentle Curve */}
+                  <path
+                    d="M 35 76 C 45 80 55 80 65 76"
+                    stroke="#000000"
+                    strokeWidth="1.2"
+                    strokeOpacity="0.2"
+                    fill="none"
+                    filter="url(#softAo)"
+                  />
+                </>
               )}
             </>
           )}
 
-          {/* Sleeve Folds */}
-          <path d="M 20 48 Q 16 38 12 30" stroke="#000000" strokeWidth="1.2" strokeOpacity="0.4" fill="none" />
-          <path d="M 80 48 Q 84 38 88 30" stroke="#000000" strokeWidth="1.2" strokeOpacity="0.4" fill="none" />
-        </g>
-
-        {/* ========================================================
-           LAYER 4: STUDIO LIGHTING & SPECULAR HIGHLIGHTS (Screen / Overlay)
-           ======================================================== */}
-        <g style={{ mixBlendMode: 'screen' }} opacity="0.75">
-          {/* Top Shoulder Rim Light */}
-          <path d={getBodyPath()} fill="url(#tshirtStudioLight)" />
-
-          {/* Left Shoulder Highlight */}
-          <path d="M 32 18 L 42 21 L 28 32 L 14 26 Z" fill="#ffffff" opacity="0.25" />
-          {/* Right Shoulder Highlight */}
-          <path d="M 68 18 L 58 21 L 72 32 L 86 26 Z" fill="#ffffff" opacity="0.18" />
-
-          {/* Front Chest Specular Ridge (Front Only) */}
-          {!isBack && !isLeft && !isRight && (
-            <ellipse cx="50" cy="38" rx="16" ry="8" fill="#ffffff" opacity="0.08" />
-          )}
-          {isBack && (
-            /* Back Shoulder Blade Subtle Highlight */
-            <path d="M 38 24 Q 50 28 62 24 Q 50 25 38 24" fill="#ffffff" opacity="0.12" />
-          )}
+          {/* Sleeve Underarm Shadows */}
+          <path d="M 21 48 C 17 38 14 32 12 29" stroke="#000000" strokeWidth="1.0" strokeOpacity="0.3" fill="none" />
+          <path d="M 79 48 C 83 38 86 32 88 29" stroke="#000000" strokeWidth="1.0" strokeOpacity="0.3" fill="none" />
         </g>
 
         {/* ========================================================
@@ -281,48 +297,50 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
            ======================================================== */}
         <g>
           {isBack ? (
-            // BACK COLLAR & YOKE
+            // BACK HIGH COLLAR & YOKE
             <g>
               {/* Inner front neck drop shadow visible through back neckline */}
-              <path d="M 42 21 Q 50 26 58 21 Q 50 20 42 21 Z" fill="#090d16" opacity="0.85" />
+              <path d="M 43 20.5 C 47 25 53 25 57 20.5 C 53 19 47 19 43 20.5 Z" fill="#090d16" opacity="0.88" />
               {/* Internal printed brand/size tag */}
-              <rect x="47.5" y="21.8" width="5" height="2" rx="0.5" fill="#334155" opacity="0.8" />
-              <line x1="48.5" y1="22.8" x2="51.5" y2="22.8" stroke="#94a3b8" strokeWidth="0.35" />
+              <rect x="47.5" y="21.5" width="5" height="2" rx="0.5" fill="#334155" opacity="0.8" />
+              <line x1="48.5" y1="22.5" x2="51.5" y2="22.5" stroke="#94a3b8" strokeWidth="0.35" />
               
               {/* Back High Ribbed Collar Band */}
-              <path d="M 42 21 Q 50 17 58 21" fill="none" stroke="#000000" strokeWidth="2.8" strokeOpacity="0.75" strokeLinecap="round" />
-              <path d="M 42 21 Q 50 17 58 21" fill="none" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.3" strokeLinecap="round" />
+              <path d="M 43 20.5 C 47 17.5 53 17.5 57 20.5" fill="none" stroke="#000000" strokeWidth="2.8" strokeOpacity="0.75" strokeLinecap="round" />
+              <path d="M 43 20.5 C 47 17.5 53 17.5 57 20.5" fill="none" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.3" strokeLinecap="round" />
               
               {/* Back Collar Double-needle Stitching */}
-              <path d="M 41 22.5 Q 50 18.5 59 22.5" fill="none" stroke="#000000" strokeWidth="0.6" strokeOpacity="0.35" strokeDasharray="1 0.8" />
+              <path d="M 42 22 C 47 19 53 19 58 22" fill="none" stroke="#000000" strokeWidth="0.6" strokeOpacity="0.35" strokeDasharray="1 0.8" />
               
               {/* Back Shoulder Yoke Seam across Upper Back */}
-              <path d="M 33 26 Q 50 29 67 26" fill="none" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.35" strokeDasharray="1.2 0.8" />
+              <path d="M 33 26 C 45 28 55 28 67 26" fill="none" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.35" strokeDasharray="1.2 0.8" />
             </g>
           ) : !isLeft && !isRight ? (
-            // FRONT COLLAR RIBBING
+            // FRONT CREW NECK RIBBING
             <g>
-              {/* Inner Neck Shadow */}
-              <path d="M 42 23 Q 50 19 58 23 Q 50 31 42 23 Z" fill="#090d16" opacity="0.9" />
-              <path d="M 46 22 Q 50 20 54 22 Q 50 26 46 22 Z" fill="#182032" opacity="0.6" />
-              {/* Ribbed Band */}
-              <path d="M 42 23 Q 50 31 58 23" fill="none" stroke="#000000" strokeWidth="2.8" strokeOpacity="0.6" strokeLinecap="round" />
-              <path d="M 42 23 Q 50 31 58 23" fill="none" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.3" strokeLinecap="round" />
+              {/* Inner Neck Depth Shadow */}
+              <path d="M 43 22 C 47 18 53 18 57 22 C 53 30 47 30 43 22 Z" fill="#090d16" opacity="0.9" />
+              <path d="M 46 21 C 48 19 52 19 54 21 C 52 25 48 25 46 21 Z" fill="#182032" opacity="0.6" />
+              
+              {/* Ribbed Band Tubular Structure */}
+              <path d="M 43 22 C 47 30 53 30 57 22" fill="none" stroke="#000000" strokeWidth="2.8" strokeOpacity="0.65" strokeLinecap="round" />
+              <path d="M 43 22 C 47 30 53 30 57 22" fill="none" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.3" strokeLinecap="round" />
+              
               {/* Double Needle Collar Stitch */}
-              <path d="M 41 25 Q 50 33 59 25" fill="none" stroke="#000000" strokeWidth="0.6" strokeOpacity="0.4" strokeDasharray="1 0.8" />
+              <path d="M 42 24 C 47 32 53 32 58 24" fill="none" stroke="#000000" strokeWidth="0.6" strokeOpacity="0.4" strokeDasharray="1 0.8" />
             </g>
           ) : null}
 
-          {/* Shoulder Seams */}
-          <line x1="32" y1="18" x2="42" y2="21" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.4" strokeDasharray="1.2 0.8" />
-          <line x1="68" y1="18" x2="58" y2="21" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.4" strokeDasharray="1.2 0.8" />
+          {/* Shoulder Raglan / Inset Seams */}
+          <path d="M 32 18 C 36 19 40 20 43 22" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.35" strokeDasharray="1.2 0.8" fill="none" />
+          <path d="M 68 18 C 64 19 60 20 57 22" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.35" strokeDasharray="1.2 0.8" fill="none" />
 
           {/* Sleeve Hem Stitching */}
-          <line x1="10" y1="28" x2="20" y2="50" stroke="#000000" strokeWidth="0.7" strokeOpacity="0.3" />
-          <line x1="90" y1="28" x2="80" y2="50" stroke="#000000" strokeWidth="0.7" strokeOpacity="0.3" />
+          <path d="M 11 28 C 14 36 17 44 20 50" stroke="#000000" strokeWidth="0.6" strokeOpacity="0.3" fill="none" />
+          <path d="M 89 28 C 86 36 83 44 80 50" stroke="#000000" strokeWidth="0.6" strokeOpacity="0.3" fill="none" />
 
-          {/* Bottom Hem Double Stitch */}
-          <line x1="28" y1="86.5" x2="72" y2="86.5" stroke="#000000" strokeWidth="0.7" strokeOpacity="0.35" strokeDasharray="1.2 0.8" />
+          {/* Bottom Hem Stitching */}
+          <path d="M 28 86.5 C 42 88 58 88 72 86.5" stroke="#000000" strokeWidth="0.7" strokeOpacity="0.3" strokeDasharray="1.2 0.8" fill="none" />
         </g>
       </svg>
     </div>
@@ -331,73 +349,96 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
 
 /**
  * 2. PHOTOREALISTIC PIQUÉ POLO T-SHIRT
- * Features structured fold-down ribbed collar, 2-button placket with pearlescent buttons, and piqué honeycomb texture.
+ * Features structured fold-down ribbed collar, 2-button placket with pearlescent buttons, and smooth tailored drape.
  */
 function PoloMockup({ color, side = 'front' }) {
   const isBack = side === 'back';
+
+  const getPoloBodyPath = () => {
+    if (isBack) {
+      return "M 32 18 C 36 19 40 20 43 20.5 C 47 18.5 53 18.5 57 20.5 C 60 20 64 19 68 18 C 76 21 84 25 89 28 C 88 34 85 45 80 50 C 77 49 74 47 72 46 C 72 54 71 78 72 88 C 58 89.5 42 89.5 28 88 C 29 78 28 54 28 46 C 26 47 23 49 20 50 C 15 45 12 34 11 28 C 16 25 24 21 32 18 Z";
+    }
+    return "M 32 18 C 36 19 40 20 43 22 C 47 24 53 24 57 22 C 60 20 64 19 68 18 C 76 21 84 25 89 28 C 88 34 85 45 80 50 C 77 49 74 47 72 46 C 72 54 71 78 72 88 C 58 89.5 42 89.5 28 88 C 29 78 28 54 28 46 C 26 47 23 49 20 50 C 15 45 12 34 11 28 C 16 25 24 21 32 18 Z";
+  };
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <svg viewBox="0 0 100 100" className="w-full h-full object-contain overflow-visible">
         <defs>
-          {/* Piqué Honeycomb Texture */}
-          <pattern id="piqueWeave" width="2.5" height="2.5" patternUnits="userSpaceOnUse">
-            <rect width="2.5" height="2.5" fill="none" />
-            <circle cx="1.25" cy="1.25" r="0.65" fill="#000000" fillOpacity="0.22" />
-          </pattern>
-
-          <linearGradient id="poloHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.25" />
-            <stop offset="50%" stopColor="#ffffff" stopOpacity="0.05" />
+          <radialGradient id="poloVolume" cx="50%" cy="40%" r="55%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
+            <stop offset="60%" stopColor="#000000" stopOpacity="0.05" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0.35" />
-          </linearGradient>
+          </radialGradient>
+
+          <filter id="poloSoftAo" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="1.5" />
+          </filter>
         </defs>
 
-        {/* Base Garment */}
+        {/* 1. Base Garment */}
         <path
-          d="M 33 18 L 43 23 C 48 24 52 24 57 23 L 67 18 L 88 28 L 78 48 L 71 45 L 71 88 L 29 88 L 29 45 L 22 48 L 12 28 Z"
+          d={getPoloBodyPath()}
           fill={color}
           className="transition-colors duration-300"
         />
 
-        {/* Piqué Texture Weave */}
+        {/* 2. 3D Volumetric Studio Shading */}
         <path
-          d="M 33 18 L 43 23 C 48 24 52 24 57 23 L 67 18 L 88 28 L 78 48 L 71 45 L 71 88 L 29 88 L 29 45 L 22 48 L 12 28 Z"
-          fill="url(#piqueWeave)"
+          d={getPoloBodyPath()}
+          fill="url(#poloVolume)"
           style={{ mixBlendMode: 'multiply' }}
+          opacity="0.9"
         />
 
-        {/* Shadow & Depth */}
-        <g style={{ mixBlendMode: 'multiply' }} opacity="0.8">
-          <path d="M 29 45 Q 36 55 34 70" stroke="#000000" strokeWidth="2" strokeOpacity="0.3" fill="none" />
-          <path d="M 71 45 Q 64 55 66 70" stroke="#000000" strokeWidth="2" strokeOpacity="0.3" fill="none" />
+        {/* 3. Soft Natural Drape Shadows */}
+        <g style={{ mixBlendMode: 'multiply' }} opacity="0.55">
+          <path
+            d="M 27 46 C 31 52 32 64 30 72 C 28 62 27 52 27 46 Z"
+            fill="#000000"
+            filter="url(#poloSoftAo)"
+            opacity="0.45"
+          />
+          <path
+            d="M 73 46 C 69 52 68 64 70 72 C 72 62 73 52 73 46 Z"
+            fill="#000000"
+            filter="url(#poloSoftAo)"
+            opacity="0.45"
+          />
         </g>
 
-        {/* Studio Highlights */}
-        <path
-          d="M 33 18 L 43 23 C 48 24 52 24 57 23 L 67 18 L 88 28 L 78 48 L 71 45 L 71 88 L 29 88 L 29 45 L 22 48 L 12 28 Z"
-          fill="url(#poloHighlight)"
-          style={{ mixBlendMode: 'screen' }}
-          opacity="0.65"
-        />
-
-        {/* Polo Collar & Placket Details */}
+        {/* 4. Structured Polo Collar & Placket */}
         {!isBack ? (
           <g>
-            {/* Placket Base */}
-            <rect x="47" y="24" width="6" height="22" rx="1" fill="#0f172a" opacity="0.85" />
-            <line x1="50" y1="24" x2="50" y2="44" stroke="#ffffff" strokeWidth="0.5" strokeOpacity="0.3" />
+            {/* Placket Under-layer */}
+            <rect x="47" y="24" width="6" height="20" rx="1.5" fill="#090d16" opacity="0.85" />
+            <line x1="50" y1="24" x2="50" y2="42" stroke="#ffffff" strokeWidth="0.5" strokeOpacity="0.3" />
 
             {/* Pearlescent Buttons */}
-            <circle cx="50" cy="30" r="1.3" fill="#e2e8f0" stroke="#475569" strokeWidth="0.4" />
-            <circle cx="50" cy="38" r="1.3" fill="#e2e8f0" stroke="#475569" strokeWidth="0.4" />
+            <circle cx="50" cy="29" r="1.3" fill="#f1f5f9" stroke="#334155" strokeWidth="0.4" />
+            <circle cx="50" cy="37" r="1.3" fill="#f1f5f9" stroke="#334155" strokeWidth="0.4" />
 
-            {/* Folded Ribbed Collars */}
-            <path d="M 38 20 L 50 28 L 44 38 L 34 23 Z" fill={color} stroke="#000000" strokeWidth="1" />
-            <path d="M 62 20 L 50 28 L 56 38 L 66 23 Z" fill={color} stroke="#000000" strokeWidth="1" />
+            {/* Natural Folded Ribbed Wings */}
+            <path
+              d="M 37 19 C 41 22 47 26 50 28 C 46 36 43 37 40 37 C 36 28 35 22 37 19 Z"
+              fill={color}
+              stroke="#000000"
+              strokeWidth="1"
+              strokeOpacity="0.7"
+            />
+            <path
+              d="M 63 19 C 59 22 53 26 50 28 C 54 36 57 37 60 37 C 64 28 65 22 63 19 Z"
+              fill={color}
+              stroke="#000000"
+              strokeWidth="1"
+              strokeOpacity="0.7"
+            />
           </g>
         ) : (
-          <path d="M 43 23 Q 50 18 57 23" fill="none" stroke="#000000" strokeWidth="3" strokeOpacity="0.6" />
+          <g>
+            <path d="M 43 20.5 C 47 18 53 18 57 20.5" fill="none" stroke="#000000" strokeWidth="3" strokeOpacity="0.7" strokeLinecap="round" />
+            <path d="M 43 20.5 C 47 18 53 18 57 20.5" fill="none" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.3" strokeLinecap="round" />
+          </g>
         )}
       </svg>
     </div>
@@ -406,66 +447,76 @@ function PoloMockup({ color, side = 'front' }) {
 
 /**
  * 3. PHOTOREALISTIC HEAVYWEIGHT HOODIE
- * Features double-lined hood, thick braided drawstrings, and ribbed kangaroo pocket with deep crease shadows.
+ * Features double-lined 3D curved hood, braided drawstrings with aglets, and curved kangaroo pocket.
  */
 function HoodieMockup({ color, side = 'front' }) {
   const isBack = side === 'back';
+
+  const getHoodieBodyPath = () => {
+    return "M 30 19 C 34 20 38 22 42 23 C 47 23 53 23 58 23 C 62 22 66 20 70 19 C 78 23 88 28 93 32 C 91 42 85 58 79 62 C 76 60 74 56 73 54 L 73 90 C 58 91.5 42 91.5 27 90 L 27 54 C 26 56 24 60 21 62 C 15 58 9 42 7 32 C 12 28 22 23 30 19 Z";
+  };
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <svg viewBox="0 0 100 100" className="w-full h-full object-contain overflow-visible">
         <defs>
-          <linearGradient id="hoodieDepth" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.18" />
-            <stop offset="50%" stopColor="#000000" stopOpacity="0.1" />
+          <radialGradient id="hoodieVolume" cx="50%" cy="40%" r="55%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
+            <stop offset="60%" stopColor="#000000" stopOpacity="0.08" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0.4" />
-          </linearGradient>
+          </radialGradient>
+
+          <filter id="hoodieSoftAo" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="1.6" />
+          </filter>
         </defs>
 
-        {/* Main Body */}
+        {/* 1. Main Torso Body */}
         <path
-          d="M 30 20 L 40 25 L 60 25 L 70 20 L 92 32 L 80 62 L 72 56 L 72 88 L 28 88 L 28 56 L 20 62 L 8 32 Z"
+          d={getHoodieBodyPath()}
           fill={color}
           className="transition-colors duration-300"
         />
 
-        {/* Depth Gradient */}
+        {/* 2. 3D Volume Shading */}
         <path
-          d="M 30 20 L 40 25 L 60 25 L 70 20 L 92 32 L 80 62 L 72 56 L 72 88 L 28 88 L 28 56 L 20 62 L 8 32 Z"
-          fill="url(#hoodieDepth)"
+          d={getHoodieBodyPath()}
+          fill="url(#hoodieVolume)"
           style={{ mixBlendMode: 'multiply' }}
+          opacity="0.9"
         />
 
-        {/* Kangaroo Pocket */}
+        {/* 3. Kangaroo Pocket (Front View Only) */}
         {!isBack && (
           <g>
             <path
-              d="M 35 60 L 65 60 L 68 84 L 32 84 Z"
+              d="M 34 60 C 44 61 56 61 66 60 C 69 72 68 83 67 85 C 55 86 45 86 33 85 C 32 83 31 72 34 60 Z"
               fill={color}
               stroke="#000000"
-              strokeWidth="1.2"
+              strokeWidth="0.8"
               strokeOpacity="0.5"
             />
-            {/* Pocket Shadow & Side Openings */}
-            <path d="M 35 60 L 32 84" stroke="#000000" strokeWidth="2" strokeOpacity="0.5" />
-            <path d="M 65 60 L 68 84" stroke="#000000" strokeWidth="2" strokeOpacity="0.5" />
+            {/* Pocket Welts */}
+            <path d="M 34 60 C 32 72 33 82 33 85" stroke="#000000" strokeWidth="1.5" strokeOpacity="0.4" fill="none" />
+            <path d="M 66 60 C 68 72 67 82 67 85" stroke="#000000" strokeWidth="1.5" strokeOpacity="0.4" fill="none" />
           </g>
         )}
 
-        {/* Hood Structure */}
+        {/* 4. Volumetric Curved Hood Structure */}
         <path
-          d="M 36 22 C 34 8 66 8 64 22 C 58 26 42 26 36 22 Z"
+          d="M 34 22 C 32 7 68 7 66 22 C 60 26 40 26 34 22 Z"
           fill={color}
           stroke="#000000"
           strokeWidth="1.2"
+          strokeOpacity="0.7"
         />
-        <path d="M 40 22 Q 50 14 60 22" fill="#090d16" opacity="0.9" />
+        <path d="M 38 22 C 44 14 56 14 62 22 C 56 25 44 25 38 22 Z" fill="#090d16" opacity="0.92" />
 
-        {/* Drawstrings */}
+        {/* 5. Braided Drawstrings */}
         {!isBack && (
           <g>
-            <path d="M 46 22 Q 44 34 45 42" stroke="#e2e8f0" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-            <path d="M 54 22 Q 56 34 55 42" stroke="#e2e8f0" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            <path d="M 44 23 C 43 32 44 38 45 42" stroke="#e2e8f0" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            <path d="M 56 23 C 57 32 56 38 55 42" stroke="#e2e8f0" strokeWidth="1.2" fill="none" strokeLinecap="round" />
             {/* Metal Aglets */}
             <rect x="44.2" y="41" width="1.6" height="3" rx="0.5" fill="#94a3b8" />
             <rect x="54.2" y="41" width="1.6" height="3" rx="0.5" fill="#94a3b8" />

@@ -35,13 +35,6 @@ export function InteractiveMockupStage({
   availableSides = ['front', 'back'],
 }) {
   const containerRef = useRef(null);
-  const isDraggingRef = useRef(false);
-  const isResizingRef = useRef(false);
-  const isRotatingRef = useRef(false);
-  const hasMovedRef = useRef(false);
-  const dragPointerIdRef = useRef(null);
-  const startPointerRef = useRef({ x: 0, y: 0 });
-  const startDesignRef = useRef(null);
 
   // Local drag offset for instantaneous 120fps visual feedback
   const [liveDragOffset, setLiveDragOffset] = useState({ x: 0, y: 0 });
@@ -77,8 +70,8 @@ export function InteractiveMockupStage({
   const defaultW = Math.min(maxAreaWidthInches, Math.max(2, parseFloat((maxAreaWidthInches * 0.8).toFixed(1))));
   const defaultH = Math.min(maxAreaHeightInches, Math.max(2, parseFloat((maxAreaHeightInches * 0.75).toFixed(1))));
 
-  const currentW = Math.min(maxAreaWidthInches, Math.max(1, designData?.widthInches ?? defaultW));
-  const currentH = Math.min(maxAreaHeightInches, Math.max(1, designData?.heightInches ?? defaultH));
+  const currentW = Math.min(maxAreaWidthInches, Math.max(0.5, designData?.widthInches ?? defaultW));
+  const currentH = Math.min(maxAreaHeightInches, Math.max(0.5, designData?.heightInches ?? defaultH));
   const currentX = designData?.xInches ?? 0; // 0 = centered horizontally
   const currentY = designData?.yInches ?? 0; // 0 = centered vertically
   const currentRot = designData?.rotation ?? 0;
@@ -104,127 +97,14 @@ export function InteractiveMockupStage({
   const boxCenterPctX = (defaultCenterPctX + (currentX + liveDragOffset.x) * pctPerInchX) * 100;
   const boxCenterPctY = (defaultCenterPctY + (currentY + liveDragOffset.y) * pctPerInchY) * 100;
 
-  // Start dragging
-  const handlePointerDownDrag = (e) => {
-    if (!isInteractive) return;
-    e.preventDefault();
-    e.stopPropagation();
-
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (err) {}
-
-    isDraggingRef.current = true;
-    hasMovedRef.current = false;
-    dragPointerIdRef.current = e.pointerId;
-    startPointerRef.current = { x: e.clientX, y: e.clientY };
-    startDesignRef.current = { x: currentX, y: currentY, w: currentW, h: currentH };
-    setLiveDragOffset({ x: 0, y: 0 });
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-  };
-
-  // Start resizing
-  const handlePointerDownResize = (e) => {
-    if (!isInteractive) return;
-    e.preventDefault();
-    e.stopPropagation();
-
-    isResizingRef.current = true;
-    dragPointerIdRef.current = e.pointerId;
-    startPointerRef.current = { x: e.clientX, y: e.clientY };
-    startDesignRef.current = {
-      x: currentX,
-      y: currentY,
-      w: currentW,
-      h: currentH,
-      aspect: currentW / Math.max(0.1, currentH),
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-  };
-
-  // Start rotating
-  const handlePointerDownRotate = (e) => {
-    if (!isInteractive) return;
-    e.preventDefault();
-    e.stopPropagation();
-
-    isRotatingRef.current = true;
-    dragPointerIdRef.current = e.pointerId;
-    startPointerRef.current = { x: e.clientX, y: e.clientY };
-    startDesignRef.current = { rot: currentRot };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-  };
-
-  const handlePointerMove = useCallback((e) => {
-    if (!containerRef.current) return;
-    const containerRect = containerRef.current.getBoundingClientRect();
-
-    // Pixels per physical inch inside the container
-    const pixelsPerInchX = (containerRect.width * torso.w) / torso.maxWInches;
-    const pixelsPerInchY = (containerRect.height * torso.h) / torso.maxHInches;
-
-    const deltaPixelX = e.clientX - startPointerRef.current.x;
-    const deltaPixelY = e.clientY - startPointerRef.current.y;
-
-    if (Math.abs(deltaPixelX) > 2 || Math.abs(deltaPixelY) > 2) {
-      hasMovedRef.current = true;
-    }
-
-    if (isDraggingRef.current) {
-      const deltaInchX = deltaPixelX / Math.max(1, pixelsPerInchX);
-      const deltaInchY = deltaPixelY / Math.max(1, pixelsPerInchY);
-
-      // Clamping limits based on the full garment torso area
-      const halfW = currentW / 2;
-      const halfH = currentH / 2;
-
-      const minXInches = ((torso.x + (halfW * pctPerInchX)) - defaultCenterPctX) / pctPerInchX;
-      const maxXInches = (((torso.x + torso.w) - (halfW * pctPerInchX)) - defaultCenterPctX) / pctPerInchX;
-      const minYInches = ((torso.y + (halfH * pctPerInchY)) - defaultCenterPctY) / pctPerInchY;
-      const maxYInches = (((torso.y + torso.h) - (halfH * pctPerInchY)) - defaultCenterPctY) / pctPerInchY;
-
-      const rawNewX = (startDesignRef.current?.x || 0) + deltaInchX;
-      const rawNewY = (startDesignRef.current?.y || 0) + deltaInchY;
-
-      const clampedX = Math.max(minXInches, Math.min(maxXInches, rawNewX));
-      const clampedY = Math.max(minYInches, Math.min(maxYInches, rawNewY));
-
-      setLiveDragOffset({
-        x: clampedX - (startDesignRef.current?.x || 0),
-        y: clampedY - (startDesignRef.current?.y || 0),
-      });
-
-      onUpdateDesign({
-        xInches: parseFloat(clampedX.toFixed(2)),
-        yInches: parseFloat(clampedY.toFixed(2)),
-        widthInches: currentW,
-        heightInches: currentH,
-      });
-    } else if (isResizingRef.current) {
-      const deltaInchW = (deltaPixelX / Math.max(1, pixelsPerInchX)) * 2;
-      const rawW = Math.max(1.5, Math.min(maxAreaWidthInches, (startDesignRef.current?.w || 8.0) + deltaInchW));
-      const aspect = startDesignRef.current?.aspect || (currentW / Math.max(0.1, currentH));
-      const rawH = Math.max(1.5, Math.min(maxAreaHeightInches, parseFloat((rawW / aspect).toFixed(2))));
-
-      onUpdateDesign({
-        widthInches: parseFloat(rawW.toFixed(2)),
-        heightInches: parseFloat(rawH.toFixed(2)),
-      });
-    } else if (isRotatingRef.current) {
-      const deltaRot = (deltaPixelX * 0.8) % 360;
-      let newRot = Math.round(((startDesignRef.current?.rot || 0) + deltaRot) / 5) * 5;
-      if (newRot < 0) newRot += 360;
-      onUpdateDesign({ rotation: newRot });
-    }
-  }, [
+  // 1. Maintain a live params ref so move/up handlers are completely stable and never drop listeners
+  const paramsRef = useRef({});
+  paramsRef.current = {
     currentW,
     currentH,
+    currentX,
+    currentY,
+    currentRot,
     maxAreaWidthInches,
     maxAreaHeightInches,
     defaultCenterPctX,
@@ -233,32 +113,211 @@ export function InteractiveMockupStage({
     pctPerInchY,
     torso,
     onUpdateDesign,
-  ]);
+  };
 
-  const handlePointerUp = useCallback(() => {
-    isDraggingRef.current = false;
-    isResizingRef.current = false;
-    isRotatingRef.current = false;
-    setLiveDragOffset({ x: 0, y: 0 });
+  // 2. Active interaction session ref (drag, resize, rotate)
+  const activeSessionRef = useRef(null);
 
-    window.removeEventListener('pointermove', handlePointerMove);
-    window.removeEventListener('pointerup', handlePointerUp);
-  }, [handlePointerMove]);
+  // 3. Stable global move handler (never detached mid-drag)
+  const handleGlobalPointerMove = useCallback((e) => {
+    const session = activeSessionRef.current;
+    if (!session || !containerRef.current) return;
 
-  // Clean up listeners on unmount
+    const p = paramsRef.current;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const pixelsPerInchX = (containerRect.width * p.torso.w) / p.torso.maxWInches;
+    const pixelsPerInchY = (containerRect.height * p.torso.h) / p.torso.maxHInches;
+
+    const deltaPixelX = e.clientX - session.startX;
+    const deltaPixelY = e.clientY - session.startY;
+
+    if (Math.abs(deltaPixelX) > 2 || Math.abs(deltaPixelY) > 2) {
+      session.hasMoved = true;
+    }
+
+    if (session.type === 'drag') {
+      const deltaInchX = deltaPixelX / Math.max(1, pixelsPerInchX);
+      const deltaInchY = deltaPixelY / Math.max(1, pixelsPerInchY);
+
+      const halfW = p.currentW / 2;
+      const halfH = p.currentH / 2;
+
+      const minX = ((p.torso.x + halfW * p.pctPerInchX) - p.defaultCenterPctX) / p.pctPerInchX;
+      const maxX = (((p.torso.x + p.torso.w) - halfW * p.pctPerInchX) - p.defaultCenterPctX) / p.pctPerInchX;
+      const minY = ((p.torso.y + halfH * p.pctPerInchY) - p.defaultCenterPctY) / p.pctPerInchY;
+      const maxY = (((p.torso.y + p.torso.h) - halfH * p.pctPerInchY) - p.defaultCenterPctY) / p.pctPerInchY;
+
+      const safeMinX = Math.min(minX, maxX);
+      const safeMaxX = Math.max(minX, maxX);
+      const safeMinY = Math.min(minY, maxY);
+      const safeMaxY = Math.max(minY, maxY);
+
+      const clampedX = Math.max(safeMinX, Math.min(safeMaxX, session.startDesignX + deltaInchX));
+      const clampedY = Math.max(safeMinY, Math.min(safeMaxY, session.startDesignY + deltaInchY));
+
+      session.lastClampedX = clampedX;
+      session.lastClampedY = clampedY;
+
+      setLiveDragOffset({
+        x: clampedX - session.startDesignX,
+        y: clampedY - session.startDesignY,
+      });
+
+      // Synchronize in real time
+      p.onUpdateDesign({
+        xInches: parseFloat(clampedX.toFixed(2)),
+        yInches: parseFloat(clampedY.toFixed(2)),
+        widthInches: p.currentW,
+        heightInches: p.currentH,
+      });
+    } else if (session.type === 'resize') {
+      const deltaInchW = deltaPixelX / Math.max(1, pixelsPerInchX);
+      const deltaInchH = deltaPixelY / Math.max(1, pixelsPerInchY);
+
+      // Smooth, responsive diagonal resize
+      const effectiveDelta = (deltaInchW + deltaInchH * session.aspect) / 2;
+      const rawW = Math.max(0.5, Math.min(p.maxAreaWidthInches, session.startDesignW + effectiveDelta));
+      const rawH = Math.max(0.5, Math.min(p.maxAreaHeightInches, parseFloat((rawW / session.aspect).toFixed(2))));
+
+      session.lastW = rawW;
+      session.lastH = rawH;
+
+      p.onUpdateDesign({
+        widthInches: parseFloat(rawW.toFixed(2)),
+        heightInches: parseFloat(rawH.toFixed(2)),
+      });
+    } else if (session.type === 'rotate') {
+      const deltaRot = (deltaPixelX * 0.8) % 360;
+      let newRot = Math.round((session.startRot + deltaRot) / 5) * 5;
+      if (newRot < 0) newRot += 360;
+      session.lastRot = newRot;
+      p.onUpdateDesign({ rotation: newRot });
+    }
+  }, []);
+
+  // 4. Stable global pointer up handler
+  const handleGlobalPointerUp = useCallback((e) => {
+    const session = activeSessionRef.current;
+    if (!session) return;
+
+    window.removeEventListener('pointermove', handleGlobalPointerMove);
+    window.removeEventListener('pointerup', handleGlobalPointerUp);
+    window.removeEventListener('pointercancel', handleGlobalPointerUp);
+
+    const p = paramsRef.current;
+
+    if (session.type === 'drag') {
+      p.onUpdateDesign({
+        xInches: parseFloat(session.lastClampedX.toFixed(2)),
+        yInches: parseFloat(session.lastClampedY.toFixed(2)),
+        widthInches: p.currentW,
+        heightInches: p.currentH,
+      });
+      setLiveDragOffset({ x: 0, y: 0 });
+    } else if (session.type === 'resize') {
+      p.onUpdateDesign({
+        widthInches: parseFloat(session.lastW.toFixed(2)),
+        heightInches: parseFloat(session.lastH.toFixed(2)),
+      });
+    } else if (session.type === 'rotate') {
+      p.onUpdateDesign({
+        rotation: session.lastRot,
+      });
+    }
+
+    activeSessionRef.current = null;
+  }, [handleGlobalPointerMove]);
+
+  // Clean up on component unmount ONLY
   useEffect(() => {
     return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointermove', handleGlobalPointerMove);
+      window.removeEventListener('pointerup', handleGlobalPointerUp);
+      window.removeEventListener('pointercancel', handleGlobalPointerUp);
     };
-  }, [handlePointerMove, handlePointerUp]);
+  }, [handleGlobalPointerMove, handleGlobalPointerUp]);
+
+  // Start dragging
+  const handlePointerDownDrag = (e) => {
+    if (!isInteractive) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const p = paramsRef.current;
+    activeSessionRef.current = {
+      type: 'drag',
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      startDesignX: p.currentX,
+      startDesignY: p.currentY,
+      startDesignW: p.currentW,
+      startDesignH: p.currentH,
+      lastClampedX: p.currentX,
+      lastClampedY: p.currentY,
+      hasMoved: false,
+    };
+
+    setLiveDragOffset({ x: 0, y: 0 });
+
+    window.addEventListener('pointermove', handleGlobalPointerMove, { passive: false });
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener('pointercancel', handleGlobalPointerUp);
+  };
+
+  // Start resizing
+  const handlePointerDownResize = (e) => {
+    if (!isInteractive) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const p = paramsRef.current;
+    activeSessionRef.current = {
+      type: 'resize',
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      startDesignW: p.currentW,
+      startDesignH: p.currentH,
+      aspect: p.currentW / Math.max(0.1, p.currentH),
+      lastW: p.currentW,
+      lastH: p.currentH,
+      hasMoved: false,
+    };
+
+    window.addEventListener('pointermove', handleGlobalPointerMove, { passive: false });
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener('pointercancel', handleGlobalPointerUp);
+  };
+
+  // Start rotating
+  const handlePointerDownRotate = (e) => {
+    if (!isInteractive) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const p = paramsRef.current;
+    activeSessionRef.current = {
+      type: 'rotate',
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      startRot: p.currentRot,
+      lastRot: p.currentRot,
+      hasMoved: false,
+    };
+
+    window.addEventListener('pointermove', handleGlobalPointerMove, { passive: false });
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener('pointercancel', handleGlobalPointerUp);
+  };
 
   const placementLabel = calibratedArea?.name || (isBackSide ? 'BACK PRINT AREA' : 'FRONT PRINT AREA');
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-[580px] aspect-square mx-auto flex items-center justify-center select-none"
+      className="relative w-full max-w-[620px] aspect-square mx-auto flex items-center justify-center select-none"
     >
       {/* 1. Underlying Photorealistic Product Mockup */}
       <RealisticProductMockup
@@ -336,7 +395,7 @@ export function InteractiveMockupStage({
           /* Dynamic "Ready for Artwork" Placeholder with Full Drag & Click Support */
           <div
             onClick={() => {
-              if (!hasMovedRef.current) {
+              if (!activeSessionRef.current?.hasMoved) {
                 onOpenFileUpload();
               }
             }}
@@ -363,19 +422,19 @@ export function InteractiveMockupStage({
             {/* Top-Right Rotation Handle */}
             <div
               onPointerDown={handlePointerDownRotate}
-              className="absolute -top-3.5 -right-3.5 w-7 h-7 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 flex items-center justify-center cursor-alias shadow-2xl transition-transform hover:scale-125 z-50 pointer-events-auto active:scale-95"
+              className="absolute -top-4 -right-4 w-8 h-8 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 flex items-center justify-center cursor-alias shadow-[0_0_15px_rgba(6,182,212,0.6)] transition-all hover:scale-115 z-50 pointer-events-auto active:scale-95 touch-none"
               title="Drag to Rotate"
             >
-              <RotateCw className="w-3.5 h-3.5" />
+              <RotateCw className="w-4 h-4 stroke-[2.5]" />
             </div>
 
             {/* Bottom-Right Resize Handle */}
             <div
               onPointerDown={handlePointerDownResize}
-              className="absolute -bottom-3.5 -right-3.5 w-7 h-7 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 flex items-center justify-center cursor-nwse-resize shadow-2xl transition-transform hover:scale-125 z-50 pointer-events-auto active:scale-95"
+              className="absolute -bottom-4 -right-4 w-8 h-8 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 flex items-center justify-center cursor-nwse-resize shadow-[0_0_15px_rgba(6,182,212,0.6)] transition-all hover:scale-115 z-50 pointer-events-auto active:scale-95 touch-none"
               title="Drag to Resize Dimensions"
             >
-              <Maximize2 className="w-3.5 h-3.5" />
+              <Maximize2 className="w-4 h-4 stroke-[2.5]" />
             </div>
           </>
         )}

@@ -8,47 +8,65 @@ export default {
   theme: {
     extend: {
       colors: {
+        fog: {
+          950: '#070708',
+          900: '#0A0A0C', // Obsidian Black
+          850: '#111114', // Deep Midnight Graphite
+          800: '#16161A', // Matte Charcoal
+          750: '#1E1E24',
+          700: '#282830',
+          stone: '#F4F2EE', // Warm Limestone Stone
+          bone: '#FAF9F6',  // Architectural Bone Off-White
+          sand: '#EAE7E1',
+          gold: '#C8B896',  // Understated Champagne Gold
+          muted: '#8A8782',
+        },
         studio: {
-          950: '#07090e',
-          900: '#0b0f19',
-          850: '#111726',
-          800: '#161f33',
-          750: '#1c2842',
-          700: '#243252',
-          600: '#33456e',
-          500: '#475d8f',
+          950: '#070708',
+          900: '#0A0A0C',
+          850: '#111114',
+          800: '#16161A',
+          750: '#1E1E24',
+          700: '#282830',
+          600: '#3D3D48',
+          500: '#5C5C6B',
         },
         surface: {
-          50: '#f8f9fc',
-          100: '#f1f3f9',
-          200: '#e2e7f1',
-          300: '#cbd4e6',
-          400: '#94a3b8',
-          text: '#171725',
-          muted: '#667085',
+          50: '#FAF9F6',
+          100: '#F4F2EE',
+          200: '#EAE7E1',
+          300: '#D6D2C8',
+          400: '#8A8782',
+          text: '#0E0E10',
+          muted: '#716F6A',
         },
         brand: {
-          purple: '#6C4DF6', // Primary Brand / CTA
-          blue: '#2563EB',   // Interactive Elements
-          cyan: '#06B6D4',   // Customization / Tech
-          pink: '#EC4899',   // Creative Accents
-          orange: '#F97316', // Printing / Highlights
-          yellow: '#FACC15', // Badges / Offers
+          purple: '#1E1E24', // Fear of God refined obsidian
+          blue: '#16161A',
+          cyan: '#C8B896',   // Champagne luxury accent
+          pink: '#8A8782',
+          orange: '#C8B896',
+          yellow: '#D4AF37',
           emerald: '#10B981',
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6C4DF6',
-          600: '#5835e5',
-          700: '#4723ca',
-          accent: '#06B6D4',
+          50: '#F5F4F0',
+          100: '#EAE7E1',
+          200: '#D6D2C8',
+          300: '#B8B3A7',
+          400: '#8A8782',
+          500: '#16161A',
+          600: '#0A0A0C',
+          700: '#070708',
+          accent: '#C8B896',
         }
+      },
+      letterSpacing: {
+        fashion: '0.22em',
+        'fashion-wide': '0.3em',
       },
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Outfit', 'sans-serif'],
+        display: ['Cinzel', 'Outfit', 'Plus Jakarta Sans', 'sans-serif'],
+        serif: ['Playfair Display', 'Cinzel', 'serif'],
       },
       boxShadow: {
         'glow-primary': '0 0 25px -4px rgba(99, 102, 241, 0.45)',

@@ -32,6 +32,7 @@ import {
   Copy,
   RefreshCw,
   Box,
+  ChevronDown,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { INITIAL_PRODUCTS, DEFAULT_PRESET_PRODUCTS } from '../../constants/products';
@@ -73,7 +74,7 @@ export function DesignByCustomerView() {
   const [isPlacementHelpOpen, setIsPlacementHelpOpen] = useState(false);
   const [is360Active, setIs360Active] = useState(false);
   const [activePlacementSide, setActivePlacementSide] = useState('front');
-  const [isAspectLocked, setIsAspectLocked] = useState(true);
+  const [isAspectLocked, setIsAspectLocked] = useState(false);
   const [dimensionWarning, setDimensionWarning] = useState(null);
   const [copiedId, setCopiedId] = useState(false);
 
@@ -154,8 +155,40 @@ export function DesignByCustomerView() {
     );
   }, [activeProduct?.id, selectedSize, activePlacementId, availablePrintAreas]);
 
+  // Default dimensions calculated identically to InteractiveMockupStage
+  const defaultPlacementWidth = useMemo(() => {
+    const maxW = activeAreaConfig.maxWidthInches || 12.0;
+    return Math.min(maxW, Math.max(2, parseFloat((maxW * 0.8).toFixed(1))));
+  }, [activeAreaConfig]);
+
+  const defaultPlacementHeight = useMemo(() => {
+    const maxH = activeAreaConfig.maxHeightInches || 14.0;
+    return Math.min(maxH, Math.max(2, parseFloat((maxH * 0.75).toFixed(1))));
+  }, [activeAreaConfig]);
+
   // Current active placement design config
   const currentPlacementDesign = placementDesigns[activePlacementId] || null;
+
+  // Local string buffers for physical print dimensions (allows seamless deleting, decimals, typing)
+  const [widthInputStr, setWidthInputStr] = useState('');
+  const [heightInputStr, setHeightInputStr] = useState('');
+  const [isEditingWidth, setIsEditingWidth] = useState(false);
+  const [isEditingHeight, setIsEditingHeight] = useState(false);
+
+  // Synchronize local input buffers with live design dimensions when not actively editing
+  useEffect(() => {
+    if (!isEditingWidth) {
+      const w = currentPlacementDesign?.widthInches ?? defaultPlacementWidth;
+      setWidthInputStr(w != null ? String(w) : '');
+    }
+  }, [currentPlacementDesign?.widthInches, defaultPlacementWidth, isEditingWidth, activePlacementId]);
+
+  useEffect(() => {
+    if (!isEditingHeight) {
+      const h = currentPlacementDesign?.heightInches ?? defaultPlacementHeight;
+      setHeightInputStr(h != null ? String(h) : '');
+    }
+  }, [currentPlacementDesign?.heightInches, defaultPlacementHeight, isEditingHeight, activePlacementId]);
 
   // Restore draft if available
   useEffect(() => {
@@ -201,36 +234,49 @@ export function DesignByCustomerView() {
     setActivePlacementSide(area.surface || area.section || 'front');
   };
 
-  // Switch Active Placement in Step 5
+  // Switch Active Placement in Step 5 (Dynamically switches Front/Back side to match)
   const switchActivePlacement = (areaId) => {
     const area = availablePrintAreas.find((a) => a.id === areaId);
     if (!area) return;
     setActivePlacementId(areaId);
-    setActivePlacementSide(area.surface || area.section || 'front');
+    const targetSide = area.surface || area.section || area.cameraView || 'front';
+    setActivePlacementSide(targetSide);
   };
 
   // Synchronized Side Switcher (Front <-> Back with placement auto-selection)
   const handleSideSwitch = useCallback(
     (targetSide) => {
       setActivePlacementSide(targetSide);
-      if (targetSide === 'back') {
-        const backArea =
-          availablePrintAreas.find((a) => a.id === 'full_back') ||
-          availablePrintAreas.find((a) => (a.surface || a.section || a.cameraView) === 'back');
-        if (backArea && backArea.id !== activePlacementId) {
-          setActivePlacementId(backArea.id);
-        }
+      // Prioritize finding an area on this target side that the user actually selected in Step 4
+      const userSelectedMatchingSide = selectedPlacementIds.find((id) => {
+        const a = availablePrintAreas.find((area) => area.id === id);
+        return a && (a.surface || a.section || a.cameraView) === targetSide;
+      });
+
+      if (userSelectedMatchingSide) {
+        setActivePlacementId(userSelectedMatchingSide);
       } else {
-        const frontArea =
-          availablePrintAreas.find((a) => a.id === 'center_chest') ||
-          availablePrintAreas.find((a) => (a.surface || a.section || a.cameraView) === 'front');
-        if (frontArea && frontArea.id !== activePlacementId) {
-          setActivePlacementId(frontArea.id);
+        const sideArea =
+          availablePrintAreas.find((a) => (a.surface || a.section || a.cameraView) === targetSide) ||
+          availablePrintAreas[0];
+        if (sideArea) {
+          setActivePlacementId(sideArea.id);
         }
       }
     },
-    [availablePrintAreas, activePlacementId]
+    [availablePrintAreas, selectedPlacementIds]
   );
+
+  // Proceed from Step 4 (Placements) to Step 5 (Design Studio)
+  const handleProceedToDesignStep = () => {
+    // If the user selected multiple options (or at least one), ensure the first selected placement is activated
+    const firstSelectedId = selectedPlacementIds?.[0] || availablePrintAreas[0]?.id;
+    if (firstSelectedId) {
+      switchActivePlacement(firstSelectedId);
+    }
+    setCurrentStep(5);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Handle Artwork File Upload (Supports PNG, JPG, JPEG, PDF)
   const handleFileUpload = (e) => {
@@ -407,50 +453,190 @@ export function DesignByCustomerView() {
     setShowTextModal(false);
   };
 
-  // Physical Width Input in Inches
-  const handleWidthInchesChange = (val) => {
-    const rawNum = parseFloat(val) || 1.0;
-    const maxAllowed = activeAreaConfig.maxWidthInches || 12.0;
+  // Toggle Aspect Ratio Locking
+  const handleToggleAspectLock = () => {
+    const nextLocked = !isAspectLocked;
+    setIsAspectLocked(nextLocked);
+    if (nextLocked) {
+      const curW = parseFloat(widthInputStr) || currentPlacementDesign?.widthInches || defaultPlacementWidth;
+      const curH = parseFloat(heightInputStr) || currentPlacementDesign?.heightInches || defaultPlacementHeight;
+      if (curW > 0 && curH > 0) {
+        handleUpdateDesignTransform({ aspect: parseFloat((curW / curH).toFixed(3)) });
+      }
+    }
+  };
 
+  // Physical Width Input Change (allows free deleting, typing decimals, etc.)
+  const handleWidthInchesChange = (val) => {
+    setWidthInputStr(val);
+
+    // If empty string or incomplete decimal point, don't force or snap — let user finish typing
+    if (!val || val.trim() === '' || val === '.') {
+      setDimensionWarning(null);
+      return;
+    }
+
+    const rawNum = parseFloat(val);
+    if (isNaN(rawNum) || rawNum <= 0) return;
+
+    const maxAllowed = activeAreaConfig.maxWidthInches || 12.0;
     if (rawNum > maxAllowed) {
       setDimensionWarning(`${activeAreaConfig.name} maximum width is ${maxAllowed}"`);
     } else {
       setDimensionWarning(null);
     }
 
-    const num = Math.max(1.0, Math.min(maxAllowed, rawNum));
-    const currentH = currentPlacementDesign?.heightInches || Math.min(activeAreaConfig.maxHeightInches || 14.0, 10);
+    const clampedW = Math.min(maxAllowed, rawNum);
 
-    if (isAspectLocked && currentPlacementDesign?.aspect) {
+    if (isAspectLocked) {
+      const currentH = currentPlacementDesign?.heightInches ?? defaultPlacementHeight;
+      const currentW = currentPlacementDesign?.widthInches ?? defaultPlacementWidth;
+      const aspect = currentPlacementDesign?.aspect || (currentW > 0 && currentH > 0 ? currentW / currentH : 1.0);
       const maxHAllowed = activeAreaConfig.maxHeightInches || 14.0;
-      const newH = Math.min(maxHAllowed, parseFloat((num / currentPlacementDesign.aspect).toFixed(2)));
-      handleUpdateDesignTransform({ widthInches: num, heightInches: newH });
+      const computedH = parseFloat((clampedW / aspect).toFixed(2));
+      const clampedH = Math.min(maxHAllowed, Math.max(0.5, computedH));
+
+      if (!isEditingHeight) {
+        setHeightInputStr(String(clampedH));
+      }
+      handleUpdateDesignTransform({ widthInches: clampedW, heightInches: clampedH, aspect });
     } else {
-      handleUpdateDesignTransform({ widthInches: num, heightInches: currentH });
+      // Unlocked: ONLY updates width, height remains 100% untouched
+      const currentH = currentPlacementDesign?.heightInches ?? defaultPlacementHeight;
+      const newAspect = currentH > 0 ? parseFloat((clampedW / currentH).toFixed(3)) : 1.0;
+      handleUpdateDesignTransform({ widthInches: clampedW, heightInches: currentH, aspect: newAspect });
     }
   };
 
-  // Physical Height Input in Inches
-  const handleHeightInchesChange = (val) => {
-    const rawNum = parseFloat(val) || 1.0;
-    const maxAllowed = activeAreaConfig.maxHeightInches || 14.0;
+  // Physical Width Input Blur (validation & final clamping)
+  const handleWidthBlur = () => {
+    setIsEditingWidth(false);
+    setDimensionWarning(null);
 
+    const maxAllowed = activeAreaConfig.maxWidthInches || 12.0;
+    const parsed = parseFloat(widthInputStr);
+
+    let finalW;
+    if (isNaN(parsed) || parsed <= 0) {
+      finalW = currentPlacementDesign?.widthInches ?? defaultPlacementWidth;
+    } else {
+      finalW = Math.max(0.5, Math.min(maxAllowed, parseFloat(parsed.toFixed(2))));
+    }
+
+    setWidthInputStr(String(finalW));
+
+    if (isAspectLocked) {
+      const currentH = currentPlacementDesign?.heightInches ?? defaultPlacementHeight;
+      const currentW = currentPlacementDesign?.widthInches ?? defaultPlacementWidth;
+      const aspect = currentPlacementDesign?.aspect || (currentW > 0 && currentH > 0 ? currentW / currentH : 1.0);
+      const maxHAllowed = activeAreaConfig.maxHeightInches || 14.0;
+      const finalH = Math.max(0.5, Math.min(maxHAllowed, parseFloat((finalW / aspect).toFixed(2))));
+      setHeightInputStr(String(finalH));
+      handleUpdateDesignTransform({ widthInches: finalW, heightInches: finalH, aspect });
+    } else {
+      const currentH = currentPlacementDesign?.heightInches ?? defaultPlacementHeight;
+      const newAspect = currentH > 0 ? parseFloat((finalW / currentH).toFixed(3)) : 1.0;
+      handleUpdateDesignTransform({ widthInches: finalW, heightInches: currentH, aspect: newAspect });
+    }
+  };
+
+  // Physical Height Input Change (allows free deleting, typing decimals, etc.)
+  const handleHeightInchesChange = (val) => {
+    setHeightInputStr(val);
+
+    if (!val || val.trim() === '' || val === '.') {
+      setDimensionWarning(null);
+      return;
+    }
+
+    const rawNum = parseFloat(val);
+    if (isNaN(rawNum) || rawNum <= 0) return;
+
+    const maxAllowed = activeAreaConfig.maxHeightInches || 14.0;
     if (rawNum > maxAllowed) {
       setDimensionWarning(`${activeAreaConfig.name} maximum height is ${maxAllowed}"`);
     } else {
       setDimensionWarning(null);
     }
 
-    const num = Math.max(1.0, Math.min(maxAllowed, rawNum));
-    const currentW = currentPlacementDesign?.widthInches || Math.min(activeAreaConfig.maxWidthInches || 12.0, 8);
+    const clampedH = Math.min(maxAllowed, rawNum);
 
-    if (isAspectLocked && currentPlacementDesign?.aspect) {
+    if (isAspectLocked) {
+      const currentH = currentPlacementDesign?.heightInches ?? defaultPlacementHeight;
+      const currentW = currentPlacementDesign?.widthInches ?? defaultPlacementWidth;
+      const aspect = currentPlacementDesign?.aspect || (currentW > 0 && currentH > 0 ? currentW / currentH : 1.0);
       const maxWAllowed = activeAreaConfig.maxWidthInches || 12.0;
-      const newW = Math.min(maxWAllowed, parseFloat((num * currentPlacementDesign.aspect).toFixed(2)));
-      handleUpdateDesignTransform({ heightInches: num, widthInches: newW });
+      const computedW = parseFloat((clampedH * aspect).toFixed(2));
+      const clampedW = Math.min(maxWAllowed, Math.max(0.5, computedW));
+
+      if (!isEditingWidth) {
+        setWidthInputStr(String(clampedW));
+      }
+      handleUpdateDesignTransform({ heightInches: clampedH, widthInches: clampedW, aspect });
     } else {
-      handleUpdateDesignTransform({ heightInches: num, widthInches: currentW });
+      // Unlocked: ONLY updates height, width remains 100% untouched
+      const currentW = currentPlacementDesign?.widthInches ?? defaultPlacementWidth;
+      const newAspect = clampedH > 0 ? parseFloat((currentW / clampedH).toFixed(3)) : 1.0;
+      handleUpdateDesignTransform({ heightInches: clampedH, widthInches: currentW, aspect: newAspect });
     }
+  };
+
+  // Physical Height Input Blur (validation & final clamping)
+  const handleHeightBlur = () => {
+    setIsEditingHeight(false);
+    setDimensionWarning(null);
+
+    const maxAllowed = activeAreaConfig.maxHeightInches || 14.0;
+    const parsed = parseFloat(heightInputStr);
+
+    let finalH;
+    if (isNaN(parsed) || parsed <= 0) {
+      finalH = currentPlacementDesign?.heightInches ?? defaultPlacementHeight;
+    } else {
+      finalH = Math.max(0.5, Math.min(maxAllowed, parseFloat(parsed.toFixed(2))));
+    }
+
+    setHeightInputStr(String(finalH));
+
+    if (isAspectLocked) {
+      const currentH = currentPlacementDesign?.heightInches ?? defaultPlacementHeight;
+      const currentW = currentPlacementDesign?.widthInches ?? defaultPlacementWidth;
+      const aspect = currentPlacementDesign?.aspect || (currentW > 0 && currentH > 0 ? currentW / currentH : 1.0);
+      const maxWAllowed = activeAreaConfig.maxWidthInches || 12.0;
+      const finalW = Math.max(0.5, Math.min(maxWAllowed, parseFloat((finalH * aspect).toFixed(2))));
+      setWidthInputStr(String(finalW));
+      handleUpdateDesignTransform({ heightInches: finalH, widthInches: finalW, aspect });
+    } else {
+      const currentW = currentPlacementDesign?.widthInches ?? defaultPlacementWidth;
+      const newAspect = finalH > 0 ? parseFloat((currentW / finalH).toFixed(3)) : 1.0;
+      handleUpdateDesignTransform({ heightInches: finalH, widthInches: currentW, aspect: newAspect });
+    }
+  };
+
+  // Stepper increment/decrement (+0.5" or -0.5")
+  const handleStepDimension = (dimension, delta) => {
+    const isW = dimension === 'width';
+    const currentVal = isW
+      ? parseFloat(widthInputStr) || (currentPlacementDesign?.widthInches ?? defaultPlacementWidth)
+      : parseFloat(heightInputStr) || (currentPlacementDesign?.heightInches ?? defaultPlacementHeight);
+    const newVal = Math.max(0.5, parseFloat((currentVal + delta).toFixed(1)));
+    if (isW) {
+      handleWidthInchesChange(String(newVal));
+    } else {
+      handleHeightInchesChange(String(newVal));
+    }
+  };
+
+  // Preset dimension applicator (standard quick choices)
+  const handleApplyDimensionPreset = (targetW, targetH) => {
+    const maxW = activeAreaConfig.maxWidthInches || 12.0;
+    const maxH = activeAreaConfig.maxHeightInches || 14.0;
+    const finalW = Math.max(0.5, Math.min(maxW, targetW));
+    const finalH = Math.max(0.5, Math.min(maxH, targetH));
+    setWidthInputStr(String(finalW));
+    setHeightInputStr(String(finalH));
+    const aspect = parseFloat((finalW / finalH).toFixed(3));
+    handleUpdateDesignTransform({ widthInches: finalW, heightInches: finalH, aspect });
   };
 
   // Form Validation (Strictly Name, WhatsApp/Mobile, Gmail/Email)
@@ -759,16 +945,16 @@ I would like to discuss this design with The PrintHub team.`;
         />
       )}
 
-      {/* 7-Step Breadcrumb Progress Bar */}
-      <div className={`${isLight ? 'bg-white border-b border-slate-200/90 shadow-sm' : 'bg-[#0a0e1c]/95 border-b border-slate-800'} px-4 py-3 sticky top-16 z-30 backdrop-blur-md`}>
+      {/* 7-Step Breadcrumb Progress Bar (Fear of God Architectural Atelier) */}
+      <div className={`${isLight ? 'bg-white/95 border-b border-fog-sand/90 shadow-sm' : 'bg-fog-950/95 border-b border-fog-900'} px-4 py-3 sticky top-16 z-30 backdrop-blur-md`}>
         <div className="max-w-[1500px] mx-auto flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
           {[
-            { step: 1, label: '1. PRODUCT' },
+            { step: 1, label: '1. SILHOUETTE' },
             { step: 2, label: '2. COLOUR' },
             { step: 3, label: '3. SIZE' },
             { step: 4, label: '4. PLACEMENT' },
-            { step: 5, label: '5. DESIGN' },
-            { step: 6, label: '6. PREVIEW' },
+            { step: 5, label: '5. ATELIER DESIGN' },
+            { step: 6, label: '6. 3D PREVIEW' },
             { step: 7, label: '7. SUBMIT' },
           ].map((s) => (
             <button
@@ -779,22 +965,22 @@ I would like to discuss this design with The PrintHub team.`;
                   setCurrentStep(s.step);
                 }
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wider shrink-0 transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-mono tracking-[0.16em] uppercase shrink-0 transition-all ${
                 currentStep === s.step
                   ? isLight
-                    ? 'bg-slate-900 text-white font-black shadow-sm'
-                    : 'bg-lime-400 text-slate-950 font-black shadow-sm'
+                    ? 'bg-fog-950 text-white font-bold shadow-sm'
+                    : 'bg-white text-fog-950 font-bold shadow-sm'
                   : currentStep > s.step
                   ? isLight
-                    ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                    : 'bg-slate-900 border border-slate-800 text-lime-400 hover:text-white'
+                    ? 'bg-stone-100 border border-stone-200 text-stone-800 hover:bg-stone-200'
+                    : 'bg-fog-900 border border-fog-800 text-fog-gold hover:text-white'
                   : isLight
-                  ? 'text-slate-400 cursor-not-allowed'
-                  : 'text-slate-600 cursor-not-allowed'
+                  ? 'text-stone-400 cursor-not-allowed'
+                  : 'text-stone-600 cursor-not-allowed'
               }`}
             >
               <span>{s.label}</span>
-              {currentStep > s.step && <Check className="w-3 h-3 text-emerald-500" />}
+              {currentStep > s.step && <Check className="w-3 h-3 text-fog-gold" />}
             </button>
           ))}
         </div>
@@ -1105,8 +1291,8 @@ I would like to discuss this design with The PrintHub team.`;
             </button>
             <button
               type="button"
-              onClick={() => setCurrentStep(5)}
-              className={`px-8 py-3 rounded-xl ${isLight ? 'bg-slate-900 hover:bg-indigo-600 text-white shadow-lg' : 'bg-lime-400 hover:bg-lime-300 text-slate-950 shadow-lg'} font-black text-xs uppercase tracking-wider flex items-center gap-2 font-display transition-all`}
+              onClick={handleProceedToDesignStep}
+              className={`px-8 py-3 rounded-xl ${isLight ? 'bg-slate-900 hover:bg-indigo-600 text-white shadow-lg' : 'bg-lime-400 hover:bg-lime-300 text-slate-950 shadow-lg'} font-black text-xs uppercase tracking-wider flex items-center gap-2 font-display transition-all cursor-pointer`}
             >
               <span>Next: Upload & Design</span>
               <ArrowRight className="w-4 h-4" />
@@ -1118,39 +1304,121 @@ I would like to discuss this design with The PrintHub team.`;
       {/* STEP 5: INTERACTIVE DESIGN STUDIO (CORE CANVAS + TOOLS) */}
       {currentStep === 5 && (
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 animate-in fade-in">
-          {/* Active Placement Switcher Tabs */}
-          <div className={`flex items-center justify-between gap-2 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-3 overflow-x-auto no-scrollbar`}>
-            <div className="flex items-center gap-2">
-              <span className={`text-xs font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'} font-bold hidden sm:inline`}>ACTIVE AREA:</span>
-              {selectedPlacementIds.map((id) => {
-                const area = availablePrintAreas.find((a) => a.id === id);
-                const isActive = activePlacementId === id;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => switchActivePlacement(id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
-                      isActive
-                        ? isLight
-                          ? 'bg-[#6C4DF6] text-white font-black shadow-sm'
-                          : 'bg-cyan-500 text-slate-950 font-black shadow-sm'
-                        : isLight
-                        ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                        : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    <span>📍 {area?.name || id}</span>
-                  </button>
-                );
-              })}
+          {/* Dynamic Placement Selector Bar: Dropdown + Quick Pills + Side Flip + 360 View */}
+          <div className={`p-4 rounded-2xl ${isLight ? 'bg-white border border-slate-200/90 shadow-sm' : 'bg-[#0c101d] border border-slate-800'} flex flex-col md:flex-row items-start md:items-center justify-between gap-4`}>
+            {/* Left: Dropdown Button Selector & Quick Pills */}
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-xl ${isLight ? 'bg-indigo-50 text-indigo-600' : 'bg-lime-400/15 text-lime-400'} flex items-center justify-center shrink-0`}>
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className={`text-[10px] font-mono uppercase font-black tracking-wider block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Choose Placement To Edit
+                  </span>
+                  <div className="relative inline-block mt-0.5">
+                    <select
+                      value={activePlacementId}
+                      onChange={(e) => {
+                        const newId = e.target.value;
+                        if (!selectedPlacementIds.includes(newId)) {
+                          setSelectedPlacementIds((prev) => [...prev, newId]);
+                        }
+                        switchActivePlacement(newId);
+                      }}
+                      className={`appearance-none cursor-pointer pl-3 pr-9 py-1.5 rounded-xl font-mono text-xs font-bold transition-all shadow-sm focus:outline-none ${
+                        isLight
+                          ? 'bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-900 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20'
+                          : 'bg-slate-900 hover:bg-slate-850 border border-slate-700 text-white focus:border-lime-400 focus:ring-2 focus:ring-lime-400/20'
+                      }`}
+                    >
+                      <optgroup label={`Your Selected Placements (${selectedPlacementIds.length})`}>
+                        {selectedPlacementIds.map((id) => {
+                          const area = availablePrintAreas.find((a) => a.id === id);
+                          const hasArtwork = Boolean(placementDesigns[id]?.dataUrl || placementDesigns[id]?.text);
+                          const sideLabel = (area?.surface || 'front').toUpperCase();
+                          return (
+                            <option key={id} value={id}>
+                              {area?.name || id} • [{sideLabel}] {hasArtwork ? '✓ Artwork Added' : '○ Ready for Artwork'}
+                            </option>
+                          );
+                        })}
+                      </optgroup>
+                      {availablePrintAreas.filter((a) => !selectedPlacementIds.includes(a.id)).length > 0 && (
+                        <optgroup label="Other Available Placements">
+                          {availablePrintAreas
+                            .filter((a) => !selectedPlacementIds.includes(a.id))
+                            .map((area) => (
+                              <option key={area.id} value={area.id}>
+                                + {area.name} • [{(area.surface || 'front').toUpperCase()}]
+                              </option>
+                            ))}
+                        </optgroup>
+                      )}
+                    </select>
+                    <ChevronDown className={`w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${isLight ? 'text-slate-500' : 'text-slate-400'}`} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Switch Pills for Selected Areas */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {selectedPlacementIds.map((id) => {
+                  const area = availablePrintAreas.find((a) => a.id === id);
+                  const isActive = activePlacementId === id;
+                  const hasArtwork = Boolean(placementDesigns[id]?.dataUrl || placementDesigns[id]?.text);
+                  const side = area?.surface || 'front';
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => switchActivePlacement(id)}
+                      className={`group px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        isActive
+                          ? isLight
+                            ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-300'
+                            : 'bg-lime-400 text-slate-950 font-black shadow-[0_0_15px_rgba(163,230,53,0.35)] ring-2 ring-lime-300'
+                          : isLight
+                          ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200'
+                          : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:text-white'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? (isLight ? 'bg-white' : 'bg-slate-950') : hasArtwork ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                      <span>{area?.name?.split('(')[0]?.trim() || id}</span>
+                      <span className={`text-[9px] px-1 py-0.2 rounded uppercase font-mono ${isActive ? (isLight ? 'bg-indigo-700/50 text-indigo-100' : 'bg-slate-950/20 text-slate-950') : 'text-slate-400'}`}>
+                        {side}
+                      </span>
+                      {hasArtwork && <Check className="w-3 h-3 text-emerald-400" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Right Controls: Viewing Angle Badge & 360 View */}
+            <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(4)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-colors ${
+                  isLight ? 'text-slate-600 hover:text-indigo-600 hover:bg-slate-100' : 'text-slate-400 hover:text-lime-400 hover:bg-slate-900'
+                }`}
+              >
+                ← Edit Placements
+              </button>
+
+              <div className={`px-3 py-1 rounded-xl text-xs font-mono font-bold border ${
+                activePlacementSide === 'back'
+                  ? isLight ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-950/30 text-amber-400 border-amber-800/40'
+                  : isLight ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : 'bg-cyan-950/30 text-cyan-400 border-cyan-800/40'
+              }`}>
+                Viewing: <span className="uppercase font-black">{activePlacementSide}</span>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setIs360Active(true)}
-                className={`px-3 py-1.5 rounded-xl ${isLight ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm' : 'bg-slate-900 border border-slate-800 text-cyan-400 hover:text-white'} text-xs font-mono flex items-center gap-1.5`}
+                className={`px-3 py-1.5 rounded-xl ${isLight ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm' : 'bg-slate-900 border border-slate-800 text-cyan-400 hover:text-white'} text-xs font-mono flex items-center gap-1.5 cursor-pointer`}
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>360° View</span>
@@ -1161,8 +1429,8 @@ I would like to discuss this design with The PrintHub team.`;
           {/* Studio Workspace: Left Canvas + Right Controls */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Center / Left Interactive Canvas (7 Cols) */}
-            <div className={`lg:col-span-7 ${isLight ? 'bg-white border border-slate-200/90 shadow-sm' : 'bg-[#0a0e1a] border border-slate-800'} rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center relative min-h-[480px]`}>
-              <div className="w-full max-w-[460px] aspect-square relative flex items-center justify-center">
+            <div className={`lg:col-span-7 ${isLight ? 'bg-white border border-slate-200/90 shadow-sm' : 'bg-[#0a0e1a] border border-slate-800'} rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center relative min-h-[580px]`}>
+              <div className="w-full max-w-[580px] aspect-square relative flex items-center justify-center">
                 <InteractiveMockupStage
                   product={activeProduct}
                   color={customizerColor}
@@ -1249,52 +1517,167 @@ I would like to discuss this design with The PrintHub team.`;
                 )}
               </div>
 
-              {/* Physical Print Dimensions (Inches) */}
+              {/* Dynamic Physical Print Dimensions (Inches) */}
               <div className={`p-5 rounded-2xl ${isLight ? 'bg-white border border-slate-200/90 shadow-sm' : 'bg-[#0c101d] border border-slate-800'} space-y-4`}>
-                <div className="flex items-center justify-between">
-                  <h3 className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'} uppercase font-display flex items-center gap-2`}>
-                    <Printer className={`w-4 h-4 ${isLight ? 'text-indigo-600' : 'text-cyan-400'}`} />
-                    <span>Physical Print Dimensions</span>
-                  </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3 border-slate-100 dark:border-slate-800/80">
+                  <div>
+                    <h3 className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'} uppercase font-display flex items-center gap-2`}>
+                      <Printer className={`w-4 h-4 ${isLight ? 'text-indigo-600' : 'text-cyan-400'}`} />
+                      <span>Physical Print Dimensions</span>
+                    </h3>
+                    <p className={`text-[10px] font-mono mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                      {isAspectLocked
+                        ? '🔒 Proportions locked. Click button to unlock free measurements.'
+                        : '🔓 Free sizing active. Enter custom width & height freely, then lock if desired.'}
+                    </p>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setIsAspectLocked(!isAspectLocked)}
-                    className={`flex items-center gap-1 text-[10px] font-mono ${isLight ? 'text-slate-500 hover:text-slate-900' : 'text-slate-400 hover:text-white'}`}
+                    onClick={handleToggleAspectLock}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-mono tracking-wider transition-all border shadow-sm self-start sm:self-auto ${
+                      isAspectLocked
+                        ? isLight
+                          ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-bold'
+                          : 'bg-indigo-950/80 border-indigo-700 text-indigo-300 font-bold'
+                        : isLight
+                        ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400'
+                        : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:border-slate-500'
+                    }`}
+                    title={isAspectLocked ? "Click to unlock free custom measurements" : "Click to lock current Width:Height ratio"}
                   >
-                    {isAspectLocked ? <Lock className="w-3 h-3 text-indigo-500" /> : <Unlock className="w-3 h-3" />}
-                    <span>{isAspectLocked ? 'Aspect Locked' : 'Unlocked'}</span>
+                    {isAspectLocked ? <Lock className="w-3.5 h-3.5 text-indigo-500" /> : <Unlock className="w-3.5 h-3.5 text-slate-400" />}
+                    <span>{isAspectLocked ? 'Aspect Ratio Locked' : 'Free Sizing (Click to Lock)'}</span>
                   </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
+                  {/* Width Input with +/- steppers */}
                   <div>
-                    <label className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'} uppercase block mb-1 font-bold`}>
-                      Width (Inches)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="1"
-                      max={activeAreaConfig.maxWidthInches || 12}
-                      value={currentPlacementDesign?.widthInches ?? Math.min(10, activeAreaConfig.maxWidthInches || 12)}
-                      onChange={(e) => handleWidthInchesChange(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl ${isLight ? 'bg-slate-50 border border-slate-200 text-slate-900 focus:border-indigo-500 focus:bg-white' : 'bg-slate-950 border border-slate-800 text-white focus:border-cyan-400'} font-mono text-sm focus:outline-none`}
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'} uppercase font-bold`}>
+                        Width (Inches)
+                      </label>
+                      <span className="text-[9px] font-mono text-slate-400">max {activeAreaConfig.maxWidthInches || 12}"</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleStepDimension('width', -0.5)}
+                        className={`w-7 h-9 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 border ${
+                          isLight
+                            ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
+                            : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                        }`}
+                        title="Decrease width by 0.5 inches"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={widthInputStr}
+                        onFocus={() => setIsEditingWidth(true)}
+                        onBlur={handleWidthBlur}
+                        onChange={(e) => handleWidthInchesChange(e.target.value)}
+                        placeholder="e.g. 8"
+                        className={`w-full px-2.5 py-1.5 rounded-lg text-center ${
+                          isLight
+                            ? 'bg-slate-50 border border-slate-200 text-slate-900 focus:border-indigo-500 focus:bg-white'
+                            : 'bg-slate-950 border border-slate-800 text-white focus:border-cyan-400'
+                        } font-mono text-sm focus:outline-none transition-colors`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleStepDimension('width', 0.5)}
+                        className={`w-7 h-9 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 border ${
+                          isLight
+                            ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
+                            : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                        }`}
+                        title="Increase width by 0.5 inches"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Height Input with +/- steppers */}
                   <div>
-                    <label className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'} uppercase block mb-1 font-bold`}>
-                      Height (Inches)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="1"
-                      max={activeAreaConfig.maxHeightInches || 14}
-                      value={currentPlacementDesign?.heightInches ?? Math.min(6, activeAreaConfig.maxHeightInches || 14)}
-                      onChange={(e) => handleHeightInchesChange(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl ${isLight ? 'bg-slate-50 border border-slate-200 text-slate-900 focus:border-indigo-500 focus:bg-white' : 'bg-slate-950 border border-slate-800 text-white focus:border-cyan-400'} font-mono text-sm focus:outline-none`}
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'} uppercase font-bold`}>
+                        Height (Inches)
+                      </label>
+                      <span className="text-[9px] font-mono text-slate-400">max {activeAreaConfig.maxHeightInches || 14}"</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleStepDimension('height', -0.5)}
+                        className={`w-7 h-9 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 border ${
+                          isLight
+                            ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
+                            : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                        }`}
+                        title="Decrease height by 0.5 inches"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={heightInputStr}
+                        onFocus={() => setIsEditingHeight(true)}
+                        onBlur={handleHeightBlur}
+                        onChange={(e) => handleHeightInchesChange(e.target.value)}
+                        placeholder="e.g. 10"
+                        className={`w-full px-2.5 py-1.5 rounded-lg text-center ${
+                          isLight
+                            ? 'bg-slate-50 border border-slate-200 text-slate-900 focus:border-indigo-500 focus:bg-white'
+                            : 'bg-slate-950 border border-slate-800 text-white focus:border-cyan-400'
+                        } font-mono text-sm focus:outline-none transition-colors`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleStepDimension('height', 0.5)}
+                        className={`w-7 h-9 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 border ${
+                          isLight
+                            ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
+                            : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                        }`}
+                        title="Increase height by 0.5 inches"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
+                </div>
+
+                {/* Quick Presets Strip */}
+                <div className="pt-1 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mr-1">Presets:</span>
+                  {[
+                    { label: '3.5" × 3.5"', w: 3.5, h: 3.5 },
+                    { label: '8" × 10"', w: 8, h: 10 },
+                    { label: '10" × 12"', w: 10, h: 12 },
+                    {
+                      label: `Max (${activeAreaConfig.maxWidthInches || 12}" × ${activeAreaConfig.maxHeightInches || 14}")`,
+                      w: activeAreaConfig.maxWidthInches || 12,
+                      h: activeAreaConfig.maxHeightInches || 14,
+                    },
+                  ].map((preset, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleApplyDimensionPreset(preset.w, preset.h)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors border ${
+                        isLight
+                          ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'
+                          : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
                 </div>
 
                 {dimensionWarning && (

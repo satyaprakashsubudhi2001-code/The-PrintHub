@@ -13,229 +13,247 @@ import {
 import { useStore } from '../../context/StoreContext';
 
 /**
- * The PrintHub — Studio Footer
- * Focused on custom design exploration, production capabilities, studio contact & WhatsApp handoff.
+ * The PrintHub — Atelier Luxury Footer (Fear of God & AllSaints Aesthetic)
+ * Minimalist monochrome tones, architectural typography, material standards & atelier contact.
  */
 export function Footer() {
   const { storeSettings, navigateTo, themeMode } = useStore();
   const isLight = themeMode === 'light';
 
   return (
-    <footer className={`border-t select-none pt-12 pb-12 w-full transition-colors duration-300 ${
+    <footer className={`border-t select-none pt-14 pb-14 w-full transition-colors duration-300 ${
       isLight
-        ? 'bg-white border-slate-200 text-slate-600'
-        : 'bg-[#05050A] border-white/[0.08] text-slate-400'
+        ? 'bg-fog-stone border-fog-sand text-stone-600'
+        : 'bg-fog-950 border-fog-900 text-stone-400'
     }`}>
-      {/* Top Value Badges Bar */}
-      <div className={`max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pb-10 border-b ${
-        isLight ? 'border-slate-200' : 'border-white/[0.08]'
+      {/* Top Value Badges Bar — Understated Luxury Standards */}
+      <div className={`max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b ${
+        isLight ? 'border-fog-sand' : 'border-fog-900'
       }`}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#6C4DF6]/10 text-[#06B6D4] flex items-center justify-center shrink-0 border border-[#6C4DF6]/20">
-              <Sparkles className="w-5 h-5" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="flex items-center gap-3.5">
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+              isLight ? 'bg-white border-stone-200 text-fog-950 shadow-sm' : 'bg-fog-900 border-fog-800 text-fog-gold'
+            }`}>
+              <Sparkles className="w-4 h-4 text-fog-gold" />
             </div>
             <div>
-              <h4 className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Ultra-HD 300 DPI DTF</h4>
-              <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Vibrant, stretchable, durable print</p>
+              <h4 className={`text-xs font-mono font-bold tracking-wider uppercase ${isLight ? 'text-fog-950' : 'text-fog-bone'}`}>
+                300 DPI Thermal DTF
+              </h4>
+              <p className="text-[11px] text-stone-500 font-sans">High-density stretchable pigmentation</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
-              <Layers className="w-5 h-5" />
+          <div className="flex items-center gap-3.5">
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+              isLight ? 'bg-white border-stone-200 text-fog-950 shadow-sm' : 'bg-fog-900 border-fog-800 text-fog-gold'
+            }`}>
+              <Layers className="w-4 h-4 text-fog-gold" />
             </div>
             <div>
-              <h4 className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Multi-Location Printing</h4>
-              <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Chest, back, sleeves & wrap prints</p>
+              <h4 className={`text-xs font-mono font-bold tracking-wider uppercase ${isLight ? 'text-fog-950' : 'text-fog-bone'}`}>
+                Multi-Panel Placement
+              </h4>
+              <p className="text-[11px] text-stone-500 font-sans">Calibrated front, back & sleeve zones</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 flex items-center justify-center shrink-0 border border-cyan-500/20">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="flex items-center gap-3.5">
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+              isLight ? 'bg-white border-stone-200 text-fog-950 shadow-sm' : 'bg-fog-900 border-fog-800 text-fog-gold'
+            }`}>
+              <ShieldCheck className="w-4 h-4 text-fog-gold" />
             </div>
             <div>
-              <h4 className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Zero Minimum Orders</h4>
-              <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Sample single piece to bulk orders</p>
+              <h4 className={`text-xs font-mono font-bold tracking-wider uppercase ${isLight ? 'text-fog-950' : 'text-fog-bone'}`}>
+                Zero MOQ Threshold
+              </h4>
+              <p className="text-[11px] text-stone-500 font-sans">Single bespoke prototype to bulk drops</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
-              <Award className="w-5 h-5" />
+          <div className="flex items-center gap-3.5">
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+              isLight ? 'bg-white border-stone-200 text-fog-950 shadow-sm' : 'bg-fog-900 border-fog-800 text-fog-gold'
+            }`}>
+              <Award className="w-4 h-4 text-fog-gold" />
             </div>
             <div>
-              <h4 className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Realistic 3D & 2D Studio</h4>
-              <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Calibrated physical inches preview</p>
+              <h4 className={`text-xs font-mono font-bold tracking-wider uppercase ${isLight ? 'text-fog-950' : 'text-fog-bone'}`}>
+                3D Physical Mannequin
+              </h4>
+              <p className="text-[11px] text-stone-500 font-sans">Dual-axis interactive live draping</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Footer Links */}
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {/* Brand & Studio Overview */}
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        {/* Brand & Atelier Overview */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-blue-600 to-cyan-400 flex items-center justify-center text-white text-base font-black shadow-lg shadow-cyan-500/20">
-              {storeSettings.logoText || 'PH'}
+            <div className={`w-9 h-9 rounded-xl border flex items-center justify-center font-display font-light text-xs tracking-widest ${
+              isLight ? 'bg-fog-950 text-white border-fog-950' : 'bg-white text-fog-950 border-white'
+            }`}>
+              PH
             </div>
             <div>
-              <h3 className={`font-display text-lg font-black ${isLight ? 'text-slate-950' : 'text-white'}`}>
-                {storeSettings.storeName}
+              <h3 className={`font-display text-sm font-semibold tracking-[0.2em] uppercase ${
+                isLight ? 'text-fog-950' : 'text-white'
+              }`}>
+                THE PRINTHUB
               </h3>
-              <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{storeSettings.tagline}</p>
+              <p className="text-[10px] font-mono tracking-widest uppercase text-fog-gold">ATELIER MERCHANDISE</p>
             </div>
           </div>
 
-          <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            India’s dedicated custom merchandise studio. Explore apparel blanks, create your concepts in our interactive studio, and submit your design requests directly to our production team.
+          <p className="text-xs leading-relaxed text-stone-500 font-sans font-light">
+            India's bespoke custom merchandise atelier. Engineered silhouettes, precision scale calibration in physical inches, and master artisan finishing.
           </p>
 
-          {/* CMYK Color Mark */}
-          <div className="flex items-center gap-2 pt-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-            <span className="w-2.5 h-2.5 rounded-full bg-pink-500" />
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-            <span className={`w-2.5 h-2.5 rounded-full ${isLight ? 'bg-slate-900' : 'bg-white'}`} />
-            <span className="text-[10px] font-mono text-slate-500 uppercase ml-1">ISO 12647 PRINT CALIBRATED</span>
+          {/* Minimal Industrial Certification Mark */}
+          <div className="flex items-center gap-2 pt-2">
+            <span className="w-2 h-2 rounded-full bg-fog-gold" />
+            <span className="text-[10px] font-mono tracking-widest text-stone-400 uppercase">
+              ISO 12647-7 COLOR CERTIFIED
+            </span>
           </div>
         </div>
 
-        {/* Product Blanks */}
-        <div className="space-y-3">
-          <h4 className={`text-xs font-bold uppercase tracking-wider font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            Custom Product Blanks
+        {/* Product Silhouettes */}
+        <div className="space-y-3.5">
+          <h4 className="text-[11px] font-mono tracking-[0.2em] uppercase text-fog-gold block">
+            Bespoke Silhouettes
           </h4>
-          <ul className={`space-y-2 text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <ul className="space-y-2.5 text-xs font-sans text-stone-500">
             <li>
               <button
                 onClick={() => navigateTo('products')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                👕 Regular Fit Round Neck T-Shirt
+                240 GSM Oversized Streetwear Tee
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('products')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                🔥 Oversized Heavyweight T-Shirt
+                180 GSM Bio-Washed Combed Cotton Blank
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('products')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                👔 Classic Matty Pique Polo
+                Classic Matty Pique Polo
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('products')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                🧥 380 GSM Pullover Fleece Hoodie
+                380 GSM Heavy French Terry Hoodie
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('products')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                ☕ Ceramic Mugs & Coffee Drinkware
+                AAA Ceramic & Matte Black Vessels
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('products')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                🧢 Snapback Caps & Badges
+                Structured 6-Panel Snapback Caps
               </button>
             </li>
           </ul>
         </div>
 
-        {/* Studio Workflow */}
-        <div className="space-y-3">
-          <h4 className={`text-xs font-bold uppercase tracking-wider font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            How It Works
+        {/* Atelier Workflow */}
+        <div className="space-y-3.5">
+          <h4 className="text-[11px] font-mono tracking-[0.2em] uppercase text-fog-gold block">
+            Atelier Navigation
           </h4>
-          <ul className={`space-y-2 text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <ul className="space-y-2.5 text-xs font-sans text-stone-500">
             <li>
               <button
                 onClick={() => navigateTo('design-by-customer')}
-                className="text-cyan-700 dark:text-lime-400 hover:underline transition-colors font-semibold"
+                className="font-medium text-fog-950 dark:text-fog-stone hover:underline transition-colors flex items-center gap-1.5"
               >
-                ✨ Open Interactive Design Studio
+                <Sparkles className="w-3 h-3 text-fog-gold" />
+                <span>Open 3D Customizer Studio</span>
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('about-us')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                🏭 Printing Technologies & Factory
+                Printing Technologies & Facility
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('help')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                💬 WhatsApp & Gmail Support
+                WhatsApp Direct Concierge
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('help')}
-                className={`transition-colors ${isLight ? 'hover:text-cyan-700' : 'hover:text-white'}`}
+                className={`transition-colors ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
               >
-                ❓ Frequently Asked Questions
+                Frequently Asked Inquiries
               </button>
             </li>
             <li>
               <button
                 onClick={() => navigateTo('admin-login')}
-                className={`transition-colors flex items-center gap-1 mt-3 ${
-                  isLight ? 'text-slate-500 hover:text-cyan-700' : 'text-slate-500 hover:text-cyan-400'
-                }`}
+                className="flex items-center gap-1.5 pt-2 text-stone-400 hover:text-fog-gold transition-colors font-mono text-[11px]"
               >
                 <Lock className="w-3 h-3" />
-                <span>Admin Command Center</span>
+                <span>Atelier Command Portal</span>
               </button>
             </li>
           </ul>
         </div>
 
-        {/* Contact Facility */}
-        <div className="space-y-3">
-          <h4 className={`text-xs font-bold uppercase tracking-wider font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            Contact Production Facility
+        {/* Production Facility */}
+        <div className="space-y-3.5">
+          <h4 className="text-[11px] font-mono tracking-[0.2em] uppercase text-fog-gold block">
+            Production Facility
           </h4>
-          <div className={`space-y-2.5 text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <div className="space-y-3 text-xs text-stone-500 font-sans">
             <div className="flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-[#06B6D4] shrink-0 mt-0.5" />
+              <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
               <span>{storeSettings.address}</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
-              <a href={`tel:${storeSettings.phone}`} className={isLight ? 'hover:text-slate-900' : 'hover:text-white'}>
+              <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+              <a href={`tel:${storeSettings.phone}`} className={isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}>
                 {storeSettings.phone}
               </a>
             </div>
             <div className="flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-[#EC4899] shrink-0" />
-              <a href={`mailto:${storeSettings.email}`} className={isLight ? 'hover:text-slate-900' : 'hover:text-white'}>
+              <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+              <a href={`mailto:${storeSettings.email}`} className={isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}>
                 {storeSettings.email}
               </a>
             </div>
             <div className="flex items-center gap-2.5">
-              <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+              <Clock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
               <span>{storeSettings.workingHours}</span>
             </div>
           </div>
@@ -243,20 +261,20 @@ export function Footer() {
       </div>
 
       {/* Copyright Sub-bar */}
-      <div className={`max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs ${
+      <div className={`max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono tracking-wider ${
         isLight
-          ? 'border-slate-200 text-slate-500'
-          : 'border-white/[0.06] text-slate-500'
+          ? 'border-fog-sand text-stone-500'
+          : 'border-fog-900 text-stone-500'
       }`}>
         <div>
-          © {new Date().getFullYear()} {storeSettings.storeName} Studio. All rights reserved. Custom Product Design & Manufacturing.
+          © {new Date().getFullYear()} {storeSettings.storeName} ATELIER. ALL RIGHTS RESERVED.
         </div>
-        <div className={`flex items-center gap-4 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-          <button onClick={() => navigateTo('about-us')} className={isLight ? 'hover:text-slate-950' : 'hover:text-white'}>About Us</button>
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigateTo('about-us')} className={isLight ? 'hover:text-fog-950' : 'hover:text-white'}>About Us</button>
           <span>•</span>
-          <button onClick={() => navigateTo('help')} className={isLight ? 'hover:text-slate-950' : 'hover:text-white'}>Support & FAQ</button>
+          <button onClick={() => navigateTo('help')} className={isLight ? 'hover:text-fog-950' : 'hover:text-white'}>Support</button>
           <span>•</span>
-          <button onClick={() => navigateTo('admin-login')} className={isLight ? 'hover:text-cyan-700' : 'hover:text-cyan-400'}>Staff Portal</button>
+          <button onClick={() => navigateTo('admin-login')} className="hover:text-fog-gold">Staff Portal</button>
         </div>
       </div>
     </footer>
@@ -264,3 +282,4 @@ export function Footer() {
 }
 
 export default Footer;
+

@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --brand-purple: #6C4DF6;
-  --brand-blue: #2563EB;
-  --brand-cyan: #06B6D4;
-  --brand-pink: #EC4899;
-  --brand-orange: #F97316;
-  --brand-yellow: #FACC15;
-  --bg-dark-base: #080812;
-  --bg-dark-surface: #0B0B18;
-  --bg-dark-card: #101022;
-  --bg-dark-elevated: #16162E;
+  --brand-purple: #16161A;
+  --brand-blue: #0A0A0C;
+  --brand-cyan: #C8B896;
+  --brand-pink: #8A8782;
+  --brand-orange: #C8B896;
+  --brand-yellow: #D4AF37;
+  --bg-dark-base: #0A0A0C;
+  --bg-dark-surface: #111114;
+  --bg-dark-card: #16161A;
+  --bg-dark-elevated: #1E1E24;
 }
 
 html {
@@ -22,12 +22,12 @@ html {
   box-sizing: border-box;
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
-  background-color: #F8F9FC;
+  background-color: #FAF9F6;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html.dark {
-  background-color: #080812;
+  background-color: #0A0A0C;
 }
 
 *, *:before, *:after {
@@ -40,8 +40,8 @@ body {
   width: 100%;
   max-width: 100vw;
   min-height: 100%;
-  background-color: #F8F9FC;
-  color: #0F172A;
+  background-color: #FAF9F6;
+  color: #0E0E10;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -49,23 +49,23 @@ body {
 }
 
 html.dark body {
-  background-color: #080812;
-  color: #FFFFFF;
+  background-color: #0A0A0C;
+  color: #F5F4F0;
 }
 
 /* Studio Surfaces & Card styles */
 .studio-dark-base {
-  background-color: #080812;
-  color: #FFFFFF;
+  background-color: #0A0A0C;
+  color: #F5F4F0;
 }
 
 html.light .studio-dark-base {
-  background-color: #F8F9FC;
-  color: #0F172A;
+  background-color: #FAF9F6;
+  color: #0E0E10;
 }
 
 .studio-dark-card {
-  background-color: #101022;
+  background-color: #16161A;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
   transition: all 0.3s ease;
@@ -73,9 +73,9 @@ html.light .studio-dark-base {
 
 html.light .studio-dark-card {
   background-color: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-  color: #0F172A;
+  border: 1px solid #EAE7E1;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03);
+  color: #0E0E10;
 }
 
 .studio-dark-card-hover {
@@ -83,9 +83,9 @@ html.light .studio-dark-card {
 }
 
 .studio-dark-card-hover:hover {
-  transform: translateY(-4px);
-  border-color: rgba(108, 77, 246, 0.5);
-  box-shadow: 0 20px 40px -10px rgba(108, 77, 246, 0.25), 0 0 20px -5px rgba(6, 182, 212, 0.2);
+  transform: translateY(-3px);
+  border-color: #C8B896;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.35);
 }
 
 /* CMYK registration marks & print patterns */
@@ -117,29 +117,69 @@ html.light .print-grid-bg {
   background-size: 16px 16px;
 }
 
-/* Glow effects */
-.glow-purple {
-  box-shadow: 0 0 35px -5px rgba(108, 77, 246, 0.4);
+/* High-Fashion Luxury Typography & Button Utilities */
+.tracking-fashion {
+  letter-spacing: 0.22em;
 }
 
-.glow-cyan {
-  box-shadow: 0 0 35px -5px rgba(6, 182, 212, 0.4);
+.tracking-fashion-wide {
+  letter-spacing: 0.32em;
 }
 
-.glow-pink {
-  box-shadow: 0 0 35px -5px rgba(236, 72, 153, 0.4);
+.btn-luxury-primary {
+  background-color: #0E0E10;
+  color: #FAF9F6;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.text-gradient-purple-cyan {
-  background: linear-gradient(135deg, #6C4DF6 0%, #2563EB 50%, #06B6D4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.btn-luxury-primary:hover {
+  background-color: #232328;
+  transform: translateY(-1px);
 }
 
-.text-gradient-pink-orange {
-  background: linear-gradient(135deg, #EC4899 0%, #F97316 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+html.dark .btn-luxury-primary {
+  background-color: #FAF9F6;
+  color: #0A0A0C;
+}
+
+html.dark .btn-luxury-primary:hover {
+  background-color: #EAE7E1;
+  color: #0A0A0C;
+}
+
+.btn-luxury-ghost {
+  border: 1px solid #0E0E10;
+  color: #0E0E10;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-luxury-ghost:hover {
+  background-color: #0E0E10;
+  color: #FAF9F6;
+  transform: translateY(-1px);
+}
+
+html.dark .btn-luxury-ghost {
+  border: 1px solid #FAF9F6;
+  color: #FAF9F6;
+}
+
+html.dark .btn-luxury-ghost:hover {
+  background-color: #FAF9F6;
+  color: #0A0A0C;
+}
+
+/* Subtle Champagne Gold Glow */
+.glow-gold {
+  box-shadow: 0 0 30px -5px rgba(200, 184, 150, 0.3);
 }
 
 /* Custom Scrollbars */
