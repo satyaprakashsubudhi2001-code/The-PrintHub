@@ -31,6 +31,7 @@ import {
   Type,
   Copy,
   RefreshCw,
+  Box,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { INITIAL_PRODUCTS, DEFAULT_PRESET_PRODUCTS } from '../../constants/products';
@@ -131,7 +132,7 @@ export function DesignByCustomerView() {
   }, []);
 
   // Standard sizes for active product
-  const sizesList = activeProduct.sizes || ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+  const sizesList = activeProduct?.sizes || ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 
   // Initialize placements when product loads
   useEffect(() => {
@@ -143,15 +144,15 @@ export function DesignByCustomerView() {
         setActivePlacementSide(defaultArea.surface || defaultArea.section || 'front');
       }
     }
-  }, [activeProduct.id, availablePrintAreas, selectedPlacementIds.length]);
+  }, [activeProduct?.id, availablePrintAreas, selectedPlacementIds.length]);
 
   // Active Placement Calibration
   const activeAreaConfig = useMemo(() => {
     return (
-      getCalibratedPrintArea(activeProduct.id, selectedSize || 'L', activePlacementId) ||
+      (activeProduct?.id && getCalibratedPrintArea(activeProduct.id, selectedSize || 'L', activePlacementId)) ||
       availablePrintAreas[0] || { maxWidthInches: 12, maxHeightInches: 14, name: 'Print Area' }
     );
-  }, [activeProduct.id, selectedSize, activePlacementId, availablePrintAreas]);
+  }, [activeProduct?.id, selectedSize, activePlacementId, availablePrintAreas]);
 
   // Current active placement design config
   const currentPlacementDesign = placementDesigns[activePlacementId] || null;
