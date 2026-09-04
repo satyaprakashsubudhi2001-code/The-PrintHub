@@ -209,6 +209,20 @@ export function DesignByCustomerView() {
     setActivePlacementSide(area.surface || area.section || 'front');
   };
 
+  // Synchronized Side Switcher (Front <-> Back with placement auto-selection)
+  const handleSideSwitch = useCallback(
+    (targetSide) => {
+      setActivePlacementSide(targetSide);
+      const matched = availablePrintAreas.find(
+        (a) => (a.surface || a.section || a.cameraView) === targetSide
+      );
+      if (matched && matched.id !== activePlacementId) {
+        setActivePlacementId(matched.id);
+      }
+    },
+    [availablePrintAreas, activePlacementId]
+  );
+
   // Handle Artwork File Upload (Supports PNG, JPG, JPEG, PDF)
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files || []);
@@ -396,12 +410,14 @@ export function DesignByCustomerView() {
     }
 
     const num = Math.max(1.0, Math.min(maxAllowed, rawNum));
+    const currentH = currentPlacementDesign?.heightInches || Math.min(activeAreaConfig.maxHeightInches || 14.0, 10);
+
     if (isAspectLocked && currentPlacementDesign?.aspect) {
       const maxHAllowed = activeAreaConfig.maxHeightInches || 14.0;
       const newH = Math.min(maxHAllowed, parseFloat((num / currentPlacementDesign.aspect).toFixed(2)));
       handleUpdateDesignTransform({ widthInches: num, heightInches: newH });
     } else {
-      handleUpdateDesignTransform({ widthInches: num });
+      handleUpdateDesignTransform({ widthInches: num, heightInches: currentH });
     }
   };
 
@@ -417,12 +433,14 @@ export function DesignByCustomerView() {
     }
 
     const num = Math.max(1.0, Math.min(maxAllowed, rawNum));
+    const currentW = currentPlacementDesign?.widthInches || Math.min(activeAreaConfig.maxWidthInches || 12.0, 8);
+
     if (isAspectLocked && currentPlacementDesign?.aspect) {
       const maxWAllowed = activeAreaConfig.maxWidthInches || 12.0;
       const newW = Math.min(maxWAllowed, parseFloat((num * currentPlacementDesign.aspect).toFixed(2)));
       handleUpdateDesignTransform({ heightInches: num, widthInches: newW });
     } else {
-      handleUpdateDesignTransform({ heightInches: num });
+      handleUpdateDesignTransform({ heightInches: num, widthInches: currentW });
     }
   };
 
@@ -1144,41 +1162,9 @@ I would like to discuss this design with The PrintHub team.`;
                   activePlacementId={activePlacementId}
                   designData={currentPlacementDesign}
                   onUpdateDesign={handleUpdateDesignTransform}
+                  onSideChange={handleSideSwitch}
+                  onOpenFileUpload={() => fileInputRef.current?.click()}
                 />
-              </div>
-
-              {/* Angle View Selector (Front, Back) */}
-              <div className={`flex items-center gap-2 mt-4 pt-3 border-t ${isLight ? 'border-slate-100' : 'border-slate-800/80'} w-full justify-center`}>
-                <button
-                  type="button"
-                  onClick={() => setActivePlacementSide('front')}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
-                    activePlacementSide === 'front'
-                      ? isLight
-                        ? 'bg-slate-900 text-white font-black'
-                        : 'bg-cyan-500 text-slate-950 font-black'
-                      : isLight
-                      ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      : 'bg-slate-900 text-slate-400'
-                  }`}
-                >
-                  FRONT
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActivePlacementSide('back')}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
-                    activePlacementSide === 'back'
-                      ? isLight
-                        ? 'bg-slate-900 text-white font-black'
-                        : 'bg-cyan-500 text-slate-950 font-black'
-                      : isLight
-                      ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      : 'bg-slate-900 text-slate-400'
-                  }`}
-                >
-                  BACK
-                </button>
               </div>
             </div>
 
@@ -1281,7 +1267,7 @@ I would like to discuss this design with The PrintHub team.`;
                       step="0.1"
                       min="1"
                       max={activeAreaConfig.maxWidthInches || 12}
-                      value={currentPlacementDesign?.widthInches || 8}
+                      value={currentPlacementDesign?.widthInches ?? Math.min(10, activeAreaConfig.maxWidthInches || 12)}
                       onChange={(e) => handleWidthInchesChange(e.target.value)}
                       className={`w-full px-3 py-2 rounded-xl ${isLight ? 'bg-slate-50 border border-slate-200 text-slate-900 focus:border-indigo-500 focus:bg-white' : 'bg-slate-950 border border-slate-800 text-white focus:border-cyan-400'} font-mono text-sm focus:outline-none`}
                     />
@@ -1295,7 +1281,7 @@ I would like to discuss this design with The PrintHub team.`;
                       step="0.1"
                       min="1"
                       max={activeAreaConfig.maxHeightInches || 14}
-                      value={currentPlacementDesign?.heightInches || 10}
+                      value={currentPlacementDesign?.heightInches ?? Math.min(6, activeAreaConfig.maxHeightInches || 14)}
                       onChange={(e) => handleHeightInchesChange(e.target.value)}
                       className={`w-full px-3 py-2 rounded-xl ${isLight ? 'bg-slate-50 border border-slate-200 text-slate-900 focus:border-indigo-500 focus:bg-white' : 'bg-slate-950 border border-slate-800 text-white focus:border-cyan-400'} font-mono text-sm focus:outline-none`}
                     />
@@ -1370,6 +1356,7 @@ I would like to discuss this design with The PrintHub team.`;
                 activePlacementId={activePlacementId}
                 designData={currentPlacementDesign}
                 isInteractive={false}
+                onSideChange={handleSideSwitch}
               />
             </div>
           </div>

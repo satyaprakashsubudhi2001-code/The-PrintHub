@@ -155,6 +155,12 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
     if (isRight) {
       return "M 58 16 Q 50 14 42 18 L 32 30 L 38 58 L 48 52 L 46 88 L 66 88 L 64 50 L 70 46 L 64 28 Z";
     }
+    if (isBack) {
+      if (isOversized) {
+        return "M 30 18 L 40 21 Q 50 18 60 21 L 70 18 L 94 30 L 82 56 L 74 50 L 74 90 L 26 90 L 26 50 L 18 56 L 6 30 Z";
+      }
+      return "M 32 18 L 42 21 Q 50 18 58 21 L 68 18 L 90 28 L 80 50 L 72 46 L 72 88 L 28 88 L 28 46 L 20 50 L 10 28 Z";
+    }
     if (isOversized) {
       return "M 30 18 L 40 23 C 46 25 54 25 60 23 L 70 18 L 94 30 L 82 56 L 74 50 L 74 90 L 26 90 L 26 50 L 18 56 L 6 30 Z";
     }
@@ -227,8 +233,19 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
               <path d="M 36 78 Q 50 82 64 78 Q 50 85 36 78" fill="#000000" opacity="0.25" />
               <path d="M 30 86 Q 50 89 70 86 Q 50 91 30 86" fill="#000000" opacity="0.3" />
 
-              {/* Chest Drape Curves */}
-              <path d="M 40 32 Q 50 38 60 32 Q 50 36 40 32" fill="#000000" opacity="0.15" />
+              {/* Front vs Back Specific Shading */}
+              {isBack ? (
+                <>
+                  {/* Upper Back / Shoulder Blades */}
+                  <path d="M 36 28 Q 44 38 42 54 Q 38 42 36 28" fill="#000000" opacity="0.2" />
+                  <path d="M 64 28 Q 56 38 58 54 Q 62 42 64 28" fill="#000000" opacity="0.2" />
+                  {/* Spine Depth Crease */}
+                  <line x1="50" y1="28" x2="50" y2="76" stroke="#000000" strokeWidth="1.2" strokeOpacity="0.16" strokeLinecap="round" />
+                </>
+              ) : (
+                /* Front Chest Drape Curves */
+                <path d="M 40 32 Q 50 38 60 32 Q 50 36 40 32" fill="#000000" opacity="0.15" />
+              )}
             </>
           )}
 
@@ -245,12 +262,18 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
           <path d={getBodyPath()} fill="url(#tshirtStudioLight)" />
 
           {/* Left Shoulder Highlight */}
-          <path d="M 32 18 L 42 23 L 28 32 L 14 26 Z" fill="#ffffff" opacity="0.25" />
+          <path d="M 32 18 L 42 21 L 28 32 L 14 26 Z" fill="#ffffff" opacity="0.25" />
           {/* Right Shoulder Highlight */}
-          <path d="M 68 18 L 58 23 L 72 32 L 86 26 Z" fill="#ffffff" opacity="0.18" />
+          <path d="M 68 18 L 58 21 L 72 32 L 86 26 Z" fill="#ffffff" opacity="0.18" />
 
-          {/* Chest Specular Ridge */}
-          <ellipse cx="50" cy="38" rx="16" ry="8" fill="#ffffff" opacity="0.08" />
+          {/* Front Chest Specular Ridge (Front Only) */}
+          {!isBack && !isLeft && !isRight && (
+            <ellipse cx="50" cy="38" rx="16" ry="8" fill="#ffffff" opacity="0.08" />
+          )}
+          {isBack && (
+            /* Back Shoulder Blade Subtle Highlight */
+            <path d="M 38 24 Q 50 28 62 24 Q 50 25 38 24" fill="#ffffff" opacity="0.12" />
+          )}
         </g>
 
         {/* ========================================================
@@ -258,14 +281,26 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
            ======================================================== */}
         <g>
           {isBack ? (
-            // Back Collar
+            // BACK COLLAR & YOKE
             <g>
-              <path d="M 42 23 Q 50 19 58 23" fill="none" stroke="#000000" strokeWidth="2.5" strokeOpacity="0.5" strokeLinecap="round" />
-              <path d="M 42 23 Q 50 19 58 23" fill="none" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.3" strokeLinecap="round" />
-              <path d="M 41 25 Q 50 21 59 25" fill="none" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.3" strokeDasharray="1 1" />
+              {/* Inner front neck drop shadow visible through back neckline */}
+              <path d="M 42 21 Q 50 26 58 21 Q 50 20 42 21 Z" fill="#090d16" opacity="0.85" />
+              {/* Internal printed brand/size tag */}
+              <rect x="47.5" y="21.8" width="5" height="2" rx="0.5" fill="#334155" opacity="0.8" />
+              <line x1="48.5" y1="22.8" x2="51.5" y2="22.8" stroke="#94a3b8" strokeWidth="0.35" />
+              
+              {/* Back High Ribbed Collar Band */}
+              <path d="M 42 21 Q 50 17 58 21" fill="none" stroke="#000000" strokeWidth="2.8" strokeOpacity="0.75" strokeLinecap="round" />
+              <path d="M 42 21 Q 50 17 58 21" fill="none" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.3" strokeLinecap="round" />
+              
+              {/* Back Collar Double-needle Stitching */}
+              <path d="M 41 22.5 Q 50 18.5 59 22.5" fill="none" stroke="#000000" strokeWidth="0.6" strokeOpacity="0.35" strokeDasharray="1 0.8" />
+              
+              {/* Back Shoulder Yoke Seam across Upper Back */}
+              <path d="M 33 26 Q 50 29 67 26" fill="none" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.35" strokeDasharray="1.2 0.8" />
             </g>
           ) : !isLeft && !isRight ? (
-            // Front Collar Ribbing
+            // FRONT COLLAR RIBBING
             <g>
               {/* Inner Neck Shadow */}
               <path d="M 42 23 Q 50 19 58 23 Q 50 31 42 23 Z" fill="#090d16" opacity="0.9" />
@@ -279,8 +314,8 @@ function TShirtMockup({ color, isOversized = false, side = 'front' }) {
           ) : null}
 
           {/* Shoulder Seams */}
-          <line x1="32" y1="18" x2="42" y2="23" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.4" strokeDasharray="1.2 0.8" />
-          <line x1="68" y1="18" x2="58" y2="23" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.4" strokeDasharray="1.2 0.8" />
+          <line x1="32" y1="18" x2="42" y2="21" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.4" strokeDasharray="1.2 0.8" />
+          <line x1="68" y1="18" x2="58" y2="21" stroke="#000000" strokeWidth="0.8" strokeOpacity="0.4" strokeDasharray="1.2 0.8" />
 
           {/* Sleeve Hem Stitching */}
           <line x1="10" y1="28" x2="20" y2="50" stroke="#000000" strokeWidth="0.7" strokeOpacity="0.3" />
