@@ -6,21 +6,24 @@ import {
   Sun,
   Moon,
   ArrowRight,
-  Box,
-  Home,
-  Info,
-  Phone,
-  MessageCircle,
   Search,
+  Heart,
+  MessageCircle,
+  Phone,
   Layers,
-  ShoppingBag,
-  Flame,
+  ChevronDown,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 
 /**
- * The PrintHub — Premium Header & Navigation
- * Crisp, modern e-commerce header matching high-end design specifications
+ * The PrintHub — Professional Header & Navigation
+ * Commercial product discovery header featuring:
+ * - Top Announcement Bar
+ * - Large Centered Live Search Bar
+ * - Dynamic Logo Lockup (Dark/Light)
+ * - Wishlist & Direct WhatsApp Contact Actions
+ * - Two-tier layout with dedicated Sub-Navigation Bar
+ * - Mobile responsive navigation with horizontal scroll and docked search
  */
 export function Navbar() {
   const {
@@ -29,11 +32,21 @@ export function Navbar() {
     storeSettings,
     themeMode,
     toggleThemeMode,
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    wishlist = [],
   } = useStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showTopBar, setShowTopBar] = useState(true);
-  const [headerSearch, setHeaderSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState(searchQuery || '');
+
+  // Keep local search input synced with context
+  useEffect(() => {
+    setLocalSearch(searchQuery || '');
+  }, [searchQuery]);
 
   // Close mobile drawer on desktop resize
   useEffect(() => {
@@ -48,214 +61,332 @@ export function Navbar() {
 
   const isLight = themeMode === 'light';
 
+  // Active section tracking for single-page scroll navigation on Home page
+  const [activeSection, setActiveSection] = useState('home');
+
+  useEffect(() => {
+    if (currentPage !== 'home') {
+      setActiveSection('');
+      return;
+    }
+
+    const handleScroll = () => {
+      const scrollPos = window.scrollY + 180; // account for sticky header offset
+
+      const offersEl = document.getElementById('promotions-section');
+      const trendingEl = document.getElementById('trending-products');
+      const categoriesEl = document.getElementById('shop-by-category');
+
+      if (offersEl && scrollPos >= offersEl.offsetTop) {
+        setActiveSection('offers');
+      } else if (trendingEl && scrollPos >= trendingEl.offsetTop) {
+        setActiveSection('new-arrivals');
+      } else if (categoriesEl && scrollPos >= categoriesEl.offsetTop) {
+        setActiveSection('categories');
+      } else {
+        setActiveSection('home');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [currentPage]);
+
+  // Smooth scroll helper that accounts for sticky header height
+  const scrollToSection = (sectionId, navKey) => {
+    setActiveSection(navKey);
+    const scrollTarget = () => {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        const headerOffset = 120;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      }
+    };
+
+    if (currentPage !== 'home') {
+      navigateTo('home');
+      setTimeout(scrollTarget, 100);
+    } else {
+      scrollTarget();
+    }
+  };
+
   // WhatsApp quick deep-link
   const whatsappNumber = storeSettings?.whatsapp?.replace(/\D/g, '') || '917992801158';
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    'Hi The PrintHub team! I would like to enquire about custom merchandise design and bulk production.'
+    'Hi The PrintHub team! I would like to enquire about custom merchandise printing and product catalog.'
   )}`;
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    navigateTo('products');
+    setSearchQuery(localSearch.trim());
+    if (currentPage !== 'products') {
+      navigateTo('products');
+    }
   };
 
-  // Main Navigation Links
-  const navLinks = [
-    { id: 'home', label: 'Home' },
-    { id: 'products', label: 'Collections' },
-    { id: 'design-by-customer', label: 'Custom Studio' },
-    { id: 'about-us', label: 'Atelier' },
-    { id: 'help', label: 'Concierge' },
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setLocalSearch(val);
+    setSearchQuery(val);
+    if (val.trim() && currentPage !== 'products') {
+      navigateTo('products');
+    }
+  };
+
+  const handleClearSearch = () => {
+    setLocalSearch('');
+    setSearchQuery('');
+  };
+
+  // Main Sub-Navigation items with responsive active state
+  const subNavLinks = [
+    {
+      id: 'home',
+      label: 'Home',
+      action: () => {
+        setActiveSection('home');
+        if (currentPage !== 'home') {
+          navigateTo('home');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+      isActive: currentPage === 'home' && (activeSection === 'home' || !activeSection),
+    },
+    {
+      id: 'products',
+      label: 'Products',
+      action: () => {
+        setSelectedCategory('all');
+        navigateTo('products');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      isActive: currentPage === 'products' && selectedCategory === 'all',
+    },
+    {
+      id: 'categories',
+      label: 'Categories',
+      action: () => scrollToSection('shop-by-category', 'categories'),
+      isActive: currentPage === 'home' && activeSection === 'categories',
+    },
+    {
+      id: 'new-arrivals',
+      label: 'New Arrivals',
+      action: () => scrollToSection('trending-products', 'new-arrivals'),
+      isActive: currentPage === 'home' && activeSection === 'new-arrivals',
+    },
+    {
+      id: 'custom-products',
+      label: 'Custom Products',
+      badge: '3D Studio',
+      action: () => {
+        navigateTo('design-by-customer');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      isActive: currentPage === 'design-by-customer',
+    },
+    {
+      id: 'offers',
+      label: 'Offers',
+      action: () => scrollToSection('promotions-section', 'offers'),
+      isActive: currentPage === 'home' && activeSection === 'offers',
+    },
+    {
+      id: 'about',
+      label: 'About',
+      action: () => {
+        navigateTo('about-us');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      isActive: currentPage === 'about-us',
+    },
+    {
+      id: 'contact',
+      label: 'Contact',
+      action: () => {
+        navigateTo('help');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      isActive: currentPage === 'help' || currentPage === 'contact',
+    },
   ];
 
   return (
-    <header className="sticky top-0 z-40 select-none w-full max-w-full font-sans transition-all duration-300">
+    <header className="sticky top-0 z-40 select-none w-full max-w-full font-sans transition-all duration-300 shadow-sm">
       {/* =========================================================================
-         0. TOP LUXURY ANNOUNCEMENT STRIP
+         0. TOP ANNOUNCEMENT BAR
          ========================================================================= */}
       {showTopBar && (
-        <div className={`text-[10px] tracking-fashion py-2 px-4 sm:px-8 border-b flex items-center justify-between gap-4 transition-all duration-300 uppercase ${
-          isLight
-            ? 'bg-[#111114] text-[#FAF9F6] border-neutral-900'
-            : 'bg-[#070708] text-[#D8D4CC] border-neutral-850'
-        }`}>
-          <div className="flex items-center gap-3 truncate">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/10 text-neutral-200 font-mono text-[9px] font-bold">
-              <span className="w-1 h-1 rounded-full bg-[#C8B896] animate-pulse" />
-              ATELIER DIRECT
+        <div
+          className="text-xs py-1.5 px-4 sm:px-8 border-b flex items-center justify-between gap-4 transition-all duration-300 bg-[#070E20] text-slate-300 border-[#182744]"
+        >
+          <div className="flex items-center gap-2 sm:gap-3 truncate text-[11px] sm:text-xs">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] font-semibold text-[10px] tracking-wide border border-[#3B82F6]/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
+              PRINT EXPERTS
             </span>
-            <span className="font-medium truncate tracking-fashion">
-              BESPOKE APPAREL STUDIO • 240+ GSM HEAVYWEIGHT SILHOUETTES • PAN-INDIA DISPATCH
+            <span className="font-medium truncate text-slate-200">
+              Free Digital Proofs on All Custom Orders • Express PAN-India Dispatch
             </span>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0 font-medium">
+          <div className="flex items-center gap-4 shrink-0 text-[11px] font-medium">
             <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-[#C8B896] hover:text-white transition-colors"
+              href={`tel:${storeSettings?.phone || '+917992801158'}`}
+              className="hidden md:flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
             >
-              <MessageCircle className="w-3 h-3" />
-              <span className="hidden sm:inline">CONCIERGE</span>
+              <Phone className="w-3 h-3 text-[#3B82F6]" />
+              <span>{storeSettings?.phone || '+91 79928 01158'}</span>
             </a>
-            <span className="text-neutral-700 hidden sm:inline">•</span>
+            <span className="text-slate-600 hidden md:inline">•</span>
             <button
               onClick={() => navigateTo('admin-login')}
-              className="hover:text-white text-neutral-400 font-mono transition-colors hidden sm:inline"
-              title="Open Admin Management Panel"
+              className="text-slate-400 hover:text-white transition-colors hidden sm:inline text-[10px] font-mono uppercase tracking-wider"
+              title="Admin Gateway"
             >
-              ADMIN
+              Staff Portal
             </button>
             <button
               onClick={() => setShowTopBar(false)}
-              className="p-0.5 rounded hover:bg-neutral-800 text-neutral-500 hover:text-white transition-colors"
+              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
               title="Dismiss announcement"
               aria-label="Dismiss announcement"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       )}
 
       {/* =========================================================================
-         1. MAIN HEADER / BRAND BAR
+         1. MAIN HEADER / BRAND & SEARCH BAR (#0B1630)
          ========================================================================= */}
       <div
-        className={`border-b backdrop-blur-md transition-all duration-300 ${
-          isLight
-            ? 'bg-[#FAF9F6]/95 border-[#E5E2DC] text-[#0E0E10]'
-            : 'bg-[#0A0A0C]/95 border-[#1E1E24] text-[#F5F4F0]'
-        }`}
+        className="border-b transition-all duration-300 bg-[#0B1630] border-[#182744] text-[#FFFFFF]"
       >
-        <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-4 lg:gap-8">
-          {/* Left: Brand Logo (Fear of God / High-Fashion Typography) */}
-          <button
-            onClick={() => navigateTo('home')}
-            className="flex items-center gap-3 text-left group shrink-0 focus:outline-none cursor-pointer"
-          >
-            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-display font-black text-sm tracking-widest border transition-all ${
-              isLight
-                ? 'bg-[#0E0E10] text-[#FAF9F6] border-[#0E0E10]'
-                : 'bg-[#FAF9F6] text-[#0A0A0C] border-[#FAF9F6]'
-            }`}>
-              PH
-            </div>
-            <div className="flex flex-col shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="font-display text-base sm:text-lg font-black tracking-fashion uppercase whitespace-nowrap">
-                  {storeSettings.storeName || 'THE PRINTHUB'}
-                </span>
-                <span className={`px-1.5 py-0.2 rounded text-[8px] font-mono tracking-widest uppercase border ${
-                  isLight
-                    ? 'bg-[#EAE7E1] text-[#0E0E10] border-[#D6D2C8]'
-                    : 'bg-[#18181C] text-[#C8B896] border-[#2A2A32]'
-                }`}>
-                  ATELIER
-                </span>
+        <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 lg:h-[84px] flex items-center justify-between gap-4 lg:gap-8">
+          {/* Left: Brand Logo Lockup (approx 25-28%) */}
+          <div className="w-auto lg:w-[28%] flex items-center shrink-0">
+            <button
+              onClick={() => navigateTo('home')}
+              className="flex items-center gap-3 sm:gap-3.5 text-left group focus:outline-none cursor-pointer py-1 transition-opacity duration-200 hover:opacity-95"
+              title="The PrintHub - We Don't Print, We Create!"
+              aria-label="The PrintHub Home"
+            >
+              {/* Logo Mark Container (Refined glass/navy container with soft shadow, 14px radius, 54-60px desktop) */}
+              <div
+                className="w-11 h-11 sm:w-13 sm:h-13 lg:w-[58px] lg:h-[58px] rounded-[14px] p-1.5 sm:p-2 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:border-white/20 group-hover:shadow-[0_4px_18px_rgba(59,130,246,0.15)]"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
+                }}
+              >
+                <img
+                  src="/logo-mark-symbol.png"
+                  alt="The PrintHub Symbol"
+                  className="w-full h-full object-contain select-none"
+                  style={{ objectFit: 'contain' }}
+                />
               </div>
-              <span className="text-[9px] tracking-fashion text-neutral-500 uppercase">
-                Bespoke Merchandise & Silhouettes
-              </span>
-            </div>
-          </button>
 
-          {/* Center: Navigation Links (Desktop) */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-            {navLinks.map((link) => {
-              const isActive = currentPage === link.id;
+              {/* Brand Typography (Authoritative Wordmark + Subtle Accent + Tagline) */}
+              <div className="flex flex-col justify-center text-left">
+                <span className="font-['Outfit',sans-serif] text-lg sm:text-[21px] lg:text-[25px] font-bold text-[#FFFFFF] tracking-[2px] sm:tracking-[2.5px] lg:tracking-[3px] uppercase leading-none select-none drop-shadow-sm">
+                  THE PRINTHUB
+                </span>
 
-              return (
-                <button
-                  key={link.id}
-                  onClick={() => navigateTo(link.id)}
-                  className={`relative px-4 py-2 text-xs uppercase font-medium tracking-fashion transition-all cursor-pointer rounded-lg ${
-                    isActive
-                      ? isLight
-                        ? 'bg-[#0E0E10] text-[#FAF9F6] shadow-sm'
-                        : 'bg-[#FAF9F6] text-[#0A0A0C] shadow-sm font-bold'
-                      : isLight
-                      ? 'text-[#5A5854] hover:text-[#0E0E10] hover:bg-[#EAE7E1]/50'
-                      : 'text-[#A09D95] hover:text-[#FAF9F6] hover:bg-[#18181C]'
-                  }`}
-                >
-                  <span>{link.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+                {/* Optional Subtle Hairline Accent Line & Secondary Tagline */}
+                <div className="hidden sm:flex flex-col mt-1">
+                  <div className="h-[1.5px] w-12 lg:w-16 bg-gradient-to-r from-[#2563EB] to-transparent rounded-full mb-0.5 opacity-75" />
+                  <span
+                    className="text-[9.5px] lg:text-[11px] font-medium tracking-[2px] lg:tracking-[2.5px] uppercase select-none whitespace-nowrap"
+                    style={{ color: 'rgba(255, 255, 255, 0.60)' }}
+                  >
+                    WE DON'T PRINT, WE CREATE!
+                  </span>
+                </div>
+              </div>
+            </button>
+          </div>
 
-          {/* Center-Right: Quick Search Bar (Desktop) */}
-          <form onSubmit={handleSearchSubmit} className="hidden xl:flex items-center relative flex-1 max-w-xs">
-            <Search className="w-3.5 h-3.5 absolute left-3.5 pointer-events-none text-neutral-400" />
+          {/* Center: Large Search Bar (Desktop) (#182744) */}
+          <form
+            onSubmit={handleSearchSubmit}
+            className="hidden md:flex items-center relative flex-1 max-w-xl mx-2 lg:mx-6"
+          >
+            <Search className="w-4 h-4 absolute left-4 pointer-events-none text-slate-400" />
             <input
               type="text"
-              value={headerSearch}
-              onChange={(e) => setHeaderSearch(e.target.value)}
-              placeholder="Search heavyweight blanks, hoodies..."
-              className={`w-full pl-9 pr-4 py-2 rounded-full text-xs font-medium focus:outline-none transition-all ${
-                isLight
-                  ? 'bg-[#F0EEEA] border border-[#E0DCD4] text-[#0E0E10] focus:bg-white focus:border-[#0E0E10] placeholder:text-neutral-400'
-                  : 'bg-[#141418] border border-[#23232A] text-white focus:border-[#FAF9F6] placeholder:text-neutral-500'
-              }`}
+              value={localSearch}
+              onChange={handleSearchChange}
+              placeholder="Search products, categories and more..."
+              className="w-full pl-11 pr-10 py-2.5 rounded-full text-sm font-medium focus:outline-none transition-all shadow-inner bg-[#182744] border border-[#23355A] text-[#FFFFFF] placeholder:text-slate-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
             />
+            {localSearch && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3.5 p-1 rounded-full text-slate-400 hover:text-white cursor-pointer"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </form>
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Primary "STUDIO 3D" Action Button */}
+            {/* Wishlist Button */}
             <button
-              onClick={() => navigateTo('design-by-customer')}
-              className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-full text-xs font-bold tracking-fashion uppercase transition-all duration-200 hover:scale-102 active:scale-98 cursor-pointer shadow-md ${
-                isLight
-                  ? 'bg-[#0E0E10] text-[#FAF9F6] hover:bg-[#232328]'
-                  : 'bg-[#FAF9F6] text-[#0A0A0C] hover:bg-[#EAE7E1]'
-              }`}
+              onClick={() => {
+                setSelectedCategory('all');
+                navigateTo('products');
+              }}
+              className="relative p-2.5 rounded-full border transition-all hover:scale-105 active:scale-95 cursor-pointer bg-[#182744] hover:bg-[#1f3358] border-[#23355A] hover:border-[#3B82F6] text-[#FFFFFF]"
+              title="Saved Items"
+              aria-label="Wishlist"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">CUSTOM STUDIO</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <Heart className={`w-4 h-4 ${wishlist.length > 0 ? 'text-rose-500 fill-rose-500' : 'text-slate-200'}`} />
+              {wishlist.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#3B82F6] text-white text-[10px] font-black flex items-center justify-center shadow-sm">
+                  {wishlist.length}
+                </span>
+              )}
             </button>
 
-            {/* Direct WhatsApp Concierge */}
+            {/* Direct WhatsApp CTA Button (#00A878) */}
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`p-2.5 sm:px-3.5 sm:py-2.5 rounded-full border text-xs font-bold tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 ${
-                isLight
-                  ? 'border-[#D6D2C8] bg-[#F4F2EE] text-[#0E0E10] hover:bg-white'
-                  : 'border-[#272730] bg-[#141418] text-[#C8B896] hover:text-white hover:bg-[#1A1A20]'
-              }`}
-              title="Chat with Concierge on WhatsApp"
+              className="hidden sm:inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold bg-[#00A878] hover:bg-[#00966B] text-[#FFFFFF] shadow-sm transition-all hover:scale-102 active:scale-98 cursor-pointer"
+              title="Chat with The PrintHub on WhatsApp"
             >
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span className="hidden md:inline font-mono text-[10px]">CONCIERGE</span>
+              <MessageCircle className="w-3.5 h-3.5 fill-white/20" />
+              <span className="whitespace-nowrap">WhatsApp Us</span>
             </a>
 
             {/* Theme Toggle Button */}
             <button
               onClick={toggleThemeMode}
-              className={`p-2.5 rounded-full border transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
-                isLight
-                  ? 'bg-[#F4F2EE] hover:bg-white border-[#E0DCD4] text-[#0E0E10]'
-                  : 'bg-[#141418] hover:bg-[#1E1E24] border-[#272730] text-[#C8B896]'
-              }`}
+              className="p-2.5 rounded-full border transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer bg-[#182744] hover:bg-[#1f3358] border-[#23355A] hover:border-[#3B82F6] text-[#FFFFFF]"
               title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
               aria-label="Toggle Theme"
             >
-              {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+              {isLight ? <Moon className="w-4 h-4 text-slate-200" /> : <Sun className="w-4 h-4 text-amber-400" />}
             </button>
 
-            {/* Mobile Hamburger Toggle */}
+            {/* Mobile Menu Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`lg:hidden p-2.5 rounded-full border transition-colors cursor-pointer ${
-                isLight
-                  ? 'border-[#E0DCD4] bg-[#F4F2EE] text-[#0E0E10]'
-                  : 'border-[#272730] bg-[#141418] text-[#F5F4F0]'
-              }`}
+              className="lg:hidden p-2.5 rounded-full border transition-colors cursor-pointer bg-[#182744] border-[#23355A] text-[#FFFFFF]"
               title="Open Navigation Menu"
               aria-label="Open Navigation Menu"
             >
@@ -263,98 +394,137 @@ export function Navbar() {
             </button>
           </div>
         </div>
+
+        {/* Mobile Full-Width Search Input (#182744) */}
+        <div className="md:hidden px-4 pb-3">
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+            <Search className="w-4 h-4 absolute left-3.5 pointer-events-none text-slate-400" />
+            <input
+              type="text"
+              value={localSearch}
+              onChange={handleSearchChange}
+              placeholder="Search products, categories and more..."
+              className="w-full pl-10 pr-9 py-2 rounded-full text-xs font-medium focus:outline-none transition-all bg-[#182744] border border-[#23355A] text-[#FFFFFF] placeholder:text-slate-400 focus:border-[#3B82F6]"
+            />
+            {localSearch && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 p-1 rounded-full text-slate-400 hover:text-white"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </form>
+        </div>
       </div>
 
       {/* =========================================================================
-         2. MOBILE & TABLET DRAWER
+         2. NAVIGATION BAR (#101D3A, Text #FFFFFF, Accent #3B82F6)
+         ========================================================================= */}
+      <div
+        className="border-b transition-colors bg-[#101D3A] border-[#182744] text-[#FFFFFF]"
+      >
+        <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-2 text-xs font-medium scroll-smooth">
+            {subNavLinks.map((link) => {
+              return (
+                <button
+                  key={link.id}
+                  onClick={link.action}
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+                    link.isActive
+                      ? 'bg-[#182744] text-[#3B82F6] font-bold shadow-[0_2px_10px_rgba(59,130,246,0.2)] border border-[#3B82F6]/60 scale-[1.02]'
+                      : 'text-slate-200 hover:text-white hover:bg-[#182744]/70 active:scale-95'
+                  }`}
+                >
+                  <span>{link.label}</span>
+                  {link.badge && (
+                    <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider border transition-colors ${
+                      link.isActive
+                        ? 'bg-[#3B82F6] text-white border-[#3B82F6]'
+                        : 'bg-[#3B82F6]/20 text-[#3B82F6] border-[#3B82F6]/30'
+                    }`}>
+                      {link.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* =========================================================================
+         3. MOBILE & TABLET DRAWER
          ========================================================================= */}
       {mobileMenuOpen && (
         <div
-          className={`lg:hidden border-b px-4 py-6 space-y-4 animate-in slide-in-from-top-4 shadow-2xl backdrop-blur-2xl ${
-            isLight
-              ? 'bg-[#FAF9F6]/98 border-[#E5E2DC] text-[#0E0E10]'
-              : 'bg-[#0A0A0C]/98 border-[#1E1E24] text-[#F5F4F0]'
-          }`}
+          className="lg:hidden border-b px-4 py-5 space-y-4 animate-in slide-in-from-top-3 shadow-2xl backdrop-blur-2xl bg-[#0B1630]/98 border-[#182744] text-[#FFFFFF]"
         >
-          {/* Mobile Search */}
-          <form onSubmit={(e) => { e.preventDefault(); setMobileMenuOpen(false); navigateTo('products'); }} className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              type="text"
-              value={headerSearch}
-              onChange={(e) => setHeaderSearch(e.target.value)}
-              placeholder="Search heavyweight blanks, hoodies..."
-              className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-xs font-medium focus:outline-none transition-all ${
-                isLight
-                  ? 'bg-white border border-[#E0DCD4] text-[#0E0E10]'
-                  : 'bg-[#141418] border border-[#272730] text-white'
-              }`}
-            />
-          </form>
+          {/* Direct WhatsApp Action in Mobile Drawer (#00A878) */}
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setMobileMenuOpen(false)}
+            className="w-full py-3 rounded-xl font-bold text-xs bg-[#00A878] hover:bg-[#00966B] text-[#FFFFFF] flex items-center justify-center gap-2 shadow-sm"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Chat on WhatsApp (+91 79928 01158)</span>
+          </a>
 
-          {/* Big CTA */}
+          {/* Big CTA for 3D Studio (#3B82F6) */}
           <button
             onClick={() => {
               setMobileMenuOpen(false);
               navigateTo('design-by-customer');
             }}
-            className={`w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-fashion flex items-center justify-center gap-2 shadow-lg transition-all ${
-              isLight
-                ? 'bg-[#0E0E10] text-[#FAF9F6]'
-                : 'bg-[#FAF9F6] text-[#0A0A0C]'
-            }`}
+            className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-2 shadow-md transition-all bg-[#3B82F6] hover:bg-[#2563EB] text-white"
           >
             <Sparkles className="w-4 h-4" />
-            <span>ENTER CUSTOM STUDIO</span>
+            <span>LAUNCH 3D CUSTOM STUDIO</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
           {/* Links Grid */}
-          <div className="grid grid-cols-2 gap-2">
-            {navLinks.map((link) => {
-              const isActive = currentPage === link.id;
-              return (
-                <button
-                  key={link.id}
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    navigateTo(link.id);
-                  }}
-                  className={`flex items-center justify-center p-3 rounded-xl text-xs font-bold text-center transition-all uppercase tracking-fashion border ${
-                    isActive
-                      ? isLight
-                        ? 'bg-[#0E0E10] text-[#FAF9F6] border-[#0E0E10]'
-                        : 'bg-[#FAF9F6] text-[#0A0A0C] border-[#FAF9F6]'
-                      : isLight
-                      ? 'bg-white border-[#E0DCD4] text-[#5A5854]'
-                      : 'bg-[#141418] border-[#272730] text-[#A09D95]'
-                  }`}
-                >
-                  <span>{link.label}</span>
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#182744]">
+            {subNavLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  link.action();
+                }}
+                className={`flex items-center justify-between p-3 rounded-xl text-xs font-semibold transition-all border ${
+                  link.isActive
+                    ? 'bg-[#182744] text-[#3B82F6] border-[#3B82F6]/60 shadow-[0_2px_10px_rgba(59,130,246,0.15)] font-bold'
+                    : 'bg-[#101D3A] border-[#182744] text-[#FFFFFF] hover:bg-[#182744]'
+                }`}
+              >
+                <span>{link.label}</span>
+                {link.badge && (
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                    link.isActive ? 'bg-[#3B82F6] text-white' : 'bg-[#3B82F6]/20 text-[#3B82F6]'
+                  }`}>
+                    {link.badge}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
-          <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800 flex flex-col gap-2">
+          <div className="pt-3 border-t border-[#182744] flex items-center justify-between text-xs text-slate-500">
+            <span>The PrintHub Support</span>
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 navigateTo('admin-login');
               }}
-              className="w-full py-2.5 rounded-xl bg-neutral-800/40 text-neutral-300 border border-neutral-700 font-bold text-xs flex items-center justify-center gap-2 font-mono uppercase tracking-wider"
+              className="text-blue-600 dark:text-cyan-400 font-mono text-[11px]"
             >
-              <span>🔒 Atelier Admin</span>
+              Staff Portal →
             </button>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3 rounded-xl bg-[#C8B896]/15 text-[#C8B896] border border-[#C8B896]/30 font-bold text-xs flex items-center justify-center gap-2 tracking-fashion uppercase"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>WhatsApp Concierge</span>
-            </a>
           </div>
         </div>
       )}

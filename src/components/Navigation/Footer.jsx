@@ -9,251 +9,256 @@ import {
   Award,
   Layers,
   Lock,
+  MessageCircle,
+  Truck,
+  ArrowRight,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 
 /**
- * The PrintHub — Atelier Luxury Footer (Fear of God & AllSaints Aesthetic)
- * Minimalist monochrome tones, architectural typography, material standards & atelier contact.
+ * The PrintHub — Commercial Indian Custom Merchandise Footer
+ * Clean, structured footer featuring value pillars, direct catalog navigation,
+ * studio entry points, and contact/WhatsApp channels.
  */
 export function Footer() {
-  const { storeSettings, navigateTo, themeMode } = useStore();
+  const { storeSettings, navigateTo, themeMode, setSelectedCategory } = useStore();
   const isLight = themeMode === 'light';
 
+  const handleCategoryClick = (category) => {
+    if (setSelectedCategory) {
+      setSelectedCategory(category);
+    }
+    navigateTo('products');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <footer className={`border-t select-none pt-14 pb-14 w-full transition-colors duration-300 ${
+    <footer className={`border-t select-none pt-12 pb-12 w-full transition-colors duration-300 ${
       isLight
-        ? 'bg-fog-stone border-fog-sand text-stone-600'
-        : 'bg-fog-950 border-fog-900 text-stone-400'
+        ? 'bg-white border-slate-200 text-slate-600'
+        : 'bg-[#08080C] border-[#18181E] text-slate-400'
     }`}>
-      {/* Top Value Badges Bar — Understated Luxury Standards */}
-      <div className={`max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b ${
-        isLight ? 'border-fog-sand' : 'border-fog-900'
+      {/* Top Value Badges Bar — 4 Core Pillars */}
+      <div className={`max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pb-10 border-b ${
+        isLight ? 'border-slate-200' : 'border-[#18181E]'
       }`}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div className="flex items-center gap-3.5">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
-              isLight ? 'bg-white border-stone-200 text-fog-950 shadow-sm' : 'bg-fog-900 border-fog-800 text-fog-gold'
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+              isLight ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-[#12131A] border-[#222330] text-cyan-400'
             }`}>
-              <Sparkles className="w-4 h-4 text-fog-gold" />
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h4 className={`text-xs font-mono font-bold tracking-wider uppercase ${isLight ? 'text-fog-950' : 'text-fog-bone'}`}>
+              <h4 className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 300 DPI Thermal DTF
               </h4>
-              <p className="text-[11px] text-stone-500 font-sans">High-density stretchable pigmentation</p>
+              <p className="text-[11px] text-slate-500 font-normal">Ultra-sharp stretchable colors</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
-              isLight ? 'bg-white border-stone-200 text-fog-950 shadow-sm' : 'bg-fog-900 border-fog-800 text-fog-gold'
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+              isLight ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'bg-[#12131A] border-[#222330] text-indigo-400'
             }`}>
-              <Layers className="w-4 h-4 text-fog-gold" />
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className={`text-xs font-mono font-bold tracking-wider uppercase ${isLight ? 'text-fog-950' : 'text-fog-bone'}`}>
-                Multi-Panel Placement
+              <h4 className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                Zero MOQ Requirement
               </h4>
-              <p className="text-[11px] text-stone-500 font-sans">Calibrated front, back & sleeve zones</p>
+              <p className="text-[11px] text-slate-500 font-normal">Order 1 single unit or 10,000</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
-              isLight ? 'bg-white border-stone-200 text-fog-950 shadow-sm' : 'bg-fog-900 border-fog-800 text-fog-gold'
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+              isLight ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-[#12131A] border-[#222330] text-emerald-400'
             }`}>
-              <ShieldCheck className="w-4 h-4 text-fog-gold" />
+              <Truck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className={`text-xs font-mono font-bold tracking-wider uppercase ${isLight ? 'text-fog-950' : 'text-fog-bone'}`}>
-                Zero MOQ Threshold
+              <h4 className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                PAN-India Express
               </h4>
-              <p className="text-[11px] text-stone-500 font-sans">Single bespoke prototype to bulk drops</p>
+              <p className="text-[11px] text-slate-500 font-normal">Safe door delivery with tracking</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
-              isLight ? 'bg-white border-stone-200 text-fog-950 shadow-sm' : 'bg-fog-900 border-fog-800 text-fog-gold'
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+              isLight ? 'bg-cyan-50 border-cyan-100 text-cyan-600' : 'bg-[#12131A] border-[#222330] text-cyan-400'
             }`}>
-              <Award className="w-4 h-4 text-fog-gold" />
+              <Award className="w-5 h-5" />
             </div>
             <div>
-              <h4 className={`text-xs font-mono font-bold tracking-wider uppercase ${isLight ? 'text-fog-950' : 'text-fog-bone'}`}>
-                3D Physical Mannequin
+              <h4 className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                Free Digital Proofs
               </h4>
-              <p className="text-[11px] text-stone-500 font-sans">Dual-axis interactive live draping</p>
+              <p className="text-[11px] text-slate-500 font-normal">Confirmed prior to printing</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Footer Links */}
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-        {/* Brand & Atelier Overview */}
+      {/* Main Footer Content Grid */}
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+        {/* Column 1: Brand & Bio */}
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl border flex items-center justify-center font-display font-light text-xs tracking-widest ${
-              isLight ? 'bg-fog-950 text-white border-fog-950' : 'bg-white text-fog-950 border-white'
-            }`}>
-              PH
-            </div>
-            <div>
-              <h3 className={`font-display text-sm font-semibold tracking-[0.2em] uppercase ${
-                isLight ? 'text-fog-950' : 'text-white'
-              }`}>
-                THE PRINTHUB
-              </h3>
-              <p className="text-[10px] font-mono tracking-widest uppercase text-fog-gold">ATELIER MERCHANDISE</p>
-            </div>
+          <div className="flex items-center">
+            <img
+              src={isLight ? '/brand-light.png' : '/brand-dark.png'}
+              alt="The PrintHub"
+              className="h-9 sm:h-10 w-auto object-contain"
+            />
           </div>
 
-          <p className="text-xs leading-relaxed text-stone-500 font-sans font-light">
-            India's bespoke custom merchandise atelier. Engineered silhouettes, precision scale calibration in physical inches, and master artisan finishing.
+          <p className="text-xs leading-relaxed text-slate-500">
+            India's leading custom print studio and merchandise platform. We specialize in heavyweight apparel, corporate gifting, drinkware, and headwear with professional calibration and zero MOQ.
           </p>
 
-          {/* Minimal Industrial Certification Mark */}
-          <div className="flex items-center gap-2 pt-2">
-            <span className="w-2 h-2 rounded-full bg-fog-gold" />
-            <span className="text-[10px] font-mono tracking-widest text-stone-400 uppercase">
-              ISO 12647-7 COLOR CERTIFIED
-            </span>
+          <div className="pt-2">
+            <a
+              href="https://wa.me/917992801158?text=Hello%20The%20PrintHub%2C%20I%20would%20like%20to%20place%20a%20print%20order."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all"
+            >
+              <MessageCircle className="w-3.5 h-3.5 fill-white/20" />
+              <span>Instant WhatsApp Concierge</span>
+            </a>
           </div>
         </div>
 
-        {/* Product Silhouettes */}
-        <div className="space-y-3.5">
-          <h4 className="text-[11px] font-mono tracking-[0.2em] uppercase text-fog-gold block">
-            Bespoke Silhouettes
+        {/* Column 2: Product Categories */}
+        <div className="space-y-3">
+          <h4 className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            Product Catalog
           </h4>
-          <ul className="space-y-2.5 text-xs font-sans text-stone-500">
+          <ul className="space-y-2 text-xs text-slate-500">
             <li>
               <button
-                onClick={() => navigateTo('products')}
-                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
+                onClick={() => handleCategoryClick('Apparel')}
+                className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors text-left flex items-center gap-1.5"
               >
-                240 GSM Oversized Streetwear Tee
+                <ArrowRight className="w-3 h-3 text-slate-400" />
+                <span>Heavyweight T-Shirts & Apparel</span>
               </button>
             </li>
             <li>
               <button
-                onClick={() => navigateTo('products')}
-                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
+                onClick={() => handleCategoryClick('Drinkware')}
+                className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors text-left flex items-center gap-1.5"
               >
-                180 GSM Bio-Washed Combed Cotton Blank
+                <ArrowRight className="w-3 h-3 text-slate-400" />
+                <span>Ceramic & Magic Mugs</span>
               </button>
             </li>
             <li>
               <button
-                onClick={() => navigateTo('products')}
-                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
+                onClick={() => handleCategoryClick('Headwear')}
+                className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors text-left flex items-center gap-1.5"
               >
-                Classic Matty Pique Polo
+                <ArrowRight className="w-3 h-3 text-slate-400" />
+                <span>Snapbacks & Baseball Caps</span>
               </button>
             </li>
             <li>
               <button
-                onClick={() => navigateTo('products')}
-                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
+                onClick={() => handleCategoryClick('Accessories')}
+                className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors text-left flex items-center gap-1.5"
               >
-                380 GSM Heavy French Terry Hoodie
+                <ArrowRight className="w-3 h-3 text-slate-400" />
+                <span>Pin Badges & Chef Aprons</span>
               </button>
             </li>
             <li>
               <button
-                onClick={() => navigateTo('products')}
-                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
+                onClick={() => handleCategoryClick('Corporate')}
+                className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors text-left flex items-center gap-1.5"
               >
-                AAA Ceramic & Matte Black Vessels
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => navigateTo('products')}
-                className={`transition-colors text-left ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
-              >
-                Structured 6-Panel Snapback Caps
+                <ArrowRight className="w-3 h-3 text-slate-400" />
+                <span>Corporate Welcome Kits</span>
               </button>
             </li>
           </ul>
         </div>
 
-        {/* Atelier Workflow */}
-        <div className="space-y-3.5">
-          <h4 className="text-[11px] font-mono tracking-[0.2em] uppercase text-fog-gold block">
-            Atelier Navigation
+        {/* Column 3: Quick Links & Services */}
+        <div className="space-y-3">
+          <h4 className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            Studio & Services
           </h4>
-          <ul className="space-y-2.5 text-xs font-sans text-stone-500">
+          <ul className="space-y-2 text-xs text-slate-500">
             <li>
               <button
-                onClick={() => navigateTo('design-by-customer')}
-                className="font-medium text-fog-950 dark:text-fog-stone hover:underline transition-colors flex items-center gap-1.5"
+                onClick={() => { navigateTo('design-by-customer'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="text-blue-600 dark:text-cyan-400 font-bold hover:underline flex items-center gap-1.5"
               >
-                <Sparkles className="w-3 h-3 text-fog-gold" />
-                <span>Open 3D Customizer Studio</span>
+                <Sparkles className="w-3 h-3" />
+                <span>Launch 3D Customizer Studio</span>
               </button>
             </li>
             <li>
               <button
-                onClick={() => navigateTo('about-us')}
-                className={`transition-colors ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
+                onClick={() => { navigateTo('about-us'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors"
               >
-                Printing Technologies & Facility
+                Printing Tech & Specifications
               </button>
             </li>
             <li>
               <button
-                onClick={() => navigateTo('help')}
-                className={`transition-colors ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
+                onClick={() => { navigateTo('help'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors"
               >
-                WhatsApp Direct Concierge
+                Artwork Guidelines (PNG / PDF)
               </button>
             </li>
             <li>
               <button
-                onClick={() => navigateTo('help')}
-                className={`transition-colors ${isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}`}
+                onClick={() => { navigateTo('help'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors"
               >
-                Frequently Asked Inquiries
+                Shipping & Bulk Delivery FAQs
               </button>
             </li>
             <li>
               <button
-                onClick={() => navigateTo('admin-login')}
-                className="flex items-center gap-1.5 pt-2 text-stone-400 hover:text-fog-gold transition-colors font-mono text-[11px]"
+                onClick={() => { navigateTo('admin-login'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="flex items-center gap-1.5 pt-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors font-mono text-[11px]"
               >
                 <Lock className="w-3 h-3" />
-                <span>Atelier Command Portal</span>
+                <span>Staff Admin Portal</span>
               </button>
             </li>
           </ul>
         </div>
 
-        {/* Production Facility */}
-        <div className="space-y-3.5">
-          <h4 className="text-[11px] font-mono tracking-[0.2em] uppercase text-fog-gold block">
-            Production Facility
+        {/* Column 4: Contact & Production Facility */}
+        <div className="space-y-3">
+          <h4 className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            Contact & Facility
           </h4>
-          <div className="space-y-3 text-xs text-stone-500 font-sans">
+          <div className="space-y-2.5 text-xs text-slate-500">
             <div className="flex items-start gap-2.5">
-              <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
+              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
               <span>{storeSettings.address}</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-              <a href={`tel:${storeSettings.phone}`} className={isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}>
+              <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <a href={`tel:${storeSettings.phone}`} className="hover:text-blue-600 dark:hover:text-cyan-400">
                 {storeSettings.phone}
               </a>
             </div>
             <div className="flex items-center gap-2.5">
-              <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-              <a href={`mailto:${storeSettings.email}`} className={isLight ? 'hover:text-fog-950' : 'hover:text-fog-bone'}>
+              <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <a href={`mailto:${storeSettings.email}`} className="hover:text-blue-600 dark:hover:text-cyan-400">
                 {storeSettings.email}
               </a>
             </div>
             <div className="flex items-center gap-2.5">
-              <Clock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span>{storeSettings.workingHours}</span>
             </div>
           </div>
@@ -261,20 +266,25 @@ export function Footer() {
       </div>
 
       {/* Copyright Sub-bar */}
-      <div className={`max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono tracking-wider ${
-        isLight
-          ? 'border-fog-sand text-stone-500'
-          : 'border-fog-900 text-stone-500'
+      <div className={`max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 mt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs ${
+        isLight ? 'border-slate-200 text-slate-500' : 'border-[#18181E] text-slate-500'
       }`}>
         <div>
-          © {new Date().getFullYear()} {storeSettings.storeName} ATELIER. ALL RIGHTS RESERVED.
+          © {new Date().getFullYear()} {storeSettings.storeName}. All rights reserved. Built for Indian creators & brands.
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => navigateTo('about-us')} className={isLight ? 'hover:text-fog-950' : 'hover:text-white'}>About Us</button>
+          <button onClick={() => navigateTo('about-us')} className="hover:text-blue-600 dark:hover:text-cyan-400">About</button>
           <span>•</span>
-          <button onClick={() => navigateTo('help')} className={isLight ? 'hover:text-fog-950' : 'hover:text-white'}>Support</button>
+          <button onClick={() => navigateTo('help')} className="hover:text-blue-600 dark:hover:text-cyan-400">Help & Support</button>
           <span>•</span>
-          <button onClick={() => navigateTo('admin-login')} className="hover:text-fog-gold">Staff Portal</button>
+          <a
+            href="https://wa.me/917992801158"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-emerald-500 font-semibold"
+          >
+            WhatsApp Support
+          </a>
         </div>
       </div>
     </footer>
@@ -282,4 +292,3 @@ export function Footer() {
 }
 
 export default Footer;
-

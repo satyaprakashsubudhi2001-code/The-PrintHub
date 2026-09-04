@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { INITIAL_PRODUCTS, DEFAULT_PRESET_PRODUCTS, COLOR_PALETTE, PRINTING_METHODS } from '../constants/products';
+import { READY_TO_BUY_PRODUCTS } from '../constants/readyToBuyProducts';
 import { STORE_CONFIG } from '../constants/config';
 import {
   getStoredDesignRequests,
@@ -132,8 +133,14 @@ export function StoreProvider({ children }) {
   // Store & Brand Settings
   const [storeSettings, setStoreSettings] = useState({
     storeName: 'The PrintHub',
-    tagline: 'Custom Merch & Product Design Studio',
-    logoType: 'badge',
+    tagline: "WE DON'T PRINT, WE CREATE!",
+    logoType: 'image',
+    logoUrl: '/brand-dark.png',
+    logoDarkUrl: '/brand-dark.png',
+    logoLightUrl: '/brand-light.png',
+    logoWhiteUrl: '/brand-dark.png',
+    logoMarkUrl: '/logo-mark.png',
+    logoMarkWhiteUrl: '/logo-mark-white.png',
     logoText: 'PH',
     themeId: 'indigo_cyan',
     phone: '+91 79928 01158',
@@ -164,19 +171,56 @@ export function StoreProvider({ children }) {
     setStoreSettings((prev) => ({ ...prev, themeId }));
   };
 
-  // Product Catalog (Loaded from localStorage or empty initial catalog)
+  // Product Catalog (Loaded from localStorage or initial presets)
   const [products, setProducts] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('printhub_custom_products');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
       } catch (e) {}
     }
     return INITIAL_PRODUCTS;
   });
+
+  // Ready-to-Buy Direct Catalog
+  const [readyToBuyProducts, setReadyToBuyProducts] = useState(READY_TO_BUY_PRODUCTS);
+
+  // Global Search & Category Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+
+  // Wishlist State
+  const [wishlist, setWishlist] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('printhub_wishlist');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  const toggleWishlist = useCallback((productId) => {
+    setWishlist((prev) => {
+      const next = prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_wishlist', JSON.stringify(next));
+      }
+      return next;
+    });
+  }, []);
+
+  const isWishlisted = useCallback((productId) => wishlist.includes(productId), [wishlist]);
+
+  const addReadyToBuyToCart = useCallback((item) => {
+    // Keep track of direct selections
+  }, []);
 
   const saveProductsToStorage = (updatedList) => {
     setProducts(updatedList);
@@ -387,6 +431,8 @@ export function StoreProvider({ children }) {
         // Catalog & Customizer
         products,
         setProducts,
+        readyToBuyProducts,
+        setReadyToBuyProducts,
         addProduct,
         updateProduct,
         deleteProduct,
@@ -403,6 +449,18 @@ export function StoreProvider({ children }) {
         setActivePlacementId,
         placementDesigns,
         setPlacementDesigns,
+
+        // Discovery, Search & Wishlist
+        searchQuery,
+        setSearchQuery,
+        selectedCategory,
+        setSelectedCategory,
+        quickViewProduct,
+        setQuickViewProduct,
+        wishlist,
+        toggleWishlist,
+        isWishlisted,
+        addReadyToBuyToCart,
 
         // Design Requests Management
         designRequests,

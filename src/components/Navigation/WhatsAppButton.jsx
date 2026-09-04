@@ -18,22 +18,22 @@ export function WhatsAppButton() {
   const whatsappUrl = `https://wa.me/${cleanNumber}?text=${defaultMessage}`;
 
   return (
-    <aside aria-label="WhatsApp live chat support" className="fixed bottom-6 right-6 z-40 select-none group">
+    <aside aria-label="WhatsApp live chat support" className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 select-none group">
       <a
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat with The PrintHub on WhatsApp"
-        className="flex items-center gap-2.5 px-3.5 sm:px-4 py-3 sm:py-3.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs sm:text-sm shadow-[0_8px_25px_rgba(16,185,129,0.4)] hover:shadow-[0_12px_32px_rgba(16,185,129,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 border border-emerald-300/40"
+        className="flex items-center gap-2.5 px-3.5 sm:px-4 py-3 sm:py-3.5 rounded-full bg-[#00A878] hover:bg-[#00966B] text-white font-bold text-xs sm:text-sm shadow-[0_8px_25px_rgba(0,168,120,0.4)] hover:shadow-[0_12px_32px_rgba(0,168,120,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 border border-[#00A878]/60"
       >
         {/* WhatsApp Icon with Online Pulse */}
         <div className="relative flex items-center justify-center">
-          <MessageCircle className="w-5 h-5 text-slate-950 fill-slate-950" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-200 border-2 border-emerald-600 animate-pulse" />
+          <MessageCircle className="w-5 h-5 text-white fill-white/20" />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-200 border-2 border-[#00A878] animate-pulse" />
         </div>
 
         {/* Text Label on Desktop */}
-        <span className="hidden sm:inline font-black tracking-wide font-display text-slate-950">
+        <span className="hidden sm:inline font-bold tracking-wide text-white">
           Chat with us
         </span>
       </a>

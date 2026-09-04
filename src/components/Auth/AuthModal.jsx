@@ -128,8 +128,12 @@ export function AuthModal() {
            ========================================================================= */}
         <div className="p-4 bg-studio-950 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-xl bg-gradient-to-tr ${currentTheme.gradient} flex items-center justify-center text-white text-xs font-black`}>
-              PH
+            <div className="w-8 h-8 rounded-xl bg-studio-900 border border-slate-700/80 flex items-center justify-center p-1 shadow-sm">
+              <img
+                src="/logo-mark-white.png"
+                alt="The PrintHub"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <span className="text-xs font-black text-white block font-display">The PrintHub</span>

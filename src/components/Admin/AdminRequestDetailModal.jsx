@@ -92,8 +92,12 @@ export function AdminRequestDetailModal({ request, onClose }) {
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between gap-4 bg-[#0c1020] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-mono font-bold">
-              PH
+            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-cyan-500/30 flex items-center justify-center p-1.5 shadow-sm">
+              <img
+                src="/logo-mark-white.png"
+                alt="The PrintHub"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">

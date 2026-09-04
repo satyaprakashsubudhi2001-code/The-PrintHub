@@ -32,22 +32,14 @@ export function Header() {
     <header className="h-16 border-b border-slate-800 bg-studio-900/90 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 select-none">
       {/* Brand Logo & Tagline */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-amber-500 shadow-glow-orange text-white text-xl font-black tracking-wider">
-          PH
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display text-lg font-black text-white tracking-wide">
-              THE PRINTHUB
-            </h1>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30 uppercase tracking-wider">
-              3D Studio Pro
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 hidden sm:block">
-            Real-Time 3D Apparel & Merchandise Customization
-          </p>
-        </div>
+        <img
+          src="/brand-dark.png"
+          alt="The PrintHub"
+          className="h-8 sm:h-9 w-auto object-contain"
+        />
+        <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30 uppercase tracking-wider">
+          3D Studio Pro
+        </span>
       </div>
 
       {/* Center Product Quick-Switch Menu */}

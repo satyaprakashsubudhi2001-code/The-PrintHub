@@ -56,8 +56,12 @@ export function AdminLoginView() {
         {/* Terminal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center font-mono font-black shadow-glow-cyan">
-              PH
+            <div className="w-10 h-10 rounded-xl bg-slate-950 border border-cyan-500/40 flex items-center justify-center p-1.5 shadow-glow-cyan">
+              <img
+                src="/logo-mark-white.png"
+                alt="The PrintHub"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <span className="text-xs font-black text-white block font-display tracking-wide">

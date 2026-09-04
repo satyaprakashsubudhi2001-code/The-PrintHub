@@ -2,26 +2,34 @@ import React, { useState } from 'react';
 import {
   ArrowLeft,
   Star,
-  ShoppingBag,
   Zap,
   Heart,
   ShieldCheck,
   Truck,
   RotateCcw,
   Sparkles,
-  MessageSquare,
+  MessageCircle,
   Package,
   Palette,
+  Mail,
+  Check,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { ProductCard } from './ProductCard';
 
+/**
+ * ProductDetailView — The PrintHub Product Quick Detail & Direct Ordering View
+ * Strict adherence to Controlled Image Rule:
+ * - aspect-ratio: 1 / 1
+ * - display: flex; align-items: center; justify-content: center;
+ * - object-fit: contain; width: 100%; height: 100%;
+ * Direct WhatsApp & Email ordering flow (No traditional checkout wall).
+ */
 export function ProductDetailView({ product, onBack, onSelectRelated }) {
   const {
-    readyToBuyProducts,
+    readyToBuyProducts = [],
     toggleWishlist,
     isWishlisted,
-    addReadyToBuyToCart,
     storeSettings,
     setQuickViewProduct,
     selectProduct,
@@ -31,97 +39,131 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
 
   const isLight = themeMode === 'light';
 
-  const [activeImage, setActiveImage] = useState(product?.images?.[0] || product?.image);
-  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || { name: 'Standard', hex: '#000000' });
-  const [selectedSize, setSelectedSize] = useState(product?.defaultSize || product?.sizes?.[0] || 'L');
+  const [activeImage, setActiveImage] = useState(
+    product?.images?.[0] || product?.image || '/brand-dark.png'
+  );
+  const [selectedColor, setSelectedColor] = useState(
+    product?.colors?.[0] || { name: 'Standard', hex: '#000000' }
+  );
+  const [selectedSize, setSelectedSize] = useState(
+    product?.defaultSize || product?.sizes?.[0] || 'L'
+  );
   const [quantity, setQuantity] = useState(1);
-  const [isAdded, setIsAdded] = useState(false);
 
   if (!product) return null;
 
   const wishlisted = isWishlisted(product.id);
-  const discountPercent = product.compareAtPrice
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+  const unitPrice = product.price || product.basePrice || 399;
+  const comparePrice = product.compareAtPrice;
+  const discountPercent = comparePrice && comparePrice > unitPrice
+    ? Math.round(((comparePrice - unitPrice) / comparePrice) * 100)
     : 0;
 
+  const isCustomizable =
+    product.isCustomizable !== false &&
+    (Boolean(product.modelPath) || Boolean(product.printAreas));
+
   // Related products from same category or collection
-  const relatedProducts = readyToBuyProducts
-    .filter((p) => p.id !== product.id && (p.categoryKey === product.categoryKey || p.collection === product.collection))
+  const relatedProducts = (readyToBuyProducts || [])
+    .filter((p) => p.id !== product.id && (p.categoryKey === product.categoryKey || p.category === product.category))
     .slice(0, 4);
 
-  // WhatsApp Support pre-filled deep-link
-  const whatsappNumber = storeSettings?.whatsapp?.replace(/\D/g, '') || '919876543210';
-  const whatsappMsg = encodeURIComponent(
-    `Hi The PrintHub, I am interested in purchasing "${product.name}", Size: ${selectedSize}, Color: ${selectedColor.name}. Is this available for express shipping?`
+  // WhatsApp Direct Ordering Link
+  const whatsappNumber = '917992801158';
+  const totalPrice = unitPrice * quantity;
+  const whatsappOrderMsg = encodeURIComponent(
+    `Hello The PrintHub! I would like to place an order:\n\n` +
+    `• Product: ${product.name}\n` +
+    `• Quantity: ${quantity}\n` +
+    `• Size: ${selectedSize}\n` +
+    `• Color: ${selectedColor.name}\n` +
+    `• Total Estimated: ₹${totalPrice.toLocaleString()}\n\n` +
+    `Please share details and payment method for dispatch.`
   );
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappOrderMsg}`;
 
-  const handleAddToCart = () => {
-    addReadyToBuyToCart({
-      product,
-      selectedColor,
-      selectedSize,
-      quantity,
-      buyNow: false,
-    });
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 1500);
-  };
+  // Email Direct Ordering Link
+  const mailtoUrl = `mailto:theprinthub.in@gmail.com?subject=${encodeURIComponent(
+    `Order Request: ${product.name} (${quantity} units)`
+  )}&body=${whatsappOrderMsg}`;
 
-  const handleBuyNow = () => {
-    addReadyToBuyToCart({
-      product,
-      selectedColor,
-      selectedSize,
-      quantity,
-      buyNow: true,
-    });
+  const handleOpenCustomizer = () => {
+    selectProduct(product);
+    if (setQuickViewProduct) setQuickViewProduct(null);
+    navigateTo('design-by-customer');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className={`min-h-screen ${isLight ? 'bg-[#F8F9FC] text-[#0F172A]' : 'bg-[#080812] text-white'} pt-4 pb-28 sm:py-8 px-3 sm:px-8 select-none space-y-8 sm:space-y-12 animate-in fade-in w-full max-w-full overflow-x-hidden`}>
+    <div className={`min-h-screen ${isLight ? 'bg-[#F8F9FC] text-[#0F172A]' : 'bg-[#080812] text-white'} pt-4 pb-28 sm:py-8 px-4 sm:px-8 select-none space-y-8 sm:space-y-12 animate-in fade-in w-full max-w-full overflow-x-hidden`}>
       <div className="max-w-[1500px] mx-auto space-y-6 sm:space-y-10">
         {/* Breadcrumb Navigation */}
         <div className={`flex items-center justify-between border-b ${isLight ? 'border-slate-200' : 'border-white/10'} pb-4`}>
           <button
             type="button"
             onClick={onBack}
-            className={`flex items-center gap-2 text-xs font-bold ${isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-300 hover:text-white'} transition-colors`}
+            className={`flex items-center gap-2 text-xs font-bold ${isLight ? 'text-slate-600 hover:text-blue-600' : 'text-slate-300 hover:text-cyan-400'} transition-colors cursor-pointer`}
           >
-            <ArrowLeft className={`w-4 h-4 ${isLight ? 'text-indigo-600' : 'text-[#06B6D4]'}`} />
+            <ArrowLeft className="w-4 h-4" />
             <span>Back to Products Catalog</span>
           </button>
 
-          <div className={`flex items-center gap-3 text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'} font-mono`}>
-            <span>{product.collection}</span>
+          <div className={`flex items-center gap-3 text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span>{product.category || 'Merchandise'}</span>
             <span>/</span>
-            <span className={`${isLight ? 'text-slate-900' : 'text-white'} font-bold`}>{product.category}</span>
+            <span className={`${isLight ? 'text-slate-900' : 'text-white'} font-bold`}>{product.name}</span>
           </div>
         </div>
 
         {/* 2-Column Split: Gallery Left, Details Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* LEFT: IMAGE GALLERY (7 COLS) */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className={`relative aspect-[4/3.5] rounded-3xl ${isLight ? 'bg-white border border-slate-200 shadow-xl' : 'bg-[#101022] border border-white/10 shadow-2xl'} overflow-hidden group`}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          {/* 
+            ===================================================================
+            LEFT: CONTROLLED IMAGE GALLERY (Strict 1:1 Aspect Ratio + Contain)
+            ===================================================================
+          */}
+          <div className="lg:col-span-6 space-y-4">
+            <div
+              className={`relative aspect-square rounded-3xl flex items-center justify-center p-6 sm:p-8 overflow-hidden transition-all ${
+                isLight
+                  ? 'bg-white border border-slate-200 shadow-sm'
+                  : 'bg-[#121318] border border-[#22232C] shadow-md'
+              }`}
+              style={{
+                aspectRatio: '1 / 1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <img
                 src={activeImage}
                 alt={product.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-contain transition-transform duration-300"
+                style={{
+                  objectFit: 'contain',
+                  width: '100%',
+                  height: '100%',
+                }}
               />
 
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
                 {product.badge && (
-                  <span className={`px-3 py-1 rounded-full text-xs font-black uppercase font-mono tracking-wider ${
-                    isLight ? 'bg-white/90 text-indigo-700 border border-indigo-200 shadow-md' : 'bg-[#101022]/90 text-[#06B6D4] border border-[#06B6D4]/30 shadow-md'
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                    isLight ? 'bg-blue-600 text-white' : 'bg-cyan-500 text-slate-950 font-extrabold'
                   }`}>
                     {product.badge}
                   </span>
                 )}
                 {discountPercent > 0 && (
-                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase font-mono bg-[#EC4899] text-white shadow-md">
+                  <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase bg-rose-500 text-white shadow-xs">
                     {discountPercent}% OFF
+                  </span>
+                )}
+                {isCustomizable && (
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-purple-600 text-white shadow-xs">
+                    3D Customizable
                   </span>
                 )}
               </div>
@@ -130,15 +172,16 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
               <button
                 type="button"
                 onClick={() => toggleWishlist(product.id)}
-                className={`absolute top-4 right-4 p-3 rounded-2xl backdrop-blur-md transition-all z-10 shadow-md ${
+                className={`absolute top-4 right-4 p-3 rounded-2xl backdrop-blur-md transition-all z-10 cursor-pointer shadow-xs ${
                   wishlisted
-                    ? 'bg-rose-500/20 text-rose-500 border border-rose-500/40 scale-110'
+                    ? 'bg-rose-500 text-white scale-105'
                     : isLight
-                    ? 'bg-white/80 text-slate-400 hover:text-rose-500 border border-slate-200'
-                    : 'bg-[#101022]/80 text-slate-400 hover:text-rose-400 border border-white/10'
+                    ? 'bg-white/90 text-slate-400 hover:text-rose-500 border border-slate-200'
+                    : 'bg-[#101022]/90 text-slate-400 hover:text-rose-400 border border-white/10'
                 }`}
+                title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
               >
-                <Heart className={`w-4 h-4 ${wishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
+                <Heart className={`w-4 h-4 ${wishlisted ? 'fill-white' : ''}`} />
               </button>
             </div>
 
@@ -150,270 +193,258 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                     key={idx}
                     type="button"
                     onClick={() => setActiveImage(img)}
-                    className={`w-20 h-20 rounded-2xl border-2 overflow-hidden shrink-0 transition-all ${
+                    className={`w-18 h-18 rounded-2xl border-2 flex items-center justify-center p-1 shrink-0 transition-all cursor-pointer ${
                       activeImage === img
-                        ? 'border-indigo-600 ring-2 ring-indigo-500/30'
+                        ? 'border-blue-600 ring-2 ring-blue-500/20'
                         : isLight
-                        ? 'border-slate-200 opacity-70 hover:opacity-100'
-                        : 'border-white/10 opacity-70 hover:opacity-100'
+                        ? 'border-slate-200 bg-white opacity-70 hover:opacity-100'
+                        : 'border-[#22232C] bg-[#121318] opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <img src={img} alt="" className="w-full h-full object-contain" />
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* RIGHT: PRODUCT SPECIFICATIONS & ACTIONS (5 COLS) */}
-          <div className="lg:col-span-5 space-y-6">
+          {/* 
+            ===================================================================
+            RIGHT: PRODUCT DETAILS & DIRECT ORDERING ACTIONS
+            ===================================================================
+          */}
+          <div className="lg:col-span-6 space-y-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className={`px-2.5 py-0.5 rounded-full ${
-                  isLight
-                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                    : 'bg-[#6C4DF6]/20 text-[#06B6D4] border border-[#06B6D4]/30'
-                } text-[10px] font-black uppercase font-mono`}>
-                  {product.isCustomizable ? '🎨 CUSTOMIZABLE MERCHANDISE' : '🛍 READY-TO-BUY MERCHANDISE'}
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  isLight ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                }`}>
+                  {isCustomizable ? '3D CUSTOMIZABLE BLANK' : 'READY TO ORDER'}
                 </span>
-                <span className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'} font-mono`}>SKU: {product.sku}</span>
+                <span className="text-xs text-slate-400">Direct Factory Fulfillment</span>
               </div>
 
-              <h1 className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'} font-display leading-tight`}>
+              <h1 className={`text-2xl sm:text-3xl font-bold leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {product.name}
               </h1>
 
               <div className="flex items-center gap-2 text-xs">
                 <div className="flex items-center gap-1 text-amber-500 font-bold">
                   <Star className="w-4 h-4 fill-amber-500" />
-                  <span>{product.rating || '4.9'}</span>
+                  <span>{product.rating || '4.8'}</span>
                 </div>
-                <span className={isLight ? 'text-slate-300' : 'text-slate-600'}>•</span>
-                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>({product.reviewCount || '85'} customer reviews)</span>
-                <span className={isLight ? 'text-slate-300' : 'text-slate-600'}>•</span>
-                <span className="text-emerald-600 font-bold font-mono">In Stock ({product.stock || 25} left)</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-slate-500">({product.reviewsCount || product.reviewCount || 95} verified customer reviews)</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">In Stock & Ready</span>
               </div>
 
               {/* Price Banner */}
-              <div className={`p-4 rounded-2xl ${isLight ? 'bg-white border border-slate-200/90 shadow-sm' : 'bg-[#101022] border border-white/10 shadow-lg'} flex items-baseline justify-between`}>
+              <div className={`p-4 rounded-2xl flex items-baseline justify-between ${
+                isLight ? 'bg-white border border-slate-200 shadow-xs' : 'bg-[#121318] border border-[#22232C]'
+              }`}>
                 <div>
-                  <div className="flex items-baseline gap-2">
-                    <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'} font-mono`}>
-                      ₹{product.price.toLocaleString()}
+                  <div className="flex items-baseline gap-2.5">
+                    <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                      ₹{unitPrice.toLocaleString()}
                     </span>
-                    {product.compareAtPrice && (
-                      <span className="text-sm text-slate-400 line-through font-mono">
-                        MRP ₹{product.compareAtPrice}
+                    {comparePrice && comparePrice > unitPrice && (
+                      <span className="text-sm text-slate-400 line-through">
+                        MRP ₹{comparePrice.toLocaleString()}
                       </span>
                     )}
                   </div>
-                  <span className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Inclusive of all GST taxes • Free Shipping on ₹999+</span>
+                  <span className="text-[11px] text-slate-400">All GST Taxes Included • Free Shipping on ₹999+</span>
                 </div>
 
                 {discountPercent > 0 && (
-                  <span className={`px-2.5 py-1 rounded-xl ${
-                    isLight
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  } font-black text-xs font-mono`}>
-                    Save ₹{product.compareAtPrice - product.price}
+                  <span className={`px-2.5 py-1 rounded-xl text-xs font-bold ${
+                    isLight ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  }`}>
+                    Save ₹{(comparePrice - unitPrice).toLocaleString()}
                   </span>
                 )}
               </div>
             </div>
 
             {/* Description */}
-            <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-300'} leading-relaxed font-medium`}>
-              {product.description}
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              {product.description || product.subtitle || 'Manufactured with high-durability combed fabric and reinforced double-needle stitching for lasting prints.'}
             </p>
 
             {/* Color Swatches */}
-            <div className="space-y-2">
-              <label className={`text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'} flex items-center justify-between`}>
-                <span>Color: <strong className={isLight ? 'text-slate-900' : 'text-white'}>{selectedColor.name}</strong></span>
-                <span className={`text-[11px] ${isLight ? 'text-slate-400' : 'text-slate-400'}`}>{product.colors?.length} Colors Available</span>
-              </label>
-              <div className="flex items-center gap-2.5">
-                {product.colors && product.colors.map((c, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedColor(c)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all ${
-                      selectedColor.name === c.name
-                        ? isLight
-                          ? 'scale-110 border-indigo-600 ring-2 ring-indigo-500/30 shadow-md'
-                          : 'scale-110 border-white ring-2 ring-[#06B6D4] shadow-lg'
-                        : isLight
-                        ? 'border-slate-300 opacity-80 hover:opacity-100'
-                        : 'border-white/20 opacity-80 hover:opacity-100'
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  />
-                ))}
+            {product.colors && product.colors.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>Color: <strong className={isLight ? 'text-slate-900' : 'text-white'}>{selectedColor.name}</strong></span>
+                  <span className="text-[11px] text-slate-400">{product.colors.length} Available</span>
+                </label>
+                <div className="flex items-center gap-2.5">
+                  {product.colors.map((c, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedColor(c)}
+                      className={`w-7 h-7 rounded-full border-2 transition-all cursor-pointer ${
+                        selectedColor.name === c.name
+                          ? isLight
+                            ? 'scale-110 border-blue-600 ring-2 ring-blue-500/20'
+                            : 'scale-110 border-white ring-2 ring-cyan-400'
+                          : 'border-slate-300 dark:border-slate-700 opacity-80 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: c.hex }}
+                      title={c.name}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Size Selector */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className={`font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  Size: <strong className={isLight ? 'text-slate-900' : 'text-white'}>{selectedSize}</strong>
-                </span>
-                <span className="text-indigo-600 font-bold text-[11px] cursor-pointer hover:underline">Size Guide</span>
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">
+                    Size: <strong className={isLight ? 'text-slate-900' : 'text-white'}>{selectedSize}</strong>
+                  </span>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {product.sizes.map((sz) => (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => setSelectedSize(sz)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                        selectedSize === sz
+                          ? isLight
+                            ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                            : 'bg-white border-white text-slate-950 font-extrabold shadow-xs'
+                          : isLight
+                          ? 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                          : 'bg-[#121318] border-[#22232C] text-slate-300 hover:border-slate-600'
+                      }`}
+                    >
+                      {sz}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-5 gap-2">
-                {product.sizes && product.sizes.map((sz) => (
-                  <button
-                    key={sz}
-                    type="button"
-                    onClick={() => setSelectedSize(sz)}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all text-center ${
-                      selectedSize === sz
-                        ? isLight
-                          ? 'bg-slate-900 border-slate-900 text-white shadow-md'
-                          : 'bg-[#6C4DF6] border-[#6C4DF6] text-white shadow-lg shadow-[#6C4DF6]/30'
-                        : isLight
-                        ? 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                        : 'bg-[#101022] border-white/10 text-slate-300 hover:border-white/20 hover:text-white'
-                    }`}
-                  >
-                    {sz}
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
 
             {/* Quantity Stepper */}
-            <div className={`flex items-center justify-between p-3.5 rounded-2xl ${isLight ? 'bg-white border border-slate-200/90 shadow-sm' : 'bg-[#101022] border border-white/10 shadow-lg'} text-xs`}>
+            <div className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs ${
+              isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-[#121318] border-[#22232C]'
+            }`}>
               <div className="flex items-center gap-3">
-                <span className={`font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>Quantity:</span>
-                <div className={`flex items-center rounded-xl ${isLight ? 'bg-slate-100 border border-slate-200' : 'bg-[#080812] border border-white/10'} p-1`}>
+                <span className="font-bold text-slate-700 dark:text-slate-300">Quantity:</span>
+                <div className={`flex items-center rounded-xl border p-1 ${
+                  isLight ? 'bg-slate-100 border-slate-200' : 'bg-[#181922] border-[#272834]'
+                }`}>
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className={`w-7 h-7 rounded-lg ${isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'} flex items-center justify-center font-bold text-sm`}
+                    className="w-7 h-7 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-[#20212C] flex items-center justify-center font-bold text-sm cursor-pointer"
                   >
                     −
                   </button>
-                  <span className={`w-8 text-center font-mono font-bold ${isLight ? 'text-slate-900' : 'text-white'} text-sm`}>{quantity}</span>
+                  <span className="w-8 text-center font-bold text-sm">{quantity}</span>
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className={`w-7 h-7 rounded-lg ${isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'} flex items-center justify-center font-bold text-sm`}
+                    className="w-7 h-7 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-[#20212C] flex items-center justify-center font-bold text-sm cursor-pointer"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              <span className={`text-xs ${isLight ? 'text-emerald-700' : 'text-emerald-400'} font-mono font-bold`}>
-                ✓ Available for Fast Shipping
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                ✓ Ready for Quick Dispatch
               </span>
             </div>
 
-            {/* CTA Buttons */}
+            {/* Direct Order Actions */}
             <div className="space-y-3 pt-2">
-              <button
-                type="button"
-                onClick={handleBuyNow}
-                className="w-full py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98"
+              {/* Primary WhatsApp Direct Order Button */}
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98 cursor-pointer"
               >
-                <Zap className="w-4 h-4 fill-current" />
-                <span>Buy Now (₹{(product.price * quantity).toLocaleString()})</span>
-              </button>
+                <MessageCircle className="w-4 h-4 fill-white/20" />
+                <span>Order Now via WhatsApp (₹{totalPrice.toLocaleString()})</span>
+              </a>
 
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                className={`w-full py-3.5 rounded-2xl ${
-                  isLight
-                    ? 'bg-white hover:bg-slate-50 text-slate-900 border border-slate-300'
-                    : 'bg-[#101022] hover:bg-[#16162E] text-white border border-white/15'
-                } font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm`}
-              >
-                <ShoppingBag className={`w-4 h-4 ${isLight ? 'text-indigo-600' : 'text-[#06B6D4]'}`} />
-                <span>{isAdded ? 'Added to Cart ✓' : 'Add to Cart'}</span>
-              </button>
-
-              {/* Optional: Customize in 3D Button if Customizable */}
-              {product.isCustomizable !== false && (
+              {/* 3D Customizer Studio Button if product is customizable */}
+              {isCustomizable && (
                 <button
                   type="button"
-                  onClick={() => {
-                    selectProduct(product);
-                    navigateTo('design-by-customer');
-                  }}
-                  className={`w-full py-3.5 rounded-2xl ${
+                  onClick={handleOpenCustomizer}
+                  className={`w-full py-3.5 rounded-2xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     isLight
-                      ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
-                      : 'bg-[#6C4DF6]/20 hover:bg-[#6C4DF6]/30 text-[#06B6D4] border border-[#06B6D4]/40'
-                  } font-bold text-xs flex items-center justify-center gap-2 transition-all`}
+                      ? 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
+                      : 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border-cyan-500/40'
+                  }`}
                 >
-                  <Palette className="w-4 h-4" />
-                  <span>🎨 Customize this Product with Your Design in 3D</span>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Open 3D Studio to Add Your Own Custom Design</span>
                 </button>
               )}
+
+              {/* Email Direct Order Fallback */}
+              <a
+                href={mailtoUrl}
+                className={`w-full py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${
+                  isLight
+                    ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                    : 'bg-[#121318] hover:bg-[#181922] text-slate-300 border-[#22232C]'
+                }`}
+              >
+                <Mail className="w-3.5 h-3.5 text-slate-400" />
+                <span>Prefer Email? Send Order Details via Gmail</span>
+              </a>
             </div>
 
-            {/* Trust Points */}
-            <div className={`grid grid-cols-2 gap-3 text-xs ${isLight ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/10'} pt-2 border-t`}>
+            {/* Trust Badges */}
+            <div className={`grid grid-cols-2 gap-3 text-xs pt-3 border-t ${
+              isLight ? 'border-slate-200 text-slate-500' : 'border-[#22232C] text-slate-400'
+            }`}>
               <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-indigo-600 shrink-0" />
-                <span>Express Air Delivery (2–4 Days)</span>
+                <Truck className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" />
+                <span>Express PAN-India Delivery (2–4 Days)</span>
               </div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>100% Razorpay & UPI Secure</span>
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Direct Verified Manufacturer</span>
               </div>
               <div className="flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>7 Days Print Defect Replacement</span>
+                <RotateCcw className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Defect-Free Quality Assurance</span>
               </div>
               <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-[#EC4899] shrink-0" />
-                <span>Tamper-Proof Box Packaging</span>
+                <Package className="w-4 h-4 text-purple-500 shrink-0" />
+                <span>Damage-Proof Packaging</span>
               </div>
             </div>
-
-            {/* WhatsApp Support Direct Button */}
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={`p-3.5 rounded-2xl ${
-                isLight
-                  ? 'bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800'
-                  : 'bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300'
-              } text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm`}
-            >
-              <MessageSquare className="w-4 h-4 text-emerald-600" />
-              <span>Need help? Chat with us on WhatsApp regarding this product</span>
-            </a>
           </div>
         </div>
 
-        {/* BOTTOM: YOU MAY ALSO LIKE (RELATED PRODUCTS) */}
+        {/* BOTTOM: RELATED PRODUCTS */}
         {relatedProducts.length > 0 && (
-          <div className={`space-y-6 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/10'}`}>
+          <div className={`space-y-6 pt-10 border-t ${isLight ? 'border-slate-200' : 'border-[#22232C]'}`}>
             <div>
-              <h2 className={`text-lg sm:text-xl font-black ${isLight ? 'text-slate-900' : 'text-white'} font-display uppercase tracking-tight`}>
+              <h2 className={`text-lg sm:text-xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 You May Also Like
               </h2>
-              <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                Curated merchandise and apparel from the same collection
+              <p className="text-xs text-slate-500">
+                Curated merchandise and blanks from the same collection
               </p>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {relatedProducts.map((relProduct) => (
-                <ProductCard
-                  key={relProduct.id}
-                  product={relProduct}
-                  onOpenQuickView={(p) => setQuickViewProduct(p)}
-                  onOpenDetail={(p) => onSelectRelated(p)}
-                />
+                <ProductCard key={relProduct.id} product={relProduct} />
               ))}
             </div>
           </div>
@@ -422,3 +453,5 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
     </div>
   );
 }
+
+export default ProductDetailView;

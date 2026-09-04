@@ -133,8 +133,12 @@ export function RegisterView() {
 
         {/* Branding */}
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${currentTheme.gradient} ${currentTheme.glow} flex items-center justify-center text-white text-sm font-black shadow-lg`}>
-            PH
+          <div className="w-10 h-10 rounded-2xl bg-studio-900 border border-slate-700/80 flex items-center justify-center p-1.5 shadow-lg">
+            <img
+              src="/logo-mark-white.png"
+              alt="The PrintHub"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <span className="text-base font-black text-white tracking-tight font-display block">
@@ -215,8 +219,12 @@ export function RegisterView() {
         <div className="w-full max-w-lg space-y-5">
           {/* Mobile Top Branding */}
           <div className="flex lg:hidden items-center justify-center gap-2 mb-1">
-            <div className={`w-9 h-9 rounded-2xl bg-gradient-to-tr ${currentTheme.gradient} flex items-center justify-center text-white text-xs font-black`}>
-              PH
+            <div className="w-9 h-9 rounded-2xl bg-studio-900 border border-slate-700/80 flex items-center justify-center p-1 shadow-md">
+              <img
+                src="/logo-mark-white.png"
+                alt="The PrintHub"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-base font-black text-white font-display">The PrintHub</span>
           </div>

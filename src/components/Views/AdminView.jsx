@@ -99,8 +99,12 @@ export function AdminView() {
       {/* Admin Top Header */}
       <header className="sticky top-0 z-30 bg-[#090d1c]/95 backdrop-blur-xl border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 via-blue-600 to-cyan-400 flex items-center justify-center text-white font-black text-sm shadow-md">
-            PH
+          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center p-1.5 shadow-md">
+            <img
+              src="/logo-mark-white.png"
+              alt="The PrintHub"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">

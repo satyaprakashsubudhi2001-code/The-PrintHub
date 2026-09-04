@@ -106,8 +106,12 @@ export function AdminOrderDetailModal({ order, onClose }) {
         {/* Modal Header */}
         <div className="p-4 sm:p-6 bg-studio-950 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-black font-black flex items-center justify-center font-mono shadow-glow-cyan">
-              PH
+            <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center p-1.5 shadow-glow-cyan">
+              <img
+                src="/logo-mark-white.png"
+                alt="The PrintHub"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">

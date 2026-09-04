@@ -1,9 +1,6 @@
 import { MASTER_CALIBRATIONS, getProductPrintAreas } from './printCalibration';
 
-// Empty default initial catalog as requested (manageable via Admin Panel)
-export const INITIAL_PRODUCTS = [];
-
-// Pre-calibrated 3D & 2D templates available for 1-click loading by Admin
+// Pre-calibrated 3D & 2D templates available for catalog and 1-click loading by Admin
 export const DEFAULT_PRESET_PRODUCTS = [
   {
     id: 'round-neck-tshirt',
@@ -406,6 +403,8 @@ export const DEFAULT_PRESET_PRODUCTS = [
     defaultPrintArea: 'frame_photo'
   }
 ];
+
+export const INITIAL_PRODUCTS = DEFAULT_PRESET_PRODUCTS;
 
 export const COLOR_PALETTE = [
   { name: 'Obsidian Black', hex: '#121214', category: 'dark', textColor: '#ffffff' },
