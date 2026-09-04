@@ -213,11 +213,20 @@ export function DesignByCustomerView() {
   const handleSideSwitch = useCallback(
     (targetSide) => {
       setActivePlacementSide(targetSide);
-      const matched = availablePrintAreas.find(
-        (a) => (a.surface || a.section || a.cameraView) === targetSide
-      );
-      if (matched && matched.id !== activePlacementId) {
-        setActivePlacementId(matched.id);
+      if (targetSide === 'back') {
+        const backArea =
+          availablePrintAreas.find((a) => a.id === 'full_back') ||
+          availablePrintAreas.find((a) => (a.surface || a.section || a.cameraView) === 'back');
+        if (backArea && backArea.id !== activePlacementId) {
+          setActivePlacementId(backArea.id);
+        }
+      } else {
+        const frontArea =
+          availablePrintAreas.find((a) => a.id === 'center_chest') ||
+          availablePrintAreas.find((a) => (a.surface || a.section || a.cameraView) === 'front');
+        if (frontArea && frontArea.id !== activePlacementId) {
+          setActivePlacementId(frontArea.id);
+        }
       }
     },
     [availablePrintAreas, activePlacementId]
