@@ -1,6 +1,10 @@
 import { MASTER_CALIBRATIONS, getProductPrintAreas } from './printCalibration';
 
-export const INITIAL_PRODUCTS = [
+// Empty default initial catalog as requested (manageable via Admin Panel)
+export const INITIAL_PRODUCTS = [];
+
+// Pre-calibrated 3D & 2D templates available for 1-click loading by Admin
+export const DEFAULT_PRESET_PRODUCTS = [
   {
     id: 'round-neck-tshirt',
     name: 'Round Neck T-Shirt (Regular Fit)',
@@ -83,7 +87,7 @@ export const INITIAL_PRODUCTS = [
     basePrice: 549,
     rating: 4.8,
     reviewsCount: 940,
-    image: 'https://images.unsplash.com/photo-1625910513413-5bc25e656d29?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?auto=format&fit=crop&w=600&q=80',
     modelPath: '/models/polo-tshirt.glb',
     defaultColor: '#1e293b',
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],

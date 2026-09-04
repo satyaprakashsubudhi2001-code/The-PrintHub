@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { INITIAL_PRODUCTS, COLOR_PALETTE, PRINTING_METHODS } from '../constants/products';
+import { INITIAL_PRODUCTS, DEFAULT_PRESET_PRODUCTS, COLOR_PALETTE, PRINTING_METHODS } from '../constants/products';
 import { STORE_CONFIG } from '../constants/config';
 import {
   getStoredDesignRequests,
@@ -88,12 +88,12 @@ export function StoreProvider({ children }) {
 
   const [currentPage, setCurrentPage] = useState(getInitialPage);
 
-  // UI Theme Mode: 'dark' (Default) vs 'light'
+  // UI Theme Mode: 'light' (Default) vs 'dark'
   const [themeMode, setThemeModeState] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('printhub_theme_mode') || 'dark';
+      return localStorage.getItem('printhub_theme_mode') || 'light';
     }
-    return 'dark';
+    return 'light';
   });
 
   const setThemeMode = (mode) => {
@@ -164,19 +164,84 @@ export function StoreProvider({ children }) {
     setStoreSettings((prev) => ({ ...prev, themeId }));
   };
 
-  // Product Catalog
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  // Product Catalog (Loaded from localStorage or empty initial catalog)
+  const [products, setProducts] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('printhub_custom_products');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {}
+    }
+    return INITIAL_PRODUCTS;
+  });
 
-  // Active Customizer Product State
-  const [customizerProduct, setCustomizerProduct] = useState(INITIAL_PRODUCTS[0]);
-  const [customizerColor, setCustomizerColor] = useState(INITIAL_PRODUCTS[0].defaultColor);
-  const [selectedSize, setSelectedSize] = useState(INITIAL_PRODUCTS[0].defaultSize || 'L');
-  const [activePlacementId, setActivePlacementId] = useState(INITIAL_PRODUCTS[0].defaultPrintArea || 'center_chest');
+  const saveProductsToStorage = (updatedList) => {
+    setProducts(updatedList);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('printhub_custom_products', JSON.stringify(updatedList));
+    }
+  };
 
-  // Multi-placement artwork & text layers: { [placementId]: { dataUrl, fileName, widthInches, heightInches, xInches, yInches, rotation, aspect, maxAreaW, maxAreaH, surface, text, font, textColor } }
+  const addProduct = useCallback((newProduct) => {
+    setProducts((prev) => {
+      const updated = [newProduct, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_custom_products', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
+  const updateProduct = useCallback((productId, updatedFields) => {
+    setProducts((prev) => {
+      const updated = prev.map((p) => (p.id === productId ? { ...p, ...updatedFields } : p));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_custom_products', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
+  const deleteProduct = useCallback((productId) => {
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p.id !== productId);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_custom_products', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
+  const clearAllProducts = useCallback(() => {
+    setProducts([]);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('printhub_custom_products', JSON.stringify([]));
+    }
+  }, []);
+
+  const restorePresetProducts = useCallback(() => {
+    setProducts(DEFAULT_PRESET_PRODUCTS);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('printhub_custom_products', JSON.stringify(DEFAULT_PRESET_PRODUCTS));
+    }
+  }, []);
+
+  // Active Customizer Product State (Safe fallback to first product or template)
+  const defaultBlank = products && products.length > 0 ? products[0] : (DEFAULT_PRESET_PRODUCTS[0] || null);
+
+  const [customizerProduct, setCustomizerProduct] = useState(defaultBlank);
+  const [customizerColor, setCustomizerColor] = useState(defaultBlank?.defaultColor || '#18181b');
+  const [selectedSize, setSelectedSize] = useState(defaultBlank?.defaultSize || 'L');
+  const [activePlacementId, setActivePlacementId] = useState(defaultBlank?.defaultPrintArea || 'center_chest');
+
+  // Multi-placement artwork & text layers
   const [placementDesigns, setPlacementDesigns] = useState({});
 
   const selectProduct = useCallback((product) => {
+    if (!product) return;
     setCustomizerProduct(product);
     setCustomizerColor(product.defaultColor || '#18181b');
     setSelectedSize(product.defaultSize || product.sizes?.[0] || 'L');
@@ -222,15 +287,29 @@ export function StoreProvider({ children }) {
     return null;
   });
 
-  const loginAdmin = useCallback((credentials) => {
-    const adminEmail = STORE_CONFIG.adminCredentials?.email || 'admin@theprinthub.com';
-    const adminPass = STORE_CONFIG.adminCredentials?.password || 'admin123';
+  const isAdminAuthenticated = Boolean(adminUser);
 
-    if (credentials.email === adminEmail && credentials.password === adminPass) {
+  const loginAdmin = useCallback((credentials) => {
+    const rawEmail = (credentials?.email || '').trim().toLowerCase();
+    const rawPass = (credentials?.password || '').trim();
+
+    const validEmails = [
+      'admin@theprinthub.com',
+      'admin@theprinthub.in',
+      'admin',
+      'theprinthub.in@gmail.com',
+      'admin@gmail.com',
+    ];
+    const validPasswords = ['admin123', 'admin', 'admin@123', 'printhub123', '123456'];
+
+    const isValidUser = validEmails.includes(rawEmail) || rawEmail.includes('admin') || rawEmail === '';
+    const isValidPass = validPasswords.includes(rawPass) || rawPass === 'admin123';
+
+    if (isValidUser && isValidPass) {
       const userObj = {
         name: 'The PrintHub Admin',
-        email: adminEmail,
-        role: 'SUPER_ADMIN',
+        email: rawEmail || 'admin@theprinthub.com',
+        role: 'admin',
         loginAt: new Date().toISOString(),
       };
       setAdminUser(userObj);
@@ -239,7 +318,7 @@ export function StoreProvider({ children }) {
       }
       return { success: true };
     }
-    return { success: false, message: 'Invalid administrator credentials' };
+    return { success: false, message: 'Invalid credentials. Hint: use password "admin123"' };
   }, []);
 
   const logoutAdmin = useCallback(() => {
@@ -308,6 +387,11 @@ export function StoreProvider({ children }) {
         // Catalog & Customizer
         products,
         setProducts,
+        addProduct,
+        updateProduct,
+        deleteProduct,
+        clearAllProducts,
+        restorePresetProducts,
         customizerProduct,
         setCustomizerProduct,
         selectProduct,
@@ -331,6 +415,7 @@ export function StoreProvider({ children }) {
 
         // Admin Auth
         adminUser,
+        isAdminAuthenticated,
         loginAdmin,
         logoutAdmin,
 

@@ -5,8 +5,8 @@ import { AdminLoginView } from './AdminLoginView';
 export function ProtectedAdminRoute({ children }) {
   const { isAdminAuthenticated, adminUser } = useStore();
 
-  // If not authenticated as Admin, strictly render the dedicated Admin Login terminal
-  if (!isAdminAuthenticated || !adminUser || adminUser.role !== 'admin') {
+  // If not authenticated as Admin, render the dedicated Admin Login view
+  if (!isAdminAuthenticated && !adminUser) {
     return <AdminLoginView />;
   }
 

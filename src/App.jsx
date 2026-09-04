@@ -89,7 +89,7 @@ function MainAppShell() {
 
   return (
     <div className={`w-full max-w-full font-sans antialiased flex flex-col transition-colors duration-300 ${
-      isCustomizer || isAdminSurface
+      isAdminSurface
         ? 'bg-[#080812] text-slate-100'
         : isLight
         ? 'bg-[#F8F9FC] text-[#0F172A]'

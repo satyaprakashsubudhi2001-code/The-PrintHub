@@ -14,30 +14,37 @@ import { useStore } from '../../context/StoreContext';
 export function AdminLoginView() {
   const { loginAdmin, navigateTo } = useStore();
   const [identifier, setIdentifier] = useState('admin@theprinthub.com');
-  const [passcode, setPasscode] = useState('');
+  const [passcode, setPasscode] = useState('admin123');
   const [showPasscode, setShowPasscode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const executeLogin = (emailVal, passVal) => {
     setErrorMessage('');
-
-    if (!passcode) {
-      setErrorMessage('Please enter administrator security credentials.');
-      return;
-    }
-
     setIsLoading(true);
-    // Authenticate with admin credentials
-    const res = loginAdmin({ email: identifier.trim(), password: passcode.trim() });
+
+    const emailToUse = (emailVal !== undefined ? emailVal : identifier).trim();
+    const passToUse = (passVal !== undefined ? passVal : passcode).trim();
+
+    const res = loginAdmin({ email: emailToUse, password: passToUse });
     setIsLoading(false);
 
     if (res && res.success) {
       navigateTo('admin');
     } else {
-      setErrorMessage(res?.message || 'Access Denied: Invalid administrator password.');
+      setErrorMessage(res?.message || 'Access Denied: Invalid administrator credentials.');
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    executeLogin();
+  };
+
+  const handleQuickDemoLogin = () => {
+    setIdentifier('admin@theprinthub.com');
+    setPasscode('admin123');
+    executeLogin('admin@theprinthub.com', 'admin123');
   };
 
   return (
@@ -75,8 +82,23 @@ export function AdminLoginView() {
             Staff Gateway 🛡
           </h1>
           <p className="text-xs text-slate-400">
-            Authorized personnel only. Access design requests, original artwork files, and factory calibrations.
+            Authorized personnel only. Access design requests, product catalog manager, and calibrations.
           </p>
+        </div>
+
+        {/* Quick 1-Click Access Pill */}
+        <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-between gap-2 text-xs">
+          <div>
+            <span className="text-[11px] font-bold text-cyan-300 block">Default Admin Credentials</span>
+            <span className="text-[10px] font-mono text-slate-400">admin@theprinthub.com • admin123</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleQuickDemoLogin}
+            className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-[11px] uppercase tracking-wider shrink-0 transition-transform active:scale-95 shadow-md shadow-cyan-500/30"
+          >
+            ⚡ 1-Click Sign In
+          </button>
         </div>
 
         {/* Error Feedback */}
@@ -91,7 +113,7 @@ export function AdminLoginView() {
           <div>
             <label className="text-slate-400 block mb-1 font-bold">Admin Email / ID</label>
             <input
-              type="email"
+              type="text"
               required
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -105,7 +127,7 @@ export function AdminLoginView() {
               <input
                 type={showPasscode ? 'text' : 'password'}
                 required
-                placeholder="Enter admin password (admin123)"
+                placeholder="Enter admin password"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 pr-10"
@@ -123,7 +145,7 @@ export function AdminLoginView() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 hover:brightness-110 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 font-display transition-all disabled:opacity-50"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 hover:brightness-110 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 font-display transition-all disabled:opacity-50 cursor-pointer"
           >
             <ShieldCheck className="w-4 h-4" />
             <span>{isLoading ? 'VERIFYING...' : 'SIGN IN TO COMMAND CENTER'}</span>

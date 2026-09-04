@@ -31,11 +31,12 @@ import { useStore } from '../../context/StoreContext';
 import { DESIGN_REQUEST_STATUSES } from '../../constants/requests';
 import { AdminRequestDetailModal } from '../Admin/AdminRequestDetailModal';
 import { AdminCalibrationTab } from '../Admin/AdminCalibrationTab';
+import { AdminProductsTab } from '../Admin/AdminProductsTab';
 import { generateDesignRequestZip } from '../../services/packageExporter';
 
 /**
  * The PrintHub — Dedicated Admin Command Center
- * Manage Customer Custom Design Requests, View/Download Artwork Files & Mockups,
+ * Manage Products, Customer Custom Design Requests, View/Download Artwork Files & Mockups,
  * Export Complete Request ZIP Packages, Contact Customers, and Calibrate Print Dimensions.
  */
 export function AdminView() {
@@ -46,11 +47,11 @@ export function AdminView() {
     navigateTo,
     storeSettings,
     updateStoreSettings,
-    products,
+    products = [],
     updateDesignRequestStatus,
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState('requests'); // 'requests' | 'calibration' | 'settings'
+  const [activeTab, setActiveTab] = useState('products'); // 'products' | 'requests' | 'calibration' | 'settings'
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -140,8 +141,9 @@ export function AdminView() {
       <div className="bg-[#0a0e20] border-b border-slate-800 px-4 sm:px-8">
         <div className="max-w-[1500px] mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar">
           {[
-            { id: 'requests', label: 'DESIGN REQUESTS QUEUE', count: newCount > 0 ? newCount : null },
-            { id: 'calibration', label: 'PRODUCT & CALIBRATION MATRIX' },
+            { id: 'products', label: 'PRODUCT CATALOG', count: products.length > 0 ? `${products.length} ITEMS` : 'EMPTY' },
+            { id: 'requests', label: 'DESIGN REQUESTS QUEUE', count: newCount > 0 ? `${newCount} NEW` : null },
+            { id: 'calibration', label: 'PRINT AREA CALIBRATIONS' },
             { id: 'settings', label: 'STUDIO & CONTACT SETTINGS' },
           ].map((tab) => (
             <button
@@ -156,14 +158,21 @@ export function AdminView() {
             >
               <span>{tab.label}</span>
               {tab.count !== null && (
-                <span className="px-1.5 py-0.5 rounded-full bg-lime-400 text-slate-950 text-[10px] font-black">
-                  {tab.count} NEW
+                <span className="px-1.5 py-0.5 rounded-full bg-lime-400/20 text-lime-400 border border-lime-400/30 text-[10px] font-black font-mono">
+                  {tab.count}
                 </span>
               )}
             </button>
           ))}
         </div>
       </div>
+
+      {/* TAB 0: PRODUCT CATALOG MANAGEMENT */}
+      {activeTab === 'products' && (
+        <main className="max-w-[1500px] mx-auto px-4 sm:px-8 py-8 animate-in fade-in">
+          <AdminProductsTab />
+        </main>
+      )}
 
       {/* TAB 1: DESIGN REQUESTS QUEUE */}
       {activeTab === 'requests' && (
