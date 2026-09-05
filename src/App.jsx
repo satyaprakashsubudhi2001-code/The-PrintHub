@@ -24,11 +24,20 @@ const AboutUsView = lazy(() =>
 const HelpView = lazy(() =>
   import('./components/Views/HelpView').then((m) => ({ default: m.HelpView }))
 );
+const OffersView = lazy(() =>
+  import('./components/Views/OffersView').then((m) => ({ default: m.OffersView }))
+);
+const HighSellingView = lazy(() =>
+  import('./components/Views/HighSellingView').then((m) => ({ default: m.HighSellingView }))
+);
+const NewArrivalsView = lazy(() =>
+  import('./components/Views/NewArrivalsView').then((m) => ({ default: m.NewArrivalsView }))
+);
 
 function ViewLoadingFallback() {
   return (
     <div className="min-h-[50vh] flex flex-col items-center justify-center p-12 space-y-3">
-      <div className="w-8 h-8 rounded-full border-3 border-indigo-200 border-t-[#6C4DF6] animate-spin" />
+      <div className="w-8 h-8 rounded-full border-3 border-[#E5E5E5] border-t-[#F2CB30] animate-spin" />
       <span className="text-xs font-bold text-slate-400">Loading Studio Experience...</span>
     </div>
   );
@@ -53,6 +62,24 @@ function MainAppShell() {
         return <ProductsView />;
       case 'design-by-customer':
         return <DesignByCustomerView />;
+      case 'offers':
+        return (
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <OffersView />
+          </Suspense>
+        );
+      case 'high-selling':
+        return (
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <HighSellingView />
+          </Suspense>
+        );
+      case 'new-arrivals':
+        return (
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <NewArrivalsView />
+          </Suspense>
+        );
       case 'about-us':
         return (
           <Suspense fallback={<ViewLoadingFallback />}>
@@ -91,12 +118,10 @@ function MainAppShell() {
   const isAdminSurface = ['admin', 'admin/dashboard', 'admin-login', 'admin/login'].includes(currentPage);
 
   return (
-    <div className={`w-full max-w-full font-sans antialiased flex flex-col transition-colors duration-300 ${
+    <div className={`w-full max-w-full font-sans antialiased flex flex-col ${
       isAdminSurface
-        ? 'bg-[#080812] text-slate-100'
-        : isLight
-        ? 'bg-[#F8F9FC] text-[#0F172A]'
-        : 'bg-[#080812] text-white'
+        ? 'bg-[#12002E] text-[#FFFFFF]'
+        : 'bg-[#FFFFFF] text-[#12002E]'
     } min-h-screen overflow-x-hidden`}>
       {/* Universal Top Navigation (Storefront only) */}
       {!isAdminSurface && <Navbar />}
@@ -111,11 +136,11 @@ function MainAppShell() {
 
       {/* Mobile Bottom Quick Navigation (Storefront pages) */}
       {!isCustomizer && !isAdminSurface && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t px-3 py-2 flex items-center justify-around shadow-2xl transition-all bg-[#0B1630]/95 border-[#182744] text-[#FFFFFF]">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t px-3 py-2 flex items-center justify-around shadow-2xl transition-all bg-[#2C0E63] border-[#12002E]/40 text-[#FFFFFF]">
           <button
             onClick={() => navigateTo('home')}
             className={`flex flex-col items-center gap-0.5 text-[10px] font-bold ${
-              currentPage === 'home' ? 'text-[#3B82F6]' : 'text-slate-400'
+              currentPage === 'home' ? 'text-[#F2CB30]' : 'text-white/70'
             }`}
           >
             <span className="text-base">🏠</span>
@@ -125,7 +150,7 @@ function MainAppShell() {
           <button
             onClick={() => navigateTo('products')}
             className={`flex flex-col items-center gap-0.5 text-[10px] font-bold ${
-              currentPage === 'products' ? 'text-[#3B82F6]' : 'text-slate-400'
+              currentPage === 'products' ? 'text-[#F2CB30]' : 'text-white/70'
             }`}
           >
             <span className="text-base">👕</span>
@@ -134,16 +159,26 @@ function MainAppShell() {
 
           <button
             onClick={() => navigateTo('design-by-customer')}
-            className="flex flex-col items-center gap-0.5 text-[10px] font-black text-[#3B82F6]"
+            className="flex flex-col items-center gap-0.5 text-[10px] font-black text-[#F2CB30]"
           >
             <span className="text-base">✨</span>
             <span>Studio</span>
           </button>
 
           <button
+            onClick={() => navigateTo('offers')}
+            className={`flex flex-col items-center gap-0.5 text-[10px] font-bold ${
+              currentPage === 'offers' ? 'text-[#F2CB30]' : 'text-white/70'
+            }`}
+          >
+            <span className="text-base">🏷️</span>
+            <span>Offers</span>
+          </button>
+
+          <button
             onClick={() => navigateTo('help')}
             className={`flex flex-col items-center gap-0.5 text-[10px] font-bold ${
-              currentPage === 'help' ? 'text-[#3B82F6]' : 'text-slate-400'
+              currentPage === 'help' || currentPage === 'contact' ? 'text-[#F2CB30]' : 'text-white/70'
             }`}
           >
             <span className="text-base">💬</span>
@@ -191,12 +226,12 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#080812] text-white text-center space-y-4">
-          <div className="w-16 h-16 rounded-3xl bg-indigo-500/20 text-[#06B6D4] flex items-center justify-center text-2xl font-black shadow-md border border-indigo-500/30">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#12002E] text-white text-center space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-[#DA0090]/20 text-[#DA0090] flex items-center justify-center text-2xl font-black shadow-md border border-[#DA0090]/30">
             👕
           </div>
           <h2 className="text-xl sm:text-2xl font-black">Something went wrong</h2>
-          <p className="text-xs text-slate-400 max-w-md">
+          <p className="text-xs text-slate-300 max-w-md">
             {this.state.error?.message || 'An unexpected error occurred while loading this view.'}
           </p>
           <button
@@ -204,7 +239,7 @@ class ErrorBoundary extends React.Component {
               this.setState({ hasError: false });
               window.location.reload();
             }}
-            className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-400 text-white text-xs font-bold shadow-md hover:scale-105 active:scale-95 transition-all"
+            className="px-6 py-2.5 rounded-2xl bg-[#F2CB30] hover:bg-[#DA0090] hover:text-white text-[#12002E] text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
           >
             Reload The PrintHub
           </button>

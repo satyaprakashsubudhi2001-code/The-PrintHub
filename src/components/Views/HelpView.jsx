@@ -26,8 +26,7 @@ import { getDesignRequestById } from '../../constants/requests';
  * and view frequently asked questions.
  */
 export function HelpView() {
-  const { storeSettings, designRequests = [], themeMode } = useStore();
-  const isLight = themeMode === 'light';
+  const { storeSettings, designRequests = [] } = useStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchedRequest, setSearchedRequest] = useState(null);
@@ -131,109 +130,77 @@ export function HelpView() {
   ];
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-12 select-none transition-colors duration-300 ${
-      isLight ? 'text-slate-900' : 'text-white'
-    }`}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-12 select-none text-slate-900 bg-white">
       {/* Header */}
-      <div className={`border-b pb-6 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-        <div className={`flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider ${
-          isLight ? 'text-cyan-700' : 'text-lime-400'
-        }`}>
-          <HelpCircle className="w-4 h-4" />
+      <div className="border-b border-[#E5E5E5] pb-6">
+        <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-[#DA0090]">
+          <HelpCircle className="w-4 h-4 text-[#DA0090]" />
           <span>Track Request & Customer Support</span>
         </div>
-        <h1 className={`font-display text-3xl sm:text-5xl font-black mt-1 uppercase ${
-          isLight ? 'text-slate-950' : 'text-white'
-        }`}>
+        <h1 className="font-display text-3xl sm:text-5xl font-black mt-1 uppercase text-[#2C0E63]">
           TRACK YOUR DESIGN REQUEST
         </h1>
-        <p className={`text-xs sm:text-sm mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-          Enter your Request ID (e.g. <strong className={isLight ? 'text-cyan-700 font-bold' : 'text-lime-400 font-bold'}>PH-2026-00001</strong>) to view the live design review, quotation, and production status.
+        <p className="text-xs sm:text-sm mt-1 text-slate-600">
+          Enter your Request ID (e.g. <strong className="text-[#2C0E63] font-bold">PH-2026-00001</strong>) to view the live design review, quotation, and production status.
         </p>
       </div>
 
       {/* =========================================================================
          1. LIVE REQUEST TRACKER TOOL
          ========================================================================= */}
-      <div className={`p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 transition-colors ${
-        isLight
-          ? 'bg-white border-slate-200/80 shadow-slate-200/50'
-          : 'bg-[#0c101d] border-slate-800 shadow-2xl'
-      }`}>
+      <div className="p-6 sm:p-8 rounded-3xl border border-[#E5E5E5] bg-white shadow-xl space-y-6">
         <form onSubmit={handleSearchRequest} className="max-w-2xl flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className={`w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 ${
-              isLight ? 'text-slate-400' : 'text-slate-500'
-            }`} />
+            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Enter Request ID (e.g. PH-2026-00001)"
-              className={`w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm font-mono uppercase focus:outline-none transition-all ${
-                isLight
-                  ? 'bg-slate-50 border border-slate-300 text-slate-900 focus:border-cyan-600 focus:bg-white'
-                  : 'bg-slate-950 border border-slate-700 text-white focus:border-lime-400'
-              }`}
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm font-mono uppercase focus:outline-none transition-all bg-slate-50 border border-[#E5E5E5] text-slate-900 focus:border-[#2C0E63] focus:bg-white"
             />
           </div>
           <button
             type="submit"
-            className="px-8 py-3.5 rounded-2xl bg-lime-400 hover:bg-lime-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 font-display transition-all shadow-md active:scale-95"
+            className="px-8 py-3.5 rounded-2xl bg-[#F2CB30] hover:bg-[#e0b925] text-[#12002E] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 font-display transition-all shadow-md active:scale-95 cursor-pointer"
           >
             <span>TRACK REQUEST</span>
           </button>
         </form>
 
         {searchError && (
-          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-300 text-xs font-mono">
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 text-xs font-mono">
             No design request found with ID "{searchQuery}". Please check the ID or contact support.
           </div>
         )}
 
         {/* Live Search Result Card */}
         {searchedRequest && (
-          <div className={`p-6 rounded-2xl border space-y-6 animate-in fade-in transition-colors ${
-            isLight
-              ? 'bg-slate-50 border-slate-200'
-              : 'bg-slate-950 border-slate-800'
-          }`}>
+          <div className="p-6 rounded-2xl border border-[#E5E5E5] bg-slate-50 space-y-6 animate-in fade-in transition-colors">
             {/* Header info */}
-            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${
-              isLight ? 'border-slate-200' : 'border-slate-800'
-            }`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E5E5] pb-4">
               <div>
-                <span className={`text-[10px] font-mono uppercase font-bold ${
-                  isLight ? 'text-slate-500' : 'text-slate-500'
-                }`}>
+                <span className="text-[10px] font-mono uppercase font-bold text-slate-500">
                   REQUEST STATUS
                 </span>
                 <div className="flex items-center gap-3">
-                  <h3 className={`text-xl font-black font-mono ${
-                    isLight ? 'text-cyan-700' : 'text-lime-400'
-                  }`}>
+                  <h3 className="text-xl font-black font-mono text-[#2C0E63]">
                     {searchedRequest.id}
                   </h3>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border ${
-                    isLight
-                      ? 'bg-cyan-100 text-cyan-800 border-cyan-300'
-                      : 'bg-lime-400/20 text-lime-400 border-lime-400/40'
-                  }`}>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border bg-[#DA0090]/15 text-[#DA0090] border-[#DA0090]/30">
                     {searchedRequest.status.replace(/_/g, ' ')}
                   </span>
                 </div>
               </div>
 
-              <div className={`text-xs font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <div className="text-xs font-mono text-slate-500">
                 Created: {new Date(searchedRequest.createdAt).toLocaleDateString()}
               </div>
             </div>
 
             {/* Visual Status Progress Pipeline */}
             <div className="space-y-3">
-              <span className={`text-xs font-mono font-bold uppercase ${
-                isLight ? 'text-slate-700' : 'text-slate-400'
-              }`}>
+              <span className="text-xs font-mono font-bold uppercase text-[#2C0E63]">
                 Production Progress:
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
@@ -247,18 +214,14 @@ export function HelpView() {
                       key={step.num}
                       className={`p-2.5 rounded-xl border text-center font-mono text-[10px] transition-all ${
                         isCurrent
-                          ? 'bg-lime-400 text-slate-950 border-lime-400 font-black shadow-[0_0_15px_rgba(163,230,53,0.3)]'
+                          ? 'bg-[#F2CB30] text-[#12002E] border-[#F2CB30] font-black shadow-[0_0_15px_rgba(242,203,48,0.3)]'
                           : isDone
-                          ? isLight
-                            ? 'bg-cyan-50 border-cyan-300 text-cyan-800 font-bold'
-                            : 'bg-slate-900 border-lime-500/40 text-lime-400 font-bold'
-                          : isLight
-                          ? 'bg-white border-slate-200 text-slate-400'
-                          : 'bg-slate-950 border-slate-800 text-slate-600'
+                          ? 'bg-[#2C0E63]/10 border-[#2C0E63]/30 text-[#2C0E63] font-bold'
+                          : 'bg-white border-[#E5E5E5] text-slate-400'
                       }`}
                     >
                       <div className="flex justify-center mb-1">
-                        {isDone ? <Check className="w-3 h-3" /> : <span>{step.num}</span>}
+                        {isDone ? <Check className="w-3 h-3 text-[#DA0090]" /> : <span>{step.num}</span>}
                       </div>
                       <span className="leading-tight block">{step.label}</span>
                     </div>
@@ -269,47 +232,35 @@ export function HelpView() {
 
             {/* Product & Quotation Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 font-mono text-xs">
-              <div className={`p-4 rounded-xl border space-y-1.5 ${
-                isLight
-                  ? 'bg-white border-slate-200 text-slate-800'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-200'
-              }`}>
-                <span className={`text-[10px] uppercase font-bold block ${
-                  isLight ? 'text-slate-500' : 'text-slate-500'
-                }`}>
+              <div className="p-4 rounded-xl border border-[#E5E5E5] bg-white text-slate-800 space-y-1.5">
+                <span className="text-[10px] uppercase font-bold block text-slate-500">
                   Product Details
                 </span>
-                <div><span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Product:</span> {searchedRequest.product.name}</div>
-                <div><span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Colour:</span> {searchedRequest.color.name}</div>
-                <div><span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Size:</span> {searchedRequest.size}</div>
-                <div><span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Print Method:</span> {searchedRequest.printMethod}</div>
+                <div><span className="text-slate-500">Product:</span> {searchedRequest.product.name}</div>
+                <div><span className="text-slate-500">Colour:</span> {searchedRequest.color.name}</div>
+                <div><span className="text-slate-500">Size:</span> {searchedRequest.size}</div>
+                <div><span className="text-slate-500">Print Method:</span> {searchedRequest.printMethod}</div>
               </div>
 
-              <div className={`p-4 rounded-xl border space-y-1.5 ${
-                isLight
-                  ? 'bg-white border-slate-200 text-slate-800'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-200'
-              }`}>
-                <span className={`text-[10px] uppercase font-bold block ${
-                  isLight ? 'text-slate-500' : 'text-slate-500'
-                }`}>
+              <div className="p-4 rounded-xl border border-[#E5E5E5] bg-white text-slate-800 space-y-1.5">
+                <span className="text-[10px] uppercase font-bold block text-slate-500">
                   Quotation & Delivery
                 </span>
                 {searchedRequest.quote?.totalQuote ? (
                   <div>
-                    <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Quotation Total:</span>{' '}
-                    <strong className={`text-sm ${isLight ? 'text-cyan-700' : 'text-lime-400'}`}>₹{searchedRequest.quote.totalQuote}</strong>
+                    <span className="text-slate-500">Quotation Total:</span>{' '}
+                    <strong className="text-sm text-[#2C0E63]">₹{searchedRequest.quote.totalQuote}</strong>
                   </div>
                 ) : (
-                  <div className={isLight ? 'text-amber-600 font-semibold' : 'text-amber-400'}>⏳ Quotation currently being prepared by team</div>
+                  <div className="text-[#DA0090] font-semibold">⏳ Quotation currently being prepared by team</div>
                 )}
                 {searchedRequest.shipment?.trackingNumber ? (
                   <div>
-                    <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>Tracking AWB:</span>{' '}
-                    <span className={`font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>{searchedRequest.shipment.trackingNumber}</span> ({searchedRequest.shipment.partner})
+                    <span className="text-slate-500">Tracking AWB:</span>{' '}
+                    <span className="font-bold text-[#2C0E63]">{searchedRequest.shipment.trackingNumber}</span> ({searchedRequest.shipment.partner})
                   </div>
                 ) : (
-                  <div className={isLight ? 'text-slate-500' : 'text-slate-500'}>Courier Tracking: Pending dispatch</div>
+                  <div className="text-slate-500">Courier Tracking: Pending dispatch</div>
                 )}
               </div>
             </div>
@@ -322,9 +273,9 @@ export function HelpView() {
                 )}`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-2 font-display transition-all"
+                className="px-5 py-2.5 rounded-xl bg-[#F2CB30] hover:bg-[#e0b925] text-[#12002E] font-black text-xs uppercase tracking-wider flex items-center gap-2 font-display transition-all"
               >
-                <MessageCircle className="w-4 h-4 fill-slate-950" />
+                <MessageCircle className="w-4 h-4 fill-[#12002E]/20" />
                 <span>Chat with Production Specialist</span>
               </a>
             </div>
@@ -338,9 +289,7 @@ export function HelpView() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left: FAQs */}
         <div className="lg:col-span-7 space-y-4">
-          <h2 className={`text-lg font-black font-display uppercase mb-2 ${
-            isLight ? 'text-slate-900' : 'text-white'
-          }`}>
+          <h2 className="text-lg font-black font-display uppercase mb-2 text-[#2C0E63]">
             FREQUENTLY ASKED QUESTIONS
           </h2>
 
@@ -350,34 +299,22 @@ export function HelpView() {
               return (
                 <div
                   key={faq.q}
-                  className={`rounded-2xl border overflow-hidden transition-all ${
-                    isLight
-                      ? 'bg-white border-slate-200/80 shadow-sm'
-                      : 'bg-[#0c101d] border-slate-800'
-                  }`}
+                  className="rounded-2xl border border-[#E5E5E5] bg-white shadow-sm overflow-hidden transition-all"
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? -1 : idx)}
-                    className={`w-full p-4 text-left flex items-center justify-between gap-4 font-bold text-xs sm:text-sm transition-colors ${
-                      isLight
-                        ? 'text-slate-900 hover:text-cyan-700'
-                        : 'text-white hover:text-lime-400'
-                    }`}
+                    className="w-full p-4 text-left flex items-center justify-between gap-4 font-bold text-xs sm:text-sm transition-colors text-slate-900 hover:text-[#2C0E63]"
                   >
                     <span>{faq.q}</span>
                     {isOpen ? (
-                      <ChevronUp className={`w-4 h-4 shrink-0 ${isLight ? 'text-cyan-600' : 'text-lime-400'}`} />
+                      <ChevronUp className="w-4 h-4 shrink-0 text-[#DA0090]" />
                     ) : (
-                      <ChevronDown className={`w-4 h-4 shrink-0 ${isLight ? 'text-slate-400' : 'text-slate-400'}`} />
+                      <ChevronDown className="w-4 h-4 shrink-0 text-slate-400" />
                     )}
                   </button>
 
                   {isOpen && (
-                    <div className={`p-4 pt-0 text-xs leading-relaxed border-t animate-in fade-in ${
-                      isLight
-                        ? 'text-slate-600 border-slate-100 bg-slate-50/50'
-                        : 'text-slate-300 border-slate-800/80'
-                    }`}>
+                    <div className="p-4 pt-0 text-xs leading-relaxed border-t border-[#E5E5E5] bg-slate-50/50 text-slate-600 animate-in fade-in">
                       {faq.a}
                     </div>
                   )}
@@ -389,79 +326,62 @@ export function HelpView() {
 
         {/* Right: Quick Contact Form */}
         <div className="lg:col-span-5 space-y-4">
-          <div className={`p-6 rounded-3xl border space-y-4 shadow-xl transition-colors ${
-            isLight
-              ? 'bg-white border-slate-200/80 shadow-slate-200/50'
-              : 'bg-[#0c101d] border-slate-800'
-          }`}>
-            <h3 className={`text-base font-black font-display uppercase ${
-              isLight ? 'text-slate-900' : 'text-white'
-            }`}>
+          <div className="p-6 rounded-3xl border border-[#E5E5E5] bg-white shadow-xl space-y-4">
+            <h3 className="text-base font-black font-display uppercase text-[#2C0E63]">
               SEND US A MESSAGE
             </h3>
 
             {enquirySent ? (
-              <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-mono text-center space-y-2">
+              <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-xs font-mono text-center space-y-2">
                 <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500" />
                 <p className="font-bold">Message Sent Successfully!</p>
-                <p className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>Our support desk will reply within 2 business hours.</p>
+                <p className="text-[11px] text-slate-600">Our support desk will reply within 2 business hours.</p>
               </div>
             ) : (
               <form onSubmit={handleContactSubmit} className="space-y-3 text-xs">
                 <div>
-                  <label className={`text-[10px] font-mono font-bold block mb-1 ${
-                    isLight ? 'text-slate-600' : 'text-slate-400'
-                  }`}>YOUR NAME</label>
+                  <label className="text-[10px] font-mono font-bold block mb-1 text-[#2C0E63]">
+                    YOUR NAME
+                  </label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 rounded-xl transition-colors ${
-                      isLight
-                        ? 'bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:border-cyan-600 focus:bg-white'
-                        : 'bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-lime-400'
-                    }`}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E5E5] text-slate-900 focus:outline-none focus:border-[#2C0E63] focus:bg-white transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className={`text-[10px] font-mono font-bold block mb-1 ${
-                    isLight ? 'text-slate-600' : 'text-slate-400'
-                  }`}>GMAIL / EMAIL</label>
+                  <label className="text-[10px] font-mono font-bold block mb-1 text-[#2C0E63]">
+                    GMAIL / EMAIL
+                  </label>
                   <input
                     type="email"
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 rounded-xl font-mono transition-colors ${
-                      isLight
-                        ? 'bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:border-cyan-600 focus:bg-white'
-                        : 'bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-lime-400'
-                    }`}
+                    className="w-full px-3.5 py-2.5 rounded-xl font-mono bg-slate-50 border border-[#E5E5E5] text-slate-900 focus:outline-none focus:border-[#2C0E63] focus:bg-white transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className={`text-[10px] font-mono font-bold block mb-1 ${
-                    isLight ? 'text-slate-600' : 'text-slate-400'
-                  }`}>MESSAGE / INQUIRY</label>
+                  <label className="text-[10px] font-mono font-bold block mb-1 text-[#2C0E63]">
+                    MESSAGE / INQUIRY
+                  </label>
                   <textarea
                     rows={3}
                     required
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 rounded-xl transition-colors ${
-                      isLight
-                        ? 'bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:border-cyan-600 focus:bg-white'
-                        : 'bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-lime-400'
-                    }`}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E5E5] text-slate-900 focus:outline-none focus:border-[#2C0E63] focus:bg-white transition-colors"
                   />
                 </div>
 
+                {/* Primary Submit Button: #F2CB30 background, #12002E text */}
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 font-display transition-all active:scale-95 shadow-md"
+                  className="w-full py-3 rounded-xl bg-[#F2CB30] hover:bg-[#e0b925] text-[#12002E] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 font-display transition-all active:scale-95 shadow-md cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>SUBMIT INQUIRY</span>

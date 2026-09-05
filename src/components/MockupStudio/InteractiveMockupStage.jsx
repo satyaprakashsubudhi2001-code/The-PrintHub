@@ -331,7 +331,7 @@ export function InteractiveMockupStage({
       {/* 2. Garment Printable Torso Zone Boundary Guide */}
       {showGuide && (
         <div
-          className="absolute border border-dashed border-cyan-500/25 rounded-2xl pointer-events-none transition-all"
+          className="absolute border border-dashed border-[#F2CB30]/40 rounded-2xl pointer-events-none transition-all"
           style={{
             left: `${torso.x * 100}%`,
             top: `${torso.y * 100}%`,
@@ -339,7 +339,7 @@ export function InteractiveMockupStage({
             height: `${torso.h * 100}%`,
           }}
         >
-          <div className="absolute -top-3 right-2 px-2 py-0.5 rounded bg-slate-950/95 text-[8px] font-mono text-cyan-400/90 border border-slate-800 shadow-md">
+          <div className="absolute -top-3 right-2 px-2 py-0.5 rounded bg-[#12002E]/95 text-[8px] font-mono text-[#F2CB30] border border-white/20 shadow-md">
             {isBackSide ? 'BACK PRINT ZONE' : 'FRONT PRINT ZONE'}: {torso.maxWInches}" × {torso.maxHInches}"
           </div>
         </div>
@@ -350,12 +350,12 @@ export function InteractiveMockupStage({
         onPointerDown={handlePointerDownDrag}
         className={`absolute pointer-events-auto cursor-grab active:cursor-grabbing group select-none transition-shadow ${
           isInteractive
-            ? 'hover:ring-2 hover:ring-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.35)]'
+            ? 'hover:ring-2 hover:ring-[#F2CB30] hover:shadow-[0_0_25px_rgba(242,203,48,0.35)]'
             : ''
         } ${
           designData?.dataUrl
             ? 'rounded-lg'
-            : 'border-2 border-dashed border-cyan-400 rounded-2xl bg-cyan-950/40 backdrop-blur-[2px]'
+            : 'border-2 border-dashed border-[#F2CB30] rounded-2xl bg-[#12002E]/60 backdrop-blur-[2px]'
         }`}
         style={{
           left: `${boxCenterPctX}%`,
@@ -368,8 +368,8 @@ export function InteractiveMockupStage({
       >
         {/* Active Dimensions & Placement Label Tag */}
         {showGuide && (
-          <div className="absolute -top-4.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-slate-950 border border-cyan-400/90 text-[9px] font-mono font-black text-cyan-300 shadow-2xl whitespace-nowrap z-40 flex items-center gap-1.5 pointer-events-none">
-            <Move className="w-2.5 h-2.5 text-cyan-400 animate-pulse" />
+          <div className="absolute -top-4.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#12002E] border border-[#F2CB30] text-[9px] font-mono font-black text-[#F2CB30] shadow-2xl whitespace-nowrap z-40 flex items-center gap-1.5 pointer-events-none">
+            <Move className="w-2.5 h-2.5 text-[#F2CB30] animate-pulse" />
             <span>{placementLabel.toUpperCase()}: {currentW}" × {currentH}"</span>
           </div>
         )}
@@ -385,8 +385,8 @@ export function InteractiveMockupStage({
                 mixBlendMode: product?.id === 'cup' ? 'multiply' : 'normal',
               }}
             />
-            <div className="absolute inset-0 border border-cyan-400/40 rounded pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <div className="px-2 py-0.5 rounded bg-black/80 text-[10px] text-cyan-300 font-mono font-bold shadow">
+            <div className="absolute inset-0 border border-[#F2CB30]/40 rounded pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="px-2 py-0.5 rounded bg-black/80 text-[10px] text-[#F2CB30] font-mono font-bold shadow">
                 {currentW}" × {currentH}"
               </div>
             </div>
@@ -401,13 +401,13 @@ export function InteractiveMockupStage({
             }}
             className="w-full h-full flex flex-col items-center justify-center text-center p-2 cursor-pointer"
           >
-            <div className="w-7 h-7 rounded-full bg-cyan-500/25 text-cyan-400 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform shadow-glow-cyan">
+            <div className="w-7 h-7 rounded-full bg-[#F2CB30]/20 text-[#F2CB30] flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
               <Move className="w-3.5 h-3.5" />
             </div>
             <span className="text-[11px] sm:text-xs font-black text-white font-mono tracking-wide">
               Ready for Artwork
             </span>
-            <span className="text-[10px] text-cyan-300 font-mono font-bold mt-0.5">
+            <span className="text-[10px] text-[#F2CB30] font-mono font-bold mt-0.5">
               {currentW}" × {currentH}"
             </span>
             <span className="text-[8px] text-slate-300 font-mono mt-0.5 hidden sm:block">
@@ -422,7 +422,7 @@ export function InteractiveMockupStage({
             {/* Top-Right Rotation Handle */}
             <div
               onPointerDown={handlePointerDownRotate}
-              className="absolute -top-4 -right-4 w-8 h-8 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 flex items-center justify-center cursor-alias shadow-[0_0_15px_rgba(6,182,212,0.6)] transition-all hover:scale-115 z-50 pointer-events-auto active:scale-95 touch-none"
+              className="absolute -top-4 -right-4 w-8 h-8 rounded-full bg-[#F2CB30] hover:bg-[#DA0090] text-[#12002E] flex items-center justify-center cursor-alias shadow-[0_0_15px_rgba(242,203,48,0.6)] transition-all hover:scale-115 z-50 pointer-events-auto active:scale-95 touch-none"
               title="Drag to Rotate"
             >
               <RotateCw className="w-4 h-4 stroke-[2.5]" />
@@ -431,7 +431,7 @@ export function InteractiveMockupStage({
             {/* Bottom-Right Resize Handle */}
             <div
               onPointerDown={handlePointerDownResize}
-              className="absolute -bottom-4 -right-4 w-8 h-8 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 flex items-center justify-center cursor-nwse-resize shadow-[0_0_15px_rgba(6,182,212,0.6)] transition-all hover:scale-115 z-50 pointer-events-auto active:scale-95 touch-none"
+              className="absolute -bottom-4 -right-4 w-8 h-8 rounded-full bg-[#F2CB30] hover:bg-[#DA0090] text-[#12002E] flex items-center justify-center cursor-nwse-resize shadow-[0_0_15px_rgba(242,203,48,0.6)] transition-all hover:scale-115 z-50 pointer-events-auto active:scale-95 touch-none"
               title="Drag to Resize Dimensions"
             >
               <Maximize2 className="w-4 h-4 stroke-[2.5]" />
@@ -442,7 +442,7 @@ export function InteractiveMockupStage({
 
       {/* 4. Unified Front / Back Angle Switcher Bar */}
       {availableSides.length > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 p-1 rounded-2xl bg-[#090d18]/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 p-1 rounded-2xl bg-[#12002E]/95 backdrop-blur-xl border border-[#2C0E63]/40 shadow-2xl">
           {availableSides.map((side) => {
             const isActive = activeSide === side;
             return (
@@ -452,8 +452,8 @@ export function InteractiveMockupStage({
                 onClick={() => onSideChange(side)}
                 className={`px-4 py-1.5 rounded-xl text-xs font-bold font-mono uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 font-black shadow-[0_0_15px_rgba(6,182,212,0.4)] scale-105'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                    ? 'bg-[#F2CB30] text-[#12002E] font-black shadow-[0_0_15px_rgba(242,203,48,0.4)] scale-105'
+                    : 'text-slate-300 hover:text-white hover:bg-[#2C0E63]'
                 }`}
               >
                 <span>{side === 'front' ? '👕 FRONT' : side === 'back' ? '🔄 BACK' : side === 'left' ? '👈 LEFT SLEEVE' : side === 'right' ? '👉 RIGHT SLEEVE' : side}</span>

@@ -32,6 +32,7 @@ import { DESIGN_REQUEST_STATUSES } from '../../constants/requests';
 import { AdminRequestDetailModal } from '../Admin/AdminRequestDetailModal';
 import { AdminCalibrationTab } from '../Admin/AdminCalibrationTab';
 import { AdminProductsTab } from '../Admin/AdminProductsTab';
+import { AdminCategoriesTab } from '../Admin/AdminCategoriesTab';
 import { generateDesignRequestZip } from '../../services/packageExporter';
 
 /**
@@ -48,6 +49,7 @@ export function AdminView() {
     storeSettings,
     updateStoreSettings,
     products = [],
+    categories = [],
     updateDesignRequestStatus,
   } = useStore();
 
@@ -146,6 +148,7 @@ export function AdminView() {
         <div className="max-w-[1500px] mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar">
           {[
             { id: 'products', label: 'PRODUCT CATALOG', count: products.length > 0 ? `${products.length} ITEMS` : 'EMPTY' },
+            { id: 'categories', label: 'CATEGORIES', count: categories.length > 0 ? `${categories.length} CATS` : 'EMPTY' },
             { id: 'requests', label: 'DESIGN REQUESTS QUEUE', count: newCount > 0 ? `${newCount} NEW` : null },
             { id: 'calibration', label: 'PRINT AREA CALIBRATIONS' },
             { id: 'settings', label: 'STUDIO & CONTACT SETTINGS' },
@@ -174,7 +177,14 @@ export function AdminView() {
       {/* TAB 0: PRODUCT CATALOG MANAGEMENT */}
       {activeTab === 'products' && (
         <main className="max-w-[1500px] mx-auto px-4 sm:px-8 py-8 animate-in fade-in">
-          <AdminProductsTab />
+          <AdminProductsTab onNavigateToCategories={() => setActiveTab('categories')} />
+        </main>
+      )}
+
+      {/* TAB: CATEGORIES TAXONOMY MANAGEMENT */}
+      {activeTab === 'categories' && (
+        <main className="max-w-[1500px] mx-auto px-4 sm:px-8 py-8 animate-in fade-in">
+          <AdminCategoriesTab />
         </main>
       )}
 

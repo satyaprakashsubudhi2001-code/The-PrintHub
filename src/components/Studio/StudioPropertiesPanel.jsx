@@ -48,11 +48,11 @@ export function StudioPropertiesPanel() {
   const activePrintAreaDef = customizerProduct.printAreas?.find((a) => a.id === selectedPrintArea) || customizerProduct.printAreas?.[0];
 
   return (
-    <aside className="w-full lg:w-[280px] xl:w-[310px] bg-[#0B0B18] border-t lg:border-t-0 lg:border-l border-white/[0.08] flex flex-col shrink-0 z-20 overflow-hidden lg:h-full min-h-[360px] lg:min-h-0 select-none">
+    <aside className="w-full lg:w-[280px] xl:w-[310px] bg-[#12002E] border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col shrink-0 z-20 overflow-hidden lg:h-full min-h-[360px] lg:min-h-0 select-none">
       {/* Header */}
-      <div className="p-3 bg-[#101022] border-b border-white/10 flex items-center justify-between shrink-0">
+      <div className="p-3 bg-[#2C0E63] border-b border-white/10 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <Sliders className="w-3.5 h-3.5 text-[#06B6D4]" />
+          <Sliders className="w-3.5 h-3.5 text-[#DA0090]" />
           <span className="text-xs font-black text-white uppercase font-mono tracking-wider">
             {currentItem ? 'LAYER PROPERTIES' : 'PROPERTIES'}
           </span>
@@ -61,7 +61,7 @@ export function StudioPropertiesPanel() {
         {currentItem && (
           <button
             onClick={() => setActiveLayer({ id: null, type: null })}
-            className="text-[10px] text-slate-400 hover:text-white font-bold transition-colors"
+            className="text-[10px] text-slate-300 hover:text-white font-bold transition-colors"
           >
             Deselect
           </button>
@@ -76,18 +76,18 @@ export function StudioPropertiesPanel() {
         {currentDesign && (
           <div className="space-y-3 animate-in fade-in">
             {/* Title & Quick Actions */}
-            <div className="p-2.5 rounded-2xl bg-[#101022] border border-white/10 flex items-center justify-between gap-2">
+            <div className="p-2.5 rounded-2xl bg-[#2C0E63]/30 border border-white/10 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <img
                   src={currentDesign.dataUrl}
                   alt={currentDesign.name}
-                  className="w-7 h-7 object-contain rounded-lg bg-[#080812] p-0.5 border border-white/10"
+                  className="w-7 h-7 object-contain rounded-lg bg-[#12002E] p-0.5 border border-white/10"
                 />
                 <div className="min-w-0">
                   <span className="text-xs font-bold text-white truncate block max-w-[120px]">
                     {currentDesign.name}
                   </span>
-                  <span className="text-[9px] text-[#06B6D4] font-mono block">
+                  <span className="text-[9px] text-[#DA0090] font-mono block">
                     {activePrintAreaDef?.name || 'Front'}
                   </span>
                 </div>
@@ -99,11 +99,11 @@ export function StudioPropertiesPanel() {
                   className="p-1 text-slate-400 hover:text-white"
                   title={currentDesign.locked ? 'Unlock Layer' : 'Lock Layer'}
                 >
-                  {currentDesign.locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-slate-500" />}
+                  {currentDesign.locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-slate-400" />}
                 </button>
                 <button
                   onClick={() => duplicateDesign(currentDesign.id)}
-                  className="p-1 text-slate-400 hover:text-[#06B6D4]"
+                  className="p-1 text-slate-400 hover:text-[#F2CB30]"
                   title="Duplicate Layer"
                 >
                   <Copy className="w-3.5 h-3.5" />
@@ -122,31 +122,31 @@ export function StudioPropertiesPanel() {
             <div className="grid grid-cols-4 gap-1">
               <button
                 onClick={centerActiveLayer}
-                className="py-1.5 px-1 rounded-xl bg-[#101022] hover:bg-[#16162E] text-slate-300 hover:text-white text-[10px] font-bold border border-white/10 flex flex-col items-center gap-0.5 transition-colors"
+                className="py-1.5 px-1 rounded-xl bg-[#2C0E63]/40 hover:bg-[#2C0E63]/60 text-slate-200 hover:text-white text-[10px] font-bold border border-white/10 flex flex-col items-center gap-0.5 transition-colors"
                 title="Center on printable area"
               >
-                <AlignCenter className="w-3 h-3 text-[#6C4DF6]" />
+                <AlignCenter className="w-3 h-3 text-[#DA0090]" />
                 <span>Center</span>
               </button>
               <button
                 onClick={fitActiveLayer}
-                className="py-1.5 px-1 rounded-xl bg-[#101022] hover:bg-[#16162E] text-slate-300 hover:text-white text-[10px] font-bold border border-white/10 flex flex-col items-center gap-0.5 transition-colors"
+                className="py-1.5 px-1 rounded-xl bg-[#2C0E63]/40 hover:bg-[#2C0E63]/60 text-slate-200 hover:text-white text-[10px] font-bold border border-white/10 flex flex-col items-center gap-0.5 transition-colors"
                 title="Fit to boundary"
               >
-                <Maximize2 className="w-3 h-3 text-[#06B6D4]" />
+                <Maximize2 className="w-3 h-3 text-[#DA0090]" />
                 <span>Fit</span>
               </button>
               <button
                 onClick={() => updateDesign(currentDesign.id, { flipX: !currentDesign.flipX })}
-                className="py-1.5 px-1 rounded-xl bg-[#101022] hover:bg-[#16162E] text-slate-300 hover:text-white text-[10px] font-bold border border-white/10 flex flex-col items-center gap-0.5 transition-colors"
+                className="py-1.5 px-1 rounded-xl bg-[#2C0E63]/40 hover:bg-[#2C0E63]/60 text-slate-200 hover:text-white text-[10px] font-bold border border-white/10 flex flex-col items-center gap-0.5 transition-colors"
                 title="Flip horizontally"
               >
-                <FlipHorizontal className="w-3 h-3 text-amber-400" />
+                <FlipHorizontal className="w-3 h-3 text-[#DA0090]" />
                 <span>Flip</span>
               </button>
               <button
                 onClick={resetActiveLayer}
-                className="py-1.5 px-1 rounded-xl bg-[#101022] hover:bg-[#16162E] text-slate-300 hover:text-white text-[10px] font-bold border border-white/10 flex flex-col items-center gap-0.5 transition-colors"
+                className="py-1.5 px-1 rounded-xl bg-[#2C0E63]/40 hover:bg-[#2C0E63]/60 text-slate-200 hover:text-white text-[10px] font-bold border border-white/10 flex flex-col items-center gap-0.5 transition-colors"
                 title="Reset transform"
               >
                 <RotateCcw className="w-3 h-3 text-rose-400" />
@@ -155,11 +155,11 @@ export function StudioPropertiesPanel() {
             </div>
 
             {/* Sliders: Scale / Rotation / Opacity */}
-            <div className="space-y-3 p-3 rounded-2xl bg-[#101022] border border-white/10">
+            <div className="space-y-3 p-3 rounded-2xl bg-[#2C0E63]/30 border border-white/10">
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] font-bold text-slate-300 font-mono">
                   <span>Scale:</span>
-                  <span className="text-[#06B6D4]">{Math.round((currentDesign.scale || 1) * 100)}%</span>
+                  <span className="text-[#F2CB30]">{Math.round((currentDesign.scale || 1) * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -168,14 +168,14 @@ export function StudioPropertiesPanel() {
                   step="0.02"
                   value={currentDesign.scale || 1}
                   onChange={(e) => updateDesign(currentDesign.id, { scale: parseFloat(e.target.value) })}
-                  className="w-full h-1.5 bg-[#080812] rounded-lg cursor-pointer accent-[#06B6D4]"
+                  className="w-full h-1.5 bg-[#12002E] rounded-lg cursor-pointer accent-[#F2CB30]"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] font-bold text-slate-300 font-mono">
                   <span>Rotation:</span>
-                  <span className="text-[#6C4DF6]">{currentDesign.rotation || 0}°</span>
+                  <span className="text-[#F2CB30]">{currentDesign.rotation || 0}°</span>
                 </div>
                 <input
                   type="range"
@@ -183,14 +183,14 @@ export function StudioPropertiesPanel() {
                   max="180"
                   value={currentDesign.rotation || 0}
                   onChange={(e) => updateDesign(currentDesign.id, { rotation: parseInt(e.target.value) })}
-                  className="w-full h-1.5 bg-[#080812] rounded-lg cursor-pointer accent-[#6C4DF6]"
+                  className="w-full h-1.5 bg-[#12002E] rounded-lg cursor-pointer accent-[#F2CB30]"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] font-bold text-slate-300 font-mono">
                   <span>Opacity:</span>
-                  <span className="text-emerald-400">{Math.round((currentDesign.opacity || 1) * 100)}%</span>
+                  <span className="text-[#F2CB30]">{Math.round((currentDesign.opacity || 1) * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -199,25 +199,25 @@ export function StudioPropertiesPanel() {
                   step="0.05"
                   value={currentDesign.opacity || 1}
                   onChange={(e) => updateDesign(currentDesign.id, { opacity: parseFloat(e.target.value) })}
-                  className="w-full h-1.5 bg-[#080812] rounded-lg cursor-pointer accent-emerald-400"
+                  className="w-full h-1.5 bg-[#12002E] rounded-lg cursor-pointer accent-[#F2CB30]"
                 />
               </div>
             </div>
 
             {/* Layer Ordering */}
-            <div className="flex items-center justify-between p-2 rounded-xl bg-[#101022] border border-white/10 text-[11px]">
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[#2C0E63]/30 border border-white/10 text-[11px]">
               <span className="font-bold text-slate-300">Layer Stack:</span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => moveLayerUp(currentDesign.id, 'design')}
-                  className="px-2 py-1 rounded-lg bg-[#16162E] hover:bg-[#1f1f3d] text-slate-200 text-[10px] font-bold flex items-center gap-1"
+                  className="px-2 py-1 rounded-lg bg-[#2C0E63] hover:bg-[#38137a] text-slate-200 text-[10px] font-bold flex items-center gap-1"
                 >
                   <MoveUp className="w-3 h-3" />
                   <span>Up</span>
                 </button>
                 <button
                   onClick={() => moveLayerDown(currentDesign.id, 'design')}
-                  className="px-2 py-1 rounded-lg bg-[#16162E] hover:bg-[#1f1f3d] text-slate-200 text-[10px] font-bold flex items-center gap-1"
+                  className="px-2 py-1 rounded-lg bg-[#2C0E63] hover:bg-[#38137a] text-slate-200 text-[10px] font-bold flex items-center gap-1"
                 >
                   <MoveDown className="w-3 h-3" />
                   <span>Down</span>
@@ -241,7 +241,7 @@ export function StudioPropertiesPanel() {
                 type="text"
                 value={currentText.text}
                 onChange={(e) => updateText(currentText.id, { text: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[#080812] border border-white/15 text-xs text-white focus:outline-none focus:border-[#06B6D4]"
+                className="w-full px-3 py-2 rounded-xl bg-[#12002E] border border-white/15 text-xs text-white focus:outline-none focus:border-[#F2CB30]"
               />
             </div>
 
@@ -253,10 +253,10 @@ export function StudioPropertiesPanel() {
               <select
                 value={currentText.fontFamily}
                 onChange={(e) => updateText(currentText.id, { fontFamily: e.target.value })}
-                className="w-full px-2.5 py-1.5 rounded-xl bg-[#080812] border border-white/15 text-xs text-white font-bold cursor-pointer"
+                className="w-full px-2.5 py-1.5 rounded-xl bg-[#12002E] border border-white/15 text-xs text-white font-bold cursor-pointer"
               >
                 {FONTS.map((f) => (
-                  <option key={f.name} value={f.fontFamily} className="bg-[#101022]">
+                  <option key={f.name} value={f.fontFamily} className="bg-[#12002E]">
                     {f.name}
                   </option>
                 ))}
@@ -264,18 +264,18 @@ export function StudioPropertiesPanel() {
             </div>
 
             {/* Quick Styling (Bold, Italic, Align) */}
-            <div className="flex items-center justify-between p-2 rounded-xl bg-[#101022] border border-white/10">
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[#2C0E63]/30 border border-white/10">
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => updateText(currentText.id, { bold: !currentText.bold })}
-                  className={`p-1.5 rounded-lg text-xs ${currentText.bold ? 'bg-[#6C4DF6] text-white' : 'text-slate-400 hover:text-white'}`}
+                  className={`p-1.5 rounded-lg text-xs ${currentText.bold ? 'bg-[#F2CB30] text-[#12002E] font-black' : 'text-slate-400 hover:text-white'}`}
                   title="Bold"
                 >
                   <Bold className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => updateText(currentText.id, { italic: !currentText.italic })}
-                  className={`p-1.5 rounded-lg text-xs ${currentText.italic ? 'bg-[#6C4DF6] text-white' : 'text-slate-400 hover:text-white'}`}
+                  className={`p-1.5 rounded-lg text-xs ${currentText.italic ? 'bg-[#F2CB30] text-[#12002E] font-black' : 'text-slate-400 hover:text-white'}`}
                   title="Italic"
                 >
                   <Italic className="w-3.5 h-3.5" />
@@ -285,19 +285,19 @@ export function StudioPropertiesPanel() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => updateText(currentText.id, { textAlign: 'left' })}
-                  className={`p-1.5 rounded-lg text-xs ${currentText.textAlign === 'left' ? 'bg-[#06B6D4] text-black' : 'text-slate-400 hover:text-white'}`}
+                  className={`p-1.5 rounded-lg text-xs ${currentText.textAlign === 'left' ? 'bg-[#F2CB30] text-[#12002E] font-black' : 'text-slate-400 hover:text-white'}`}
                 >
                   <AlignLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => updateText(currentText.id, { textAlign: 'center' })}
-                  className={`p-1.5 rounded-lg text-xs ${currentText.textAlign === 'center' ? 'bg-[#06B6D4] text-black' : 'text-slate-400 hover:text-white'}`}
+                  className={`p-1.5 rounded-lg text-xs ${currentText.textAlign === 'center' ? 'bg-[#F2CB30] text-[#12002E] font-black' : 'text-slate-400 hover:text-white'}`}
                 >
                   <AlignCenter className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => updateText(currentText.id, { textAlign: 'right' })}
-                  className={`p-1.5 rounded-lg text-xs ${currentText.textAlign === 'right' ? 'bg-[#06B6D4] text-black' : 'text-slate-400 hover:text-white'}`}
+                  className={`p-1.5 rounded-lg text-xs ${currentText.textAlign === 'right' ? 'bg-[#F2CB30] text-[#12002E] font-black' : 'text-slate-400 hover:text-white'}`}
                 >
                   <AlignRight className="w-3.5 h-3.5" />
                 </button>
@@ -305,7 +305,7 @@ export function StudioPropertiesPanel() {
             </div>
 
             {/* Text Color Picker */}
-            <div className="p-2.5 rounded-2xl bg-[#101022] border border-white/10 flex items-center justify-between">
+            <div className="p-2.5 rounded-2xl bg-[#2C0E63]/30 border border-white/10 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-300">Fill Color:</span>
               <div className="flex items-center gap-2">
                 <input
@@ -319,11 +319,11 @@ export function StudioPropertiesPanel() {
             </div>
 
             {/* Text Sliders (Size, Rotation, Opacity) */}
-            <div className="space-y-3 p-3 rounded-2xl bg-[#101022] border border-white/10">
+            <div className="space-y-3 p-3 rounded-2xl bg-[#2C0E63]/30 border border-white/10">
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] font-bold text-slate-300 font-mono">
                   <span>Font Size:</span>
-                  <span className="text-[#06B6D4]">{currentText.fontSize || 40}px</span>
+                  <span className="text-[#F2CB30]">{currentText.fontSize || 40}px</span>
                 </div>
                 <input
                   type="range"
@@ -331,14 +331,14 @@ export function StudioPropertiesPanel() {
                   max="120"
                   value={currentText.fontSize || 40}
                   onChange={(e) => updateText(currentText.id, { fontSize: parseInt(e.target.value) })}
-                  className="w-full h-1.5 bg-[#080812] rounded-lg cursor-pointer accent-[#06B6D4]"
+                  className="w-full h-1.5 bg-[#12002E] rounded-lg cursor-pointer accent-[#F2CB30]"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] font-bold text-slate-300 font-mono">
                   <span>Rotation:</span>
-                  <span className="text-[#6C4DF6]">{currentText.rotation || 0}°</span>
+                  <span className="text-[#F2CB30]">{currentText.rotation || 0}°</span>
                 </div>
                 <input
                   type="range"
@@ -346,7 +346,7 @@ export function StudioPropertiesPanel() {
                   max="180"
                   value={currentText.rotation || 0}
                   onChange={(e) => updateText(currentText.id, { rotation: parseInt(e.target.value) })}
-                  className="w-full h-1.5 bg-[#080812] rounded-lg cursor-pointer accent-[#6C4DF6]"
+                  className="w-full h-1.5 bg-[#12002E] rounded-lg cursor-pointer accent-[#F2CB30]"
                 />
               </div>
             </div>
@@ -355,7 +355,7 @@ export function StudioPropertiesPanel() {
             <div className="flex items-center gap-2 pt-1">
               <button
                 onClick={centerActiveLayer}
-                className="flex-1 py-1.5 rounded-xl bg-[#16162E] text-slate-300 text-xs font-bold hover:text-white"
+                className="flex-1 py-1.5 rounded-xl bg-[#2C0E63] text-slate-200 text-xs font-bold hover:text-white"
               >
                 Center
               </button>
@@ -373,9 +373,9 @@ export function StudioPropertiesPanel() {
            3. NO SELECTION / OVERVIEW STATE
            ========================================================================= */}
         {!currentItem && (
-          <div className="p-6 rounded-2xl bg-[#101022] border border-white/[0.06] text-center space-y-2">
-            <span className="text-2xl">✦</span>
-            <h4 className="text-xs font-bold text-slate-300">Select any layer</h4>
+          <div className="p-6 rounded-2xl bg-[#2C0E63]/25 border border-white/10 text-center space-y-2">
+            <span className="text-2xl text-[#F2CB30]">✦</span>
+            <h4 className="text-xs font-bold text-slate-200">Select any layer</h4>
             <p className="text-[11px] text-slate-400">
               Click on any artwork or text on the product preview to adjust its position, scale, and color.
             </p>

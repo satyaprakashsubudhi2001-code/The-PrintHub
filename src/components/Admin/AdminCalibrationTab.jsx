@@ -20,7 +20,7 @@ import {
   saveCalibrationOverride,
   resetCalibrationOverrides,
 } from '../../constants/printCalibration';
-import { INITIAL_PRODUCTS } from '../../constants/products';
+import { useStore } from '../../context/StoreContext';
 import { RealisticProductMockup } from '../MockupStudio/RealisticProductMockup';
 
 /**
@@ -29,7 +29,8 @@ import { RealisticProductMockup } from '../MockupStudio/RealisticProductMockup';
  * for every product, size, surface, and placement directly on the realistic product.
  */
 export function AdminCalibrationTab() {
-  const [selectedProductId, setSelectedProductId] = useState('round-neck-tshirt');
+  const { products = [] } = useStore();
+  const [selectedProductId, setSelectedProductId] = useState(products[0]?.id || '');
   const [selectedSize, setSelectedSize] = useState('L');
   const [selectedPlacementId, setSelectedPlacementId] = useState('left_chest');
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -81,8 +82,8 @@ export function AdminCalibrationTab() {
 
   // Selected product object for realistic mockup rendering
   const activeProductObj = useMemo(() => {
-    return INITIAL_PRODUCTS.find((p) => p.id === selectedProductId) || INITIAL_PRODUCTS[0];
-  }, [selectedProductId]);
+    return products.find((p) => p.id === selectedProductId) || products[0] || null;
+  }, [products, selectedProductId]);
 
   // Dragging & Resizing Refs for interactive preview stage
   const stageRef = useRef(null);
@@ -156,6 +157,19 @@ export function AdminCalibrationTab() {
       setTimeout(() => setSaveSuccess(false), 2500);
     }
   };
+
+  // Zero-state when no products exist in catalog
+  if (products.length === 0) {
+    return (
+      <div className="p-12 rounded-3xl bg-[#0c101d] border border-slate-800 text-center space-y-4 select-none">
+        <Box className="w-12 h-12 text-slate-500 mx-auto" />
+        <h3 className="text-lg font-black text-white uppercase font-display">No Products to Calibrate</h3>
+        <p className="text-xs text-slate-400 font-sans max-w-sm mx-auto">
+          Create products in the Product Catalog tab to configure and visually calibrate their print boundaries.
+        </p>
+      </div>
+    );
+  }
 
   // Reset to Factory Default
   const handleReset = () => {

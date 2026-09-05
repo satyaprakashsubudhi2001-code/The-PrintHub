@@ -95,23 +95,23 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
   };
 
   return (
-    <div className={`min-h-screen ${isLight ? 'bg-[#F8F9FC] text-[#0F172A]' : 'bg-[#080812] text-white'} pt-4 pb-28 sm:py-8 px-4 sm:px-8 select-none space-y-8 sm:space-y-12 animate-in fade-in w-full max-w-full overflow-x-hidden`}>
+    <div className="min-h-screen bg-[#FFFFFF] text-[#12002E] pt-4 pb-28 sm:py-8 px-4 sm:px-8 select-none space-y-8 sm:space-y-12 animate-in fade-in w-full max-w-full overflow-x-hidden">
       <div className="max-w-[1500px] mx-auto space-y-6 sm:space-y-10">
         {/* Breadcrumb Navigation */}
-        <div className={`flex items-center justify-between border-b ${isLight ? 'border-slate-200' : 'border-white/10'} pb-4`}>
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <button
             type="button"
             onClick={onBack}
-            className={`flex items-center gap-2 text-xs font-bold ${isLight ? 'text-slate-600 hover:text-blue-600' : 'text-slate-300 hover:text-cyan-400'} transition-colors cursor-pointer`}
+            className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#DA0090] transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Products Catalog</span>
           </button>
 
-          <div className={`flex items-center gap-3 text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+          <div className="flex items-center gap-3 text-xs text-slate-500">
             <span>{product.category || 'Merchandise'}</span>
             <span>/</span>
-            <span className={`${isLight ? 'text-slate-900' : 'text-white'} font-bold`}>{product.name}</span>
+            <span className="text-[#2C0E63] font-bold">{product.name}</span>
           </div>
         </div>
 
@@ -124,11 +124,7 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
           */}
           <div className="lg:col-span-6 space-y-4">
             <div
-              className={`relative aspect-square rounded-3xl flex items-center justify-center p-6 sm:p-8 overflow-hidden transition-all ${
-                isLight
-                  ? 'bg-white border border-slate-200 shadow-sm'
-                  : 'bg-[#121318] border border-[#22232C] shadow-md'
-              }`}
+              className="relative aspect-square rounded-3xl flex items-center justify-center p-6 sm:p-8 overflow-hidden transition-all bg-white border border-slate-200 shadow-sm"
               style={{
                 aspectRatio: '1 / 1',
                 display: 'flex',
@@ -150,9 +146,7 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
                 {product.badge && (
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                    isLight ? 'bg-blue-600 text-white' : 'bg-cyan-500 text-slate-950 font-extrabold'
-                  }`}>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#DA0090] text-white shadow-sm">
                     {product.badge}
                   </span>
                 )}
@@ -162,7 +156,7 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                   </span>
                 )}
                 {isCustomizable && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-purple-600 text-white shadow-xs">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-[#2C0E63] border border-white/20 text-white shadow-xs">
                     3D Customizable
                   </span>
                 )}
@@ -174,10 +168,8 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                 onClick={() => toggleWishlist(product.id)}
                 className={`absolute top-4 right-4 p-3 rounded-2xl backdrop-blur-md transition-all z-10 cursor-pointer shadow-xs ${
                   wishlisted
-                    ? 'bg-rose-500 text-white scale-105'
-                    : isLight
-                    ? 'bg-white/90 text-slate-400 hover:text-rose-500 border border-slate-200'
-                    : 'bg-[#101022]/90 text-slate-400 hover:text-rose-400 border border-white/10'
+                    ? 'bg-[#DA0090] text-white scale-105'
+                    : 'bg-white/90 text-slate-400 hover:text-[#DA0090] border border-slate-200'
                 }`}
                 title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
               >
@@ -195,10 +187,8 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                     onClick={() => setActiveImage(img)}
                     className={`w-18 h-18 rounded-2xl border-2 flex items-center justify-center p-1 shrink-0 transition-all cursor-pointer ${
                       activeImage === img
-                        ? 'border-blue-600 ring-2 ring-blue-500/20'
-                        : isLight
-                        ? 'border-slate-200 bg-white opacity-70 hover:opacity-100'
-                        : 'border-[#22232C] bg-[#121318] opacity-70 hover:opacity-100'
+                        ? 'border-[#2C0E63] ring-2 ring-[#2C0E63]/20'
+                        : 'border-slate-200 bg-white opacity-70 hover:opacity-100'
                     }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-contain" />
@@ -216,36 +206,32 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
           <div className="lg:col-span-6 space-y-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                  isLight ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                }`}>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#DA0090]/15 text-[#DA0090] border border-[#DA0090]/30">
                   {isCustomizable ? '3D CUSTOMIZABLE BLANK' : 'READY TO ORDER'}
                 </span>
                 <span className="text-xs text-slate-400">Direct Factory Fulfillment</span>
               </div>
 
-              <h1 className={`text-2xl sm:text-3xl font-bold leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-[#2C0E63]">
                 {product.name}
               </h1>
 
               <div className="flex items-center gap-2 text-xs">
-                <div className="flex items-center gap-1 text-amber-500 font-bold">
-                  <Star className="w-4 h-4 fill-amber-500" />
+                <div className="flex items-center gap-1 text-[#F2CB30] font-bold">
+                  <Star className="w-4 h-4 fill-[#F2CB30]" />
                   <span>{product.rating || '4.8'}</span>
                 </div>
                 <span className="text-slate-400">•</span>
                 <span className="text-slate-500">({product.reviewsCount || product.reviewCount || 95} verified customer reviews)</span>
                 <span className="text-slate-400">•</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">In Stock & Ready</span>
+                <span className="text-emerald-600 font-bold">In Stock & Ready</span>
               </div>
 
               {/* Price Banner */}
-              <div className={`p-4 rounded-2xl flex items-baseline justify-between ${
-                isLight ? 'bg-white border border-slate-200 shadow-xs' : 'bg-[#121318] border border-[#22232C]'
-              }`}>
+              <div className="p-4 rounded-2xl flex items-baseline justify-between bg-white border border-slate-200 shadow-sm">
                 <div>
                   <div className="flex items-baseline gap-2.5">
-                    <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    <span className="text-2xl sm:text-3xl font-black text-[#12002E]">
                       ₹{unitPrice.toLocaleString()}
                     </span>
                     {comparePrice && comparePrice > unitPrice && (
@@ -258,9 +244,7 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                 </div>
 
                 {discountPercent > 0 && (
-                  <span className={`px-2.5 py-1 rounded-xl text-xs font-bold ${
-                    isLight ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  }`}>
+                  <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-[#F2CB30]/20 text-[#12002E] border border-[#F2CB30]/40">
                     Save ₹{(comparePrice - unitPrice).toLocaleString()}
                   </span>
                 )}
@@ -275,8 +259,8 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
             {/* Color Swatches */}
             {product.colors && product.colors.length > 0 && (
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                  <span>Color: <strong className={isLight ? 'text-slate-900' : 'text-white'}>{selectedColor.name}</strong></span>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                  <span>Color: <strong className="text-slate-900">{selectedColor.name}</strong></span>
                   <span className="text-[11px] text-slate-400">{product.colors.length} Available</span>
                 </label>
                 <div className="flex items-center gap-2.5">
@@ -287,10 +271,8 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                       onClick={() => setSelectedColor(c)}
                       className={`w-7 h-7 rounded-full border-2 transition-all cursor-pointer ${
                         selectedColor.name === c.name
-                          ? isLight
-                            ? 'scale-110 border-blue-600 ring-2 ring-blue-500/20'
-                            : 'scale-110 border-white ring-2 ring-cyan-400'
-                          : 'border-slate-300 dark:border-slate-700 opacity-80 hover:opacity-100'
+                          ? 'scale-110 border-white ring-2 ring-[#2C0E63]'
+                          : 'border-slate-300 opacity-80 hover:opacity-100'
                       }`}
                       style={{ backgroundColor: c.hex }}
                       title={c.name}
@@ -304,8 +286,8 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
             {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">
-                    Size: <strong className={isLight ? 'text-slate-900' : 'text-white'}>{selectedSize}</strong>
+                  <span className="font-bold text-slate-700">
+                    Size: <strong className="text-slate-900">{selectedSize}</strong>
                   </span>
                 </div>
                 <div className="grid grid-cols-5 gap-2">
@@ -316,12 +298,8 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                       onClick={() => setSelectedSize(sz)}
                       className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
                         selectedSize === sz
-                          ? isLight
-                            ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
-                            : 'bg-white border-white text-slate-950 font-extrabold shadow-xs'
-                          : isLight
-                          ? 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                          : 'bg-[#121318] border-[#22232C] text-slate-300 hover:border-slate-600'
+                          ? 'bg-[#2C0E63] border-[#2C0E63] text-white font-extrabold shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
                       }`}
                     >
                       {sz}
@@ -332,18 +310,14 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
             )}
 
             {/* Quantity Stepper */}
-            <div className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs ${
-              isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-[#121318] border-[#22232C]'
-            }`}>
+            <div className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 bg-white text-xs shadow-sm">
               <div className="flex items-center gap-3">
-                <span className="font-bold text-slate-700 dark:text-slate-300">Quantity:</span>
-                <div className={`flex items-center rounded-xl border p-1 ${
-                  isLight ? 'bg-slate-100 border-slate-200' : 'bg-[#181922] border-[#272834]'
-                }`}>
+                <span className="font-bold text-slate-700">Quantity:</span>
+                <div className="flex items-center rounded-xl border border-slate-200 p-1 bg-slate-100">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-7 h-7 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-[#20212C] flex items-center justify-center font-bold text-sm cursor-pointer"
+                    className="w-7 h-7 rounded-lg text-slate-600 hover:bg-white flex items-center justify-center font-bold text-sm cursor-pointer"
                   >
                     −
                   </button>
@@ -351,14 +325,14 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-7 h-7 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-[#20212C] flex items-center justify-center font-bold text-sm cursor-pointer"
+                    className="w-7 h-7 rounded-lg text-slate-600 hover:bg-white flex items-center justify-center font-bold text-sm cursor-pointer"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+              <span className="text-emerald-600 font-bold">
                 ✓ Ready for Quick Dispatch
               </span>
             </div>
@@ -370,9 +344,9 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98 cursor-pointer"
+                className="w-full py-3.5 rounded-2xl bg-[#F2CB30] hover:bg-[#DA0090] hover:text-white text-[#12002E] font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98 cursor-pointer"
               >
-                <MessageCircle className="w-4 h-4 fill-white/20" />
+                <MessageCircle className="w-4 h-4 fill-current/20" />
                 <span>Order Now via WhatsApp (₹{totalPrice.toLocaleString()})</span>
               </a>
 
@@ -381,13 +355,9 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
                 <button
                   type="button"
                   onClick={handleOpenCustomizer}
-                  className={`w-full py-3.5 rounded-2xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    isLight
-                      ? 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
-                      : 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border-cyan-500/40'
-                  }`}
+                  className="w-full py-3.5 rounded-2xl border border-[#2C0E63] bg-white hover:bg-slate-50 text-[#2C0E63] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4 text-[#DA0090]" />
                   <span>Open 3D Studio to Add Your Own Custom Design</span>
                 </button>
               )}
@@ -395,11 +365,7 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
               {/* Email Direct Order Fallback */}
               <a
                 href={mailtoUrl}
-                className={`w-full py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${
-                  isLight
-                    ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-                    : 'bg-[#121318] hover:bg-[#181922] text-slate-300 border-[#22232C]'
-                }`}
+                className="w-full py-2.5 rounded-xl border border-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors bg-white hover:bg-slate-50 text-slate-700"
               >
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
                 <span>Prefer Email? Send Order Details via Gmail</span>
@@ -407,23 +373,21 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
             </div>
 
             {/* Trust Badges */}
-            <div className={`grid grid-cols-2 gap-3 text-xs pt-3 border-t ${
-              isLight ? 'border-slate-200 text-slate-500' : 'border-[#22232C] text-slate-400'
-            }`}>
+            <div className="grid grid-cols-2 gap-3 text-xs pt-3 border-t border-slate-200 text-slate-600">
               <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" />
+                <Truck className="w-4 h-4 text-[#DA0090] shrink-0" />
                 <span>Express PAN-India Delivery (2–4 Days)</span>
               </div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-[#DA0090] shrink-0" />
                 <span>Direct Verified Manufacturer</span>
               </div>
               <div className="flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-amber-500 shrink-0" />
+                <RotateCcw className="w-4 h-4 text-[#DA0090] shrink-0" />
                 <span>Defect-Free Quality Assurance</span>
               </div>
               <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-purple-500 shrink-0" />
+                <Package className="w-4 h-4 text-[#DA0090] shrink-0" />
                 <span>Damage-Proof Packaging</span>
               </div>
             </div>
@@ -432,9 +396,9 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
 
         {/* BOTTOM: RELATED PRODUCTS */}
         {relatedProducts.length > 0 && (
-          <div className={`space-y-6 pt-10 border-t ${isLight ? 'border-slate-200' : 'border-[#22232C]'}`}>
+          <div className="space-y-6 pt-10 border-t border-slate-200">
             <div>
-              <h2 className={`text-lg sm:text-xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h2 className="text-lg sm:text-xl font-bold text-[#2C0E63]">
                 You May Also Like
               </h2>
               <p className="text-xs text-slate-500">
@@ -444,7 +408,17 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
 
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {relatedProducts.map((relProduct) => (
-                <ProductCard key={relProduct.id} product={relProduct} />
+                <div
+                  key={relProduct.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onSelectRelated) {
+                      onSelectRelated(relProduct);
+                    }
+                  }}
+                >
+                  <ProductCard product={relProduct} />
+                </div>
               ))}
             </div>
           </div>

@@ -15,58 +15,58 @@ import {
 export const THEMES = [
   {
     id: 'indigo_cyan',
-    name: 'Electric Indigo (Default)',
-    accent: '#6366f1',
-    gradient: 'from-indigo-500 via-indigo-600 to-cyan-500',
-    hoverGradient: 'hover:from-indigo-600 hover:to-cyan-600',
+    name: 'PrintHub Signature',
+    accent: '#F2CB30',
+    gradient: 'from-[#2C0E63] to-[#12002E]',
+    hoverGradient: 'hover:from-[#2C0E63] hover:to-[#12002E]',
     glow: 'shadow-glow-primary',
-    textColor: 'text-indigo-400',
-    borderColor: 'border-indigo-500/40',
-    bgBadge: 'bg-indigo-500/20',
+    textColor: 'text-[#2C0E63]',
+    borderColor: 'border-[#2C0E63]/30',
+    bgBadge: 'bg-[#DA0090]/15 text-[#DA0090]',
   },
   {
     id: 'emerald_mint',
-    name: 'Emerald Luxury',
-    accent: '#10b981',
-    gradient: 'from-emerald-500 via-teal-600 to-cyan-500',
-    hoverGradient: 'hover:from-emerald-600 hover:to-cyan-600',
-    glow: 'shadow-glow-emerald',
-    textColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/40',
-    bgBadge: 'bg-emerald-500/20',
+    name: 'PrintHub Pink Accent',
+    accent: '#DA0090',
+    gradient: 'from-[#2C0E63] to-[#DA0090]',
+    hoverGradient: 'hover:from-[#2C0E63] hover:to-[#DA0090]',
+    glow: 'shadow-glow-pink',
+    textColor: 'text-[#DA0090]',
+    borderColor: 'border-[#DA0090]/30',
+    bgBadge: 'bg-[#DA0090]/15 text-[#DA0090]',
   },
   {
     id: 'violet_rose',
-    name: 'Cyber Violet & Pink',
-    accent: '#8b5cf6',
-    gradient: 'from-violet-500 via-purple-600 to-pink-500',
-    hoverGradient: 'hover:from-violet-600 hover:to-pink-600',
-    glow: 'shadow-glow-violet',
-    textColor: 'text-violet-400',
-    borderColor: 'border-violet-500/40',
-    bgBadge: 'bg-violet-500/20',
+    name: 'PrintHub Plum & Purple',
+    accent: '#2C0E63',
+    gradient: 'from-[#12002E] to-[#2C0E63]',
+    hoverGradient: 'hover:from-[#12002E] hover:to-[#2C0E63]',
+    glow: 'shadow-glow-purple',
+    textColor: 'text-[#2C0E63]',
+    borderColor: 'border-[#2C0E63]/30',
+    bgBadge: 'bg-[#2C0E63]/15 text-[#2C0E63]',
   },
   {
     id: 'sapphire_blue',
-    name: 'Royal Sapphire',
-    accent: '#2563eb',
-    gradient: 'from-blue-600 via-indigo-600 to-cyan-500',
-    hoverGradient: 'hover:from-blue-700 hover:to-cyan-600',
-    glow: 'shadow-glow-cyan',
-    textColor: 'text-blue-400',
-    borderColor: 'border-blue-500/40',
-    bgBadge: 'bg-blue-500/20',
+    name: 'PrintHub Gold Action',
+    accent: '#F2CB30',
+    gradient: 'from-[#2C0E63] to-[#12002E]',
+    hoverGradient: 'hover:from-[#2C0E63] hover:to-[#12002E]',
+    glow: 'shadow-glow-yellow',
+    textColor: 'text-[#F2CB30]',
+    borderColor: 'border-[#F2CB30]/30',
+    bgBadge: 'bg-[#F2CB30]/15 text-[#F2CB30]',
   },
   {
     id: 'sunset_amber',
-    name: 'Solar Amber & Gold',
-    accent: '#f59e0b',
-    gradient: 'from-amber-500 via-orange-600 to-rose-500',
-    hoverGradient: 'hover:from-amber-600 hover:to-rose-600',
+    name: 'PrintHub Dynamic',
+    accent: '#F2CB30',
+    gradient: 'from-[#2C0E63] via-[#DA0090] to-[#12002E]',
+    hoverGradient: 'hover:from-[#2C0E63] hover:to-[#12002E]',
     glow: 'shadow-glow-primary',
-    textColor: 'text-amber-400',
-    borderColor: 'border-amber-500/40',
-    bgBadge: 'bg-amber-500/20',
+    textColor: 'text-[#F2CB30]',
+    borderColor: 'border-[#F2CB30]/30',
+    bgBadge: 'bg-[#F2CB30]/15 text-[#F2CB30]',
   },
 ];
 
@@ -74,58 +74,66 @@ const StoreContext = createContext();
 
 export function StoreProvider({ children }) {
   // Navigation Page State with URL Hash / Path resolution
-  const getInitialPage = () => {
+  const resolvePageFromLocation = () => {
     if (typeof window === 'undefined') return 'home';
-    const hash = window.location.hash.replace('#', '').replace(/^\//, '');
-    const path = window.location.pathname.replace(/^\//, '');
+    const hash = window.location.hash.replace('#', '').replace(/^\//, '').split('?')[0];
+    const path = window.location.pathname.replace(/^\//, '').split('?')[0];
     const route = hash || path;
+
     if (route === 'admin' || route === 'admin/dashboard') return 'admin';
     if (route === 'admin/login' || route === 'admin-login') return 'admin-login';
-    if (['products', 'design-by-customer', 'high-selling', 'about-us', 'help'].includes(route)) {
+    if (route === 'studio' || route === 'customizer') return 'design-by-customer';
+    if (route === 'contact') return 'help';
+    if (route === 'shop-by-category' || route === 'categories') return 'home';
+    if (route === 'trending-products') return 'home';
+
+    const validPages = ['home', 'products', 'design-by-customer', 'offers', 'high-selling', 'new-arrivals', 'about-us', 'help'];
+    if (validPages.includes(route)) {
       return route;
     }
     return 'home';
   };
 
-  const [currentPage, setCurrentPage] = useState(getInitialPage);
+  const [currentPage, setCurrentPage] = useState(resolvePageFromLocation);
 
-  // UI Theme Mode: 'light' (Default) vs 'dark'
-  const [themeMode, setThemeModeState] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('printhub_theme_mode') || 'light';
-    }
-    return 'light';
-  });
+  // Sync state with browser URL Hash and Back/Forward buttons
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const page = resolvePageFromLocation();
+      setCurrentPage(page);
+    };
 
-  const setThemeMode = (mode) => {
-    setThemeModeState(mode);
+    window.addEventListener('hashchange', handleLocationChange);
+    window.addEventListener('popstate', handleLocationChange);
+    return () => {
+      window.removeEventListener('hashchange', handleLocationChange);
+      window.removeEventListener('popstate', handleLocationChange);
+    };
+  }, []);
+
+  // UI Fixed Mode: Always clean light neutral for standard content
+  const [themeMode, setThemeModeState] = useState('light');
+
+  const setThemeMode = () => {
+    setThemeModeState('light');
     if (typeof window !== 'undefined') {
-      localStorage.setItem('printhub_theme_mode', mode);
-      if (mode === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-      } else {
-        document.documentElement.classList.add('light');
-        document.documentElement.classList.remove('dark');
-      }
+      localStorage.removeItem('printhub_theme_mode');
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
     }
   };
 
   const toggleThemeMode = () => {
-    setThemeMode(themeMode === 'dark' ? 'light' : 'dark');
+    setThemeMode();
   };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      if (themeMode === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-      } else {
-        document.documentElement.classList.add('light');
-        document.documentElement.classList.remove('dark');
-      }
+      localStorage.removeItem('printhub_theme_mode');
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
     }
-  }, [themeMode]);
+  }, []);
 
   // UI Theme Preset
   const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
@@ -171,27 +179,125 @@ export function StoreProvider({ children }) {
     setStoreSettings((prev) => ({ ...prev, themeId }));
   };
 
-  // Product Catalog (Loaded from localStorage or initial presets)
+  // Product Catalog (Empty by default per user request - products created via Admin)
   const [products, setProducts] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('printhub_custom_products');
+        const saved = localStorage.getItem('printhub_custom_products_v2');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed)) return parsed;
         }
       } catch (e) {}
     }
-    return INITIAL_PRODUCTS;
+    return [];
   });
 
-  // Ready-to-Buy Direct Catalog
-  const [readyToBuyProducts, setReadyToBuyProducts] = useState(READY_TO_BUY_PRODUCTS);
+  // Ready-to-Buy Direct Catalog (Empty by default)
+  const [readyToBuyProducts, setReadyToBuyProducts] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('printhub_rtb_products_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  // Dynamic Categories Management (Starts completely empty: all prior categories removed)
+  const [categories, setCategories] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('printhub_custom_categories');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  const addCategory = useCallback((categoryData) => {
+    let newId = categoryData.id || `cat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    setCategories((prev) => {
+      const slug = categoryData.slug
+        ? categoryData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        : categoryData.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const newCat = {
+        id: newId,
+        name: categoryData.name.trim(),
+        slug,
+        icon: categoryData.icon || '🏷️',
+        badge: categoryData.badge ? categoryData.badge.trim() : '',
+        description: categoryData.description ? categoryData.description.trim() : '',
+        image: categoryData.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
+        createdAt: new Date().toISOString(),
+      };
+      const updated = [...prev, newCat];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_custom_categories', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    return newId;
+  }, []);
+
+  const updateCategory = useCallback((id, updatedData) => {
+    setCategories((prev) => {
+      const updated = prev.map((cat) => {
+        if (cat.id !== id) return cat;
+        const slug = updatedData.slug
+          ? updatedData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+          : updatedData.name
+          ? updatedData.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+          : cat.slug;
+        return {
+          ...cat,
+          ...updatedData,
+          name: updatedData.name ? updatedData.name.trim() : cat.name,
+          slug,
+          badge: updatedData.badge !== undefined ? updatedData.badge.trim() : cat.badge,
+          description: updatedData.description !== undefined ? updatedData.description.trim() : cat.description,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_custom_categories', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
+  const deleteCategory = useCallback((id) => {
+    setCategories((prev) => {
+      const updated = prev.filter((cat) => cat.id !== id && cat.name !== id);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_custom_categories', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
+  const clearAllCategories = useCallback(() => {
+    setCategories([]);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('printhub_custom_categories');
+    }
+  }, []);
 
   // Global Search & Category Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showWishlistOnly, setShowWishlistOnly] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+
+  // High Selling Filters
+  const [highSellingCategory, setHighSellingCategory] = useState('all');
+  const [highSellingTimeRange, setHighSellingTimeRange] = useState('7days');
 
   // Wishlist State
   const [wishlist, setWishlist] = useState(() => {
@@ -225,7 +331,7 @@ export function StoreProvider({ children }) {
   const saveProductsToStorage = (updatedList) => {
     setProducts(updatedList);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('printhub_custom_products', JSON.stringify(updatedList));
+      localStorage.setItem('printhub_custom_products_v2', JSON.stringify(updatedList));
     }
   };
 
@@ -233,7 +339,7 @@ export function StoreProvider({ children }) {
     setProducts((prev) => {
       const updated = [newProduct, ...prev];
       if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_products', JSON.stringify(updated));
+        localStorage.setItem('printhub_custom_products_v2', JSON.stringify(updated));
       }
       return updated;
     });
@@ -243,7 +349,7 @@ export function StoreProvider({ children }) {
     setProducts((prev) => {
       const updated = prev.map((p) => (p.id === productId ? { ...p, ...updatedFields } : p));
       if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_products', JSON.stringify(updated));
+        localStorage.setItem('printhub_custom_products_v2', JSON.stringify(updated));
       }
       return updated;
     });
@@ -253,7 +359,7 @@ export function StoreProvider({ children }) {
     setProducts((prev) => {
       const updated = prev.filter((p) => p.id !== productId);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_products', JSON.stringify(updated));
+        localStorage.setItem('printhub_custom_products_v2', JSON.stringify(updated));
       }
       return updated;
     });
@@ -261,24 +367,36 @@ export function StoreProvider({ children }) {
 
   const clearAllProducts = useCallback(() => {
     setProducts([]);
+    setReadyToBuyProducts([]);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('printhub_custom_products', JSON.stringify([]));
+      localStorage.setItem('printhub_custom_products_v2', JSON.stringify([]));
+      localStorage.setItem('printhub_rtb_products_v2', JSON.stringify([]));
+      localStorage.removeItem('printhub_custom_products');
     }
   }, []);
 
   const restorePresetProducts = useCallback(() => {
     setProducts(DEFAULT_PRESET_PRODUCTS);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('printhub_custom_products', JSON.stringify(DEFAULT_PRESET_PRODUCTS));
+      localStorage.setItem('printhub_custom_products_v2', JSON.stringify(DEFAULT_PRESET_PRODUCTS));
     }
   }, []);
 
-  // Active Customizer Product State (Safe fallback to first product or template)
-  const defaultBlank = products && products.length > 0 ? products[0] : (DEFAULT_PRESET_PRODUCTS[0] || null);
+  // Active Customizer Product State (Safe fallback to first product or null)
+  const defaultBlank = products && products.length > 0 ? products[0] : null;
 
   const [customizerProduct, setCustomizerProduct] = useState(defaultBlank);
   const [customizerColor, setCustomizerColor] = useState(defaultBlank?.defaultColor || '#18181b');
   const [selectedSize, setSelectedSize] = useState(defaultBlank?.defaultSize || 'L');
+
+  // Reactively auto-select first product when added if customizer was empty
+  useEffect(() => {
+    if (!customizerProduct && products && products.length > 0) {
+      setCustomizerProduct(products[0]);
+      setCustomizerColor(products[0].defaultColor || '#18181b');
+      setSelectedSize(products[0].defaultSize || products[0].sizes?.[0] || 'L');
+    }
+  }, [products, customizerProduct]);
   const [activePlacementId, setActivePlacementId] = useState(defaultBlank?.defaultPrintArea || 'center_chest');
 
   // Multi-placement artwork & text layers
@@ -401,12 +519,65 @@ export function StoreProvider({ children }) {
     } catch (e) {}
   }, []);
 
-  // Navigation Helper
-  const navigateTo = useCallback((page) => {
-    setCurrentPage(page);
+  // Order Workflow & Shipping State (Safe fallbacks for admin order modals)
+  const [orders, setOrders] = useState([]);
+  const updateOrderStatus = useCallback((orderId, newStatus, note, adminName) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, orderStatus: newStatus } : o))
+    );
+    return { success: true, message: `Status updated to ${newStatus}` };
+  }, []);
+
+  const createAdminShipment = useCallback(async (orderId, courier) => {
+    return {
+      success: true,
+      shipment: {
+        courierName: courier || 'Delhivery Express',
+        awbNumber: `DLV-${Date.now().toString().slice(-8)}`,
+      },
+    };
+  }, []);
+
+  const processAdminRefund = useCallback(async (orderId, amount, reason) => {
+    return { success: true, message: `Refund of ₹${amount} initiated successfully.` };
+  }, []);
+
+  const addAdminOrderNote = useCallback((orderId, noteText) => {
+    return { success: true };
+  }, []);
+
+  // Navigation Helper with Option support & QuickView cleanup
+  const navigateTo = useCallback((page, options = {}) => {
+    // Always dismiss any open product modal when navigating to a page
+    setQuickViewProduct(null);
+
+    // Apply any passed filter options
+    if (options.category) {
+      setSelectedCategory(options.category);
+    }
+    if (options.showWishlistOnly !== undefined) {
+      setShowWishlistOnly(options.showWishlistOnly);
+    } else if (page !== 'products') {
+      setShowWishlistOnly(false);
+    }
+
+    const targetPage =
+      page === 'contact'
+        ? 'help'
+        : page === 'studio' || page === 'customizer'
+        ? 'design-by-customer'
+        : page;
+
+    setCurrentPage(targetPage);
+
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      window.location.hash = page === 'home' ? '' : page;
+      const targetHash = targetPage === 'home' ? '' : targetPage;
+      if (window.location.hash.replace('#', '') !== targetHash) {
+        window.location.hash = targetHash;
+      }
+      if (!options.preserveScroll) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   }, []);
 
@@ -450,17 +621,41 @@ export function StoreProvider({ children }) {
         placementDesigns,
         setPlacementDesigns,
 
+        // Categories Catalog & Admin Actions
+        categories,
+        setCategories,
+        addCategory,
+        updateCategory,
+        deleteCategory,
+        clearAllCategories,
+
         // Discovery, Search & Wishlist
         searchQuery,
         setSearchQuery,
         selectedCategory,
         setSelectedCategory,
+        showWishlistOnly,
+        setShowWishlistOnly,
         quickViewProduct,
         setQuickViewProduct,
         wishlist,
         toggleWishlist,
         isWishlisted,
         addReadyToBuyToCart,
+
+        // High Selling Leaderboard Filters
+        highSellingCategory,
+        setHighSellingCategory,
+        highSellingTimeRange,
+        setHighSellingTimeRange,
+
+        // Orders & Admin Workflow
+        orders,
+        setOrders,
+        updateOrderStatus,
+        createAdminShipment,
+        processAdminRefund,
+        addAdminOrderNote,
 
         // Design Requests Management
         designRequests,

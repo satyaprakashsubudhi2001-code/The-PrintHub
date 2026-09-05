@@ -72,7 +72,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
               className="w-full h-full object-cover"
             />
             {product.badge && (
-              <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase font-mono bg-white text-[#6C4DF6] border border-slate-200 shadow-sm">
+              <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase font-mono bg-white text-[#DA0090] border border-[#DA0090]/30 shadow-sm">
                 {product.badge}
               </span>
             )}
@@ -87,7 +87,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
                   type="button"
                   onClick={() => setSelectedImage(img)}
                   className={`w-14 h-14 rounded-xl border-2 overflow-hidden shrink-0 transition-all ${
-                    selectedImage === img ? 'border-[#6C4DF6] ring-2 ring-[#6C4DF6]/20' : 'border-slate-200 opacity-60 hover:opacity-100'
+                    selectedImage === img ? 'border-[#2C0E63] ring-2 ring-[#2C0E63]/20' : 'border-slate-200 opacity-60 hover:opacity-100'
                   }`}
                 >
                   <img src={img} alt="" className="w-full h-full object-cover" />
@@ -102,7 +102,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
           {/* Header & Close */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-[#6C4DF6] uppercase tracking-wider font-mono">
+              <span className="text-[10px] font-bold text-[#DA0090] uppercase tracking-wider font-mono">
                 {product.category} • {product.printMethod}
               </span>
               <button
@@ -119,8 +119,8 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
             </h2>
 
             <div className="flex items-center gap-2 text-xs">
-              <div className="flex items-center gap-1 text-amber-500 font-bold">
-                <Star className="w-3.5 h-3.5 fill-amber-400" />
+              <div className="flex items-center gap-1 text-[#F2CB30] font-bold">
+                <Star className="w-3.5 h-3.5 fill-[#F2CB30] text-[#F2CB30]" />
                 <span>{product.rating}</span>
               </div>
               <span className="text-slate-300">•</span>
@@ -159,7 +159,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
                   type="button"
                   onClick={() => setSelectedColor(c)}
                   className={`w-6 h-6 rounded-full border transition-transform ${
-                    selectedColor.name === c.name ? 'scale-125 border-slate-900 ring-2 ring-[#6C4DF6]' : 'border-slate-300 opacity-80'
+                    selectedColor.name === c.name ? 'scale-125 border-slate-900 ring-2 ring-[#2C0E63]' : 'border-slate-300 opacity-80'
                   }`}
                   style={{ backgroundColor: c.hex }}
                   title={c.name}
@@ -181,7 +181,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
                   onClick={() => setSelectedSize(sz)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                     selectedSize === sz
-                      ? 'bg-[#6C4DF6] border-[#6C4DF6] text-white shadow-sm'
+                      ? 'bg-[#2C0E63] border-[#2C0E63] text-white font-extrabold shadow-sm'
                       : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
                   }`}
                 >
@@ -219,7 +219,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
                 onClick={handleAddToCart}
                 className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 flex items-center justify-center gap-1.5 transition-all"
               >
-                {isAdded ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <ShoppingBag className="w-3.5 h-3.5 text-[#6C4DF6]" />}
+                {isAdded ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <ShoppingBag className="w-3.5 h-3.5 text-[#2C0E63]" />}
                 <span>{isAdded ? 'Added to Cart' : 'Add to Cart'}</span>
               </button>
 
@@ -227,7 +227,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#6C4DF6] to-[#06B6D4] text-white font-black text-xs shadow-sm flex items-center justify-center gap-1.5 transition-all hover:scale-102"
+                className="flex-1 py-2.5 rounded-xl bg-[#F2CB30] hover:bg-[#DA0090] hover:text-white text-[#12002E] font-black text-xs shadow-sm flex items-center justify-center gap-1.5 transition-all hover:scale-102"
               >
                 <Zap className="w-3.5 h-3.5 fill-current" />
                 <span>Buy Now</span>
@@ -238,7 +238,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
             <button
               type="button"
               onClick={() => onOpenDetail(product)}
-              className="w-full text-center text-xs text-[#6C4DF6] hover:underline font-bold pt-1 flex items-center justify-center gap-1"
+              className="w-full text-center text-xs text-[#2C0E63] hover:text-[#DA0090] hover:underline font-bold pt-1 flex items-center justify-center gap-1"
             >
               <span>View Full Details & Specs</span>
               <ArrowRight className="w-3 h-3" />

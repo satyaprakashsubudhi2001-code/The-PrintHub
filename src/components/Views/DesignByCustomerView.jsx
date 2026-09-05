@@ -35,7 +35,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { INITIAL_PRODUCTS, DEFAULT_PRESET_PRODUCTS } from '../../constants/products';
 import { SAMPLE_ARTWORKS } from '../../constants/presets';
 import { InteractiveMockupStage } from '../MockupStudio/InteractiveMockupStage';
 import { PlacementDiagram } from '../MockupStudio/PlacementDiagram';
@@ -99,8 +98,8 @@ export function DesignByCustomerView() {
 
   const fileInputRef = useRef(null);
 
-  // Set default product (safe fallback to first active product or preset template)
-  const activeProduct = customizerProduct || (products && products.length > 0 ? products[0] : DEFAULT_PRESET_PRODUCTS[0]);
+  // Set default product (active product from database, or null)
+  const activeProduct = customizerProduct || (products && products.length > 0 ? products[0] : null);
 
   // Available print areas for this product based on size and physical calibration
   const availablePrintAreas = useMemo(() => {
@@ -837,7 +836,7 @@ I would like to discuss this design with The PrintHub team.`;
               YOUR UNIQUE REQUEST ID
             </span>
             <div className="flex items-center justify-center gap-3">
-              <span className={`text-2xl sm:text-3xl font-black font-mono ${isLight ? 'text-[#06B6D4]' : 'text-lime-400'} tracking-wider`}>
+              <span className="text-2xl sm:text-3xl font-black font-mono text-[#DA0090] tracking-wider">
                 {submittedRequest.id}
               </span>
               <button
@@ -916,6 +915,41 @@ I would like to discuss this design with The PrintHub team.`;
               className={`w-full py-2.5 text-center text-xs ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-500 hover:text-slate-300'} font-mono transition-colors block`}
             >
               ← Customize another merchandise blank
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // ZERO-STATE: NO PRODUCTS IN CATALOG
+  // =========================================================================
+  if (!activeProduct) {
+    return (
+      <div className={`min-h-screen ${isLight ? 'bg-[#F8F9FC] text-[#0F172A]' : 'bg-[#070913] text-white'} py-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center animate-in fade-in`}>
+        <div className={`w-full max-w-lg rounded-3xl ${isLight ? 'bg-white border border-slate-200 shadow-xl' : 'bg-[#0c101d] border border-slate-800 shadow-2xl'} p-8 sm:p-12 text-center space-y-5`}>
+          <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center mx-auto text-2xl">
+            <Box className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black font-display uppercase tracking-tight">
+            No Customizable Blanks Available
+          </h2>
+          <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
+            The 3D Customizer currently has no active merchandise blanks. Create products in the Admin Command Center to begin customizing in 3D.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => navigateTo('home')}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-700 hover:border-slate-500 text-xs font-mono font-bold transition-colors cursor-pointer"
+            >
+              Return to Storefront
+            </button>
+            <button
+              onClick={() => navigateTo('admin')}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 text-xs font-mono font-black shadow-md transition-all cursor-pointer"
+            >
+              + Add Product in Admin
             </button>
           </div>
         </div>
@@ -1115,11 +1149,11 @@ I would like to discuss this design with The PrintHub team.`;
                   className={`p-4 rounded-2xl border flex flex-col items-center gap-3 transition-all ${
                     isSelected
                       ? isLight
-                        ? 'bg-indigo-50/50 border-[#6C4DF6] ring-2 ring-[#6C4DF6]/20 shadow-md text-slate-900'
-                        : 'bg-slate-900 border-lime-400 ring-2 ring-lime-400/20 shadow-lg text-white'
+                        ? 'bg-yellow-50 border-[#F2CB30] ring-2 ring-[#F2CB30]/30 shadow-md text-slate-900'
+                        : 'bg-[#2C0E63] border-[#F2CB30] ring-2 ring-[#F2CB30]/30 shadow-lg text-white'
                       : isLight
                       ? 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-sm'
-                      : 'bg-[#0c101d] border-slate-800 hover:border-slate-700 text-slate-300'
+                      : 'bg-[#12002E] border-[#2C0E63]/30 hover:border-[#2C0E63] text-slate-300'
                   }`}
                 >
                   <div
@@ -1247,12 +1281,12 @@ I would like to discuss this design with The PrintHub team.`;
                   onClick={() => togglePlacement(area.id)}
                   className={`cursor-pointer p-4 rounded-2xl border transition-all ${
                     isSelected
-                      ? isLight
-                        ? 'bg-indigo-50/40 border-[#6C4DF6] shadow-md ring-1 ring-[#6C4DF6]/30 text-slate-900'
-                        : 'bg-slate-900 border-lime-400 shadow-md ring-1 ring-lime-400/30 text-white'
-                      : isLight
-                      ? 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-sm'
-                      : 'bg-[#0c101d] border-slate-800 hover:border-slate-700 text-slate-300'
+                        ? isLight
+                          ? 'bg-yellow-50 border-[#F2CB30] shadow-md ring-1 ring-[#F2CB30]/30 text-slate-900'
+                          : 'bg-[#2C0E63] border-[#F2CB30] shadow-md ring-1 ring-[#F2CB30]/30 text-white'
+                        : isLight
+                        ? 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-sm'
+                        : 'bg-[#12002E] border-[#2C0E63]/30 hover:border-[#2C0E63] text-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -1260,19 +1294,17 @@ I would like to discuss this design with The PrintHub team.`;
                     <div
                       className={`w-5 h-5 rounded-md border flex items-center justify-center ${
                         isSelected
-                          ? isLight
-                            ? 'bg-[#6C4DF6] border-[#6C4DF6] text-white'
-                            : 'bg-lime-400 border-lime-400 text-slate-950'
+                          ? 'bg-[#F2CB30] border-[#F2CB30] text-[#12002E]'
                           : isLight
                           ? 'border-slate-300'
-                          : 'border-slate-700'
+                          : 'border-[#E5E5E5]/20'
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5" />}
                     </div>
                   </div>
                   <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'} mb-2`}>{area.shortDesc}</p>
-                  <div className={`flex items-center justify-between text-[10px] font-mono ${isLight ? 'text-indigo-600' : 'text-cyan-400'}`}>
+                  <div className="flex items-center justify-between text-[10px] font-mono text-[#DA0090]">
                     <span>Max Size: {area.maxDimension || `${area.maxWidthInches}" × ${area.maxHeightInches}"`}</span>
                     <span className="uppercase text-slate-400">{area.surface}</span>
                   </div>

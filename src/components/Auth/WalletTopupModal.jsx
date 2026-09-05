@@ -48,11 +48,11 @@ export function WalletTopupModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in select-none">
-      <div className="relative w-full max-w-md bg-studio-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-md bg-[#12002E] border border-[#E5E5E5]/15 rounded-3xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="p-4 bg-studio-950 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 bg-[#2C0E63] border-b border-[#E5E5E5]/15 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400">
+            <div className="p-2 rounded-xl bg-[#F2CB30]/20 text-[#F2CB30]">
               <Wallet className="w-4 h-4" />
             </div>
             <div>
@@ -63,7 +63,7 @@ export function WalletTopupModal() {
 
           <button
             onClick={() => setIsWalletTopupOpen(false)}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#12002E] transition-all"
           >
             <X className="w-4 h-4" />
           </button>
@@ -96,8 +96,8 @@ export function WalletTopupModal() {
                     }}
                     className={`py-2.5 rounded-xl text-xs font-black transition-all border ${
                       isSelected
-                        ? `bg-gradient-to-r ${currentTheme.gradient} text-white border-transparent shadow-glow-primary`
-                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        ? 'bg-[#F2CB30] text-[#12002E] border-transparent shadow-md shadow-[#F2CB30]/20'
+                        : 'bg-[#12002E] border-[#E5E5E5]/15 text-slate-300 hover:bg-[#2C0E63]'
                     }`}
                   >
                     ₹{amt}
@@ -121,7 +121,7 @@ export function WalletTopupModal() {
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
                 placeholder="Enter amount..."
-                className="w-full pl-8 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full pl-8 pr-4 py-2 rounded-xl bg-[#12002E] border border-[#E5E5E5]/20 text-xs text-white focus:outline-none focus:border-[#F2CB30] font-mono"
               />
             </div>
           </div>
@@ -146,8 +146,8 @@ export function WalletTopupModal() {
                     onClick={() => setPaymentMethod(m.id)}
                     className={`p-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 border transition-all ${
                       isSelected
-                        ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-sm'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                        ? 'bg-[#F2CB30]/20 border-[#F2CB30] text-[#F2CB30] shadow-sm'
+                        : 'bg-[#12002E] border-[#E5E5E5]/15 text-slate-400 hover:bg-[#2C0E63]'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -161,7 +161,7 @@ export function WalletTopupModal() {
           {/* Submit */}
           <button
             type="submit"
-            className={`w-full py-3.5 rounded-2xl bg-gradient-to-r ${currentTheme.gradient} ${currentTheme.glow} text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-all hover:scale-102`}
+            className="w-full py-3.5 rounded-2xl bg-[#F2CB30] hover:bg-[#DA0090] text-[#12002E] text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#F2CB30]/20 transition-all hover:scale-102"
           >
             <span>Proceed to Top-Up ₹{customAmount || amount}</span>
             <ArrowRight className="w-4 h-4" />

@@ -66,11 +66,11 @@ export function CartDrawer() {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-md animate-in fade-in select-none">
-      <div className="w-full max-w-md h-full bg-studio-850 border-l border-slate-800 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-300">
+      <div className="w-full max-w-md h-full bg-[#12002E] border-l border-white/10 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-brand-500/20 text-brand-400">
+            <div className="p-2 rounded-xl bg-[#DA0090]/20 text-[#DA0090]">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div>
@@ -86,7 +86,7 @@ export function CartDrawer() {
               setIsCartOpen(false);
               setOrderPlaced(false);
             }}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#2C0E63] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -96,12 +96,12 @@ export function CartDrawer() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {orderPlaced ? (
             <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-3 my-auto">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-glow-cyan">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <h4 className="text-base font-bold text-white">Order Confirmed!</h4>
               <p className="text-xs text-slate-300">
-                Thank you for ordering with <span className="text-brand-400 font-bold">The PrintHub</span>.
+                Thank you for ordering with <span className="text-[#F2CB30] font-bold">The PrintHub</span>.
                 Your custom 3D model configurations and print files have been transferred to our direct-to-garment DTF queue.
               </p>
               <div className="pt-2">
@@ -112,7 +112,7 @@ export function CartDrawer() {
                     setIsCartOpen(false);
                     navigateTo('home');
                   }}
-                  className="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-glow-orange transition-all"
+                  className="w-full py-2.5 rounded-xl bg-[#F2CB30] hover:bg-[#DA0090] hover:text-white text-[#12002E] text-xs font-bold transition-all"
                 >
                   Return to Home
                 </button>
@@ -120,7 +120,7 @@ export function CartDrawer() {
             </div>
           ) : cartItems.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-3 p-6">
-              <div className="w-16 h-16 rounded-2xl bg-slate-800/60 border border-slate-700 flex items-center justify-center text-2xl text-slate-500">
+              <div className="w-16 h-16 rounded-2xl bg-[#2C0E63]/40 border border-white/10 flex items-center justify-center text-2xl text-slate-400">
                 🛒
               </div>
               <h4 className="text-sm font-bold text-slate-300">Your Cart is Empty</h4>
@@ -132,10 +132,10 @@ export function CartDrawer() {
             cartItems.map((item) => (
               <div
                 key={item.id}
-                className="p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700/60 space-y-3 relative group"
+                className="p-3.5 rounded-2xl bg-[#2C0E63]/30 border border-white/10 space-y-3 relative group"
               >
                 <div className="flex gap-3">
-                  <div className="w-16 h-16 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
+                  <div className="w-16 h-16 rounded-xl bg-[#12002E] border border-white/10 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
                     <img
                       src={item.previewImage}
                       alt={item.productName}
@@ -167,7 +167,7 @@ export function CartDrawer() {
                       <span className="font-bold text-slate-300">Size: {item.size}</span>
                     </div>
 
-                    <div className="text-[10px] text-brand-400 font-semibold mt-1">
+                    <div className="text-[10px] text-[#DA0090] font-semibold mt-1">
                       {item.printingMethodName}
                     </div>
 
@@ -177,7 +177,7 @@ export function CartDrawer() {
                           setIsCartOpen(false);
                           loadCustomization(item.config);
                         }}
-                        className="mt-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/25 hover:text-white text-[10px] font-bold transition-all flex items-center gap-1"
+                        className="mt-1.5 px-2.5 py-1 rounded-lg bg-[#DA0090]/15 border border-[#DA0090]/30 text-[#DA0090] hover:bg-[#DA0090]/25 hover:text-white text-[10px] font-bold transition-all flex items-center gap-1"
                       >
                         <span>✏️</span>
                         <span>Edit Design</span>
@@ -186,8 +186,8 @@ export function CartDrawer() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                  <div className="flex items-center gap-1 p-0.5 rounded-xl bg-slate-900 border border-slate-700">
+                <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-1 p-0.5 rounded-xl bg-[#12002E] border border-white/10">
                     <button
                       onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
                       className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"
@@ -219,7 +219,7 @@ export function CartDrawer() {
 
         {/* Footer Checkout Summary */}
         {!orderPlaced && cartItems.length > 0 && (
-          <div className="p-4 border-t border-slate-800 bg-studio-900 space-y-3">
+          <div className="p-4 border-t border-white/10 bg-[#12002E] space-y-3">
             {/* Wallet Balance Payment Card */}
             {currentUser ? (
               <div
@@ -227,11 +227,11 @@ export function CartDrawer() {
                 className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                   useWallet && walletBalance > 0
                     ? 'bg-emerald-500/10 border-emerald-500/40'
-                    : 'bg-slate-950/60 border-slate-800'
+                    : 'bg-[#2C0E63]/40 border-white/10'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className={`p-1.5 rounded-xl ${useWallet && walletBalance > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
+                  <div className={`p-1.5 rounded-xl ${useWallet && walletBalance > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-[#2C0E63] text-slate-400'}`}>
                     <Wallet className="w-4 h-4" />
                   </div>
                   <div>
@@ -249,19 +249,19 @@ export function CartDrawer() {
                   checked={useWallet && walletBalance > 0}
                   onChange={() => setUseWallet(!useWallet)}
                   disabled={walletBalance <= 0}
-                  className="w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 cursor-pointer"
+                  className="w-4 h-4 rounded text-emerald-500 bg-[#12002E] border-slate-700 cursor-pointer"
                 />
               </div>
             ) : (
               <div
                 onClick={() => openAuthModal('login')}
-                className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-cyan-500/10 border border-indigo-500/30 flex items-center justify-between cursor-pointer hover:border-indigo-500/60 transition-all"
+                className="p-3 rounded-2xl bg-[#2C0E63] border border-[#F2CB30]/30 flex items-center justify-between cursor-pointer hover:border-[#F2CB30]/60 transition-all"
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <Sparkles className="w-4 h-4 text-[#F2CB30]" />
                   <span className="text-xs font-bold text-white">Login & Use ₹500 Bonus</span>
                 </div>
-                <span className="text-[10px] font-bold text-indigo-400 underline">Login Now</span>
+                <span className="text-[10px] font-bold text-[#F2CB30] underline">Login Now</span>
               </div>
             )}
 
@@ -288,9 +288,9 @@ export function CartDrawer() {
                 </div>
               )}
 
-              <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-slate-800">
+              <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-white/10">
                 <span>Final Payable Amount</span>
-                <span className={`font-display text-base font-black ${finalPayable === 0 ? 'text-emerald-400' : 'text-indigo-400'}`}>
+                <span className={`font-display text-base font-black ${finalPayable === 0 ? 'text-emerald-400' : 'text-[#F2CB30]'}`}>
                   {finalPayable === 0 ? '₹0 (Paid via Wallet)' : `₹${finalPayable.toLocaleString()}`}
                 </span>
               </div>
@@ -301,7 +301,7 @@ export function CartDrawer() {
                 setIsCartOpen(false);
                 navigateTo('checkout');
               }}
-              className={`w-full py-3.5 rounded-2xl bg-gradient-to-r ${currentTheme.gradient} ${currentTheme.glow} text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg transition-all hover:scale-102 active:scale-98`}
+              className="w-full py-3.5 rounded-2xl bg-[#F2CB30] hover:bg-[#DA0090] hover:text-white text-[#12002E] text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-[#F2CB30]/20 transition-all hover:scale-102 active:scale-98"
             >
               <CreditCard className="w-4 h-4" />
               <span>Proceed to Secure Checkout →</span>

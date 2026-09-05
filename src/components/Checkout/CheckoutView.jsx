@@ -158,14 +158,14 @@ export function CheckoutView() {
   // If order is placed, show instant luxury confirmation screen
   if (orderConfirmed) {
     return (
-      <div className="min-h-screen bg-studio-950 text-slate-100 flex items-center justify-center p-4 sm:p-8 select-none">
-        <div className="max-w-xl w-full p-6 sm:p-8 rounded-3xl bg-studio-900 border border-emerald-500/40 shadow-2xl space-y-6 text-center animate-in zoom-in-95">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-glow-emerald">
+      <div className="min-h-screen bg-[#12002E] text-slate-100 flex items-center justify-center p-4 sm:p-8 select-none">
+        <div className="max-w-xl w-full p-6 sm:p-8 rounded-3xl bg-[#2C0E63] border border-[#F2CB30]/40 shadow-2xl space-y-6 text-center animate-in zoom-in-95">
+          <div className="w-16 h-16 rounded-3xl bg-[#F2CB30]/20 text-[#F2CB30] border border-[#F2CB30]/40 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
           </div>
 
           <div>
-            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold font-mono uppercase">
+            <span className="px-3 py-1 rounded-full bg-[#F2CB30]/20 text-[#F2CB30] border border-[#F2CB30]/30 text-xs font-bold font-mono uppercase">
               ORDER CONFIRMED #{orderConfirmed.id}
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-white font-display mt-3">
@@ -176,7 +176,7 @@ export function CheckoutView() {
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2 text-xs">
+          <div className="p-4 rounded-2xl bg-[#12002E] border border-[#E5E5E5]/15 text-left space-y-2 text-xs">
             <div className="flex justify-between text-slate-400">
               <span>Order Number:</span>
               <span className="text-white font-mono font-bold">{orderConfirmed.orderNumber}</span>
@@ -189,9 +189,9 @@ export function CheckoutView() {
               <span>Payment Status:</span>
               <span className="text-emerald-400 font-bold">{orderConfirmed.paymentStatus} ({orderConfirmed.paymentMethod?.toUpperCase()})</span>
             </div>
-            <div className="flex justify-between text-slate-400 border-t border-slate-800 pt-2">
+            <div className="flex justify-between text-slate-400 border-t border-[#E5E5E5]/15 pt-2">
               <span className="font-bold text-white">Grand Total:</span>
-              <span className="text-emerald-400 font-mono font-black text-sm">₹{orderConfirmed.total.toLocaleString()}</span>
+              <span className="text-[#F2CB30] font-mono font-black text-sm">₹{orderConfirmed.total.toLocaleString()}</span>
             </div>
           </div>
 
@@ -201,7 +201,7 @@ export function CheckoutView() {
                 setActiveTrackingOrder(orderConfirmed);
                 navigateTo('account');
               }}
-              className={`flex-1 py-3.5 rounded-2xl bg-gradient-to-r ${currentTheme.gradient} text-white font-black text-xs shadow-xl flex items-center justify-center gap-2 hover:scale-102 transition-all`}
+              className="flex-1 py-3.5 rounded-2xl bg-[#F2CB30] hover:bg-[#DA0090] text-[#12002E] font-black text-xs shadow-xl flex items-center justify-center gap-2 hover:scale-102 transition-all"
             >
               <Truck className="w-4 h-4" />
               <span>Track Live Production</span>
@@ -209,7 +209,7 @@ export function CheckoutView() {
 
             <button
               onClick={() => navigateTo('home')}
-              className="py-3.5 px-6 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white font-bold text-xs transition-colors"
+              className="py-3.5 px-6 rounded-2xl bg-[#12002E] hover:bg-[#2C0E63] text-slate-300 hover:text-white font-bold text-xs transition-colors"
             >
               Back to Store
             </button>
@@ -220,14 +220,14 @@ export function CheckoutView() {
   }
 
   return (
-    <div className="min-h-screen bg-studio-950 text-slate-100 py-8 px-4 sm:px-8 select-none">
+    <div className="min-h-screen bg-[#12002E] text-slate-100 py-8 px-4 sm:px-8 select-none">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Breadcrumb */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-[#E5E5E5]/15 pb-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigateTo('design-by-customer')}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
+              className="p-2 rounded-xl bg-[#2C0E63] border border-[#E5E5E5]/15 text-slate-400 hover:text-white transition-colors"
               title="Back to Studio"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -235,7 +235,7 @@ export function CheckoutView() {
             <div>
               <h1 className="text-xl sm:text-2xl font-black text-white font-display flex items-center gap-2">
                 <span>Secure Checkout</span>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-[#F2CB30]/20 text-[#F2CB30] border border-[#F2CB30]/30 text-[10px] font-mono uppercase">
                   256-Bit Encrypted
                 </span>
               </h1>
@@ -265,10 +265,10 @@ export function CheckoutView() {
              ================================================================= */}
           <div className="lg:col-span-7 space-y-6">
             {/* 1. DELIVERY ADDRESS FORM */}
-            <div className="p-6 rounded-3xl bg-studio-900/90 border border-slate-800 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="p-6 rounded-3xl bg-[#12002E] border border-[#E5E5E5]/15 shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E5E5E5]/15 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400">
+                  <div className="p-2 rounded-xl bg-[#F2CB30]/20 text-[#F2CB30]">
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div>
@@ -281,7 +281,7 @@ export function CheckoutView() {
                   <button
                     type="button"
                     onClick={() => openAuthModal('login')}
-                    className="text-xs text-indigo-400 hover:text-indigo-300 font-bold"
+                    className="text-xs text-[#F2CB30] hover:underline font-bold"
                   >
                     Login to auto-fill
                   </button>
@@ -297,7 +297,7 @@ export function CheckoutView() {
                     value={address.fullName}
                     onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
                     placeholder="Recipient Full Name"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#12002E] border border-[#E5E5E5]/20 text-white focus:outline-none focus:border-[#F2CB30]"
                   />
                 </div>
 
@@ -309,7 +309,7 @@ export function CheckoutView() {
                     value={address.phone}
                     onChange={(e) => setAddress({ ...address, phone: e.target.value })}
                     placeholder="+91 98765 43210"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#12002E] border border-[#E5E5E5]/20 text-white font-mono focus:outline-none focus:border-[#F2CB30]"
                   />
                 </div>
 
@@ -321,7 +321,7 @@ export function CheckoutView() {
                     value={address.addressLine1}
                     onChange={(e) => setAddress({ ...address, addressLine1: e.target.value })}
                     placeholder="House No, Apartment Name, Street Area"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#12002E] border border-[#E5E5E5]/20 text-white focus:outline-none focus:border-[#F2CB30]"
                   />
                 </div>
 
@@ -334,7 +334,7 @@ export function CheckoutView() {
                     value={address.pinCode}
                     onChange={(e) => handlePinChange(e.target.value)}
                     placeholder="e.g. 110001"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#12002E] border border-[#E5E5E5]/20 text-white font-mono focus:outline-none focus:border-[#F2CB30]"
                   />
                 </div>
 
@@ -346,16 +346,16 @@ export function CheckoutView() {
                     value={address.city}
                     onChange={(e) => setAddress({ ...address, city: e.target.value })}
                     placeholder="City"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#12002E] border border-[#E5E5E5]/20 text-white focus:outline-none focus:border-[#F2CB30]"
                   />
                 </div>
               </div>
             </div>
 
             {/* 2. SHIPPING METHOD */}
-            <div className="p-6 rounded-3xl bg-studio-900/90 border border-slate-800 shadow-xl space-y-4">
-              <div className="flex items-center gap-2.5 border-b border-slate-800 pb-3">
-                <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
+            <div className="p-6 rounded-3xl bg-[#12002E] border border-[#E5E5E5]/15 shadow-xl space-y-4">
+              <div className="flex items-center gap-2.5 border-b border-[#E5E5E5]/15 pb-3">
+                <div className="p-2 rounded-xl bg-[#F2CB30]/20 text-[#F2CB30]">
                   <Truck className="w-4 h-4" />
                 </div>
                 <div>
@@ -370,8 +370,8 @@ export function CheckoutView() {
                   onClick={() => setShippingMethod('express')}
                   className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-2 ${
                     shippingMethod === 'express'
-                      ? 'bg-slate-800 border-indigo-500 ring-2 ring-indigo-500/30'
-                      : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/40'
+                      ? 'bg-[#2C0E63] border-[#F2CB30] ring-2 ring-[#F2CB30]/30'
+                      : 'bg-[#12002E] border-[#E5E5E5]/15 hover:bg-[#2C0E63]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -390,8 +390,8 @@ export function CheckoutView() {
                   onClick={() => setShippingMethod('standard')}
                   className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-2 ${
                     shippingMethod === 'standard'
-                      ? 'bg-slate-800 border-indigo-500 ring-2 ring-indigo-500/30'
-                      : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/40'
+                      ? 'bg-[#2C0E63] border-[#F2CB30] ring-2 ring-[#F2CB30]/30'
+                      : 'bg-[#12002E] border-[#E5E5E5]/15 hover:bg-[#2C0E63]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -406,10 +406,10 @@ export function CheckoutView() {
             </div>
 
             {/* 3. PAYMENT METHOD GATEWAY */}
-            <div className="p-6 rounded-3xl bg-studio-900/90 border border-slate-800 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="p-6 rounded-3xl bg-[#12002E] border border-[#E5E5E5]/15 shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E5E5E5]/15 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <div className="p-2 rounded-xl bg-[#F2CB30]/20 text-[#F2CB30]">
                     <CreditCard className="w-4 h-4" />
                   </div>
                   <div>
@@ -433,7 +433,7 @@ export function CheckoutView() {
                       id="walletCheck"
                       checked={useWallet}
                       onChange={(e) => setUseWallet(e.target.checked)}
-                      className="w-4 h-4 text-emerald-500 rounded bg-slate-950 border-slate-700 cursor-pointer"
+                      className="w-4 h-4 text-emerald-500 rounded bg-[#12002E] border-slate-700 cursor-pointer"
                     />
                     <label htmlFor="walletCheck" className="text-slate-200 font-semibold cursor-pointer">
                       Use PrintHub Wallet Credits (₹{walletBalance.toLocaleString()})
@@ -480,19 +480,19 @@ export function CheckoutView() {
                     onClick={() => setPaymentMethod(pm.id)}
                     className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       paymentMethod === pm.id
-                        ? 'bg-slate-800 border-indigo-500 ring-2 ring-indigo-500/30 shadow-md'
-                        : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/40'
+                        ? 'bg-[#2C0E63] border-[#F2CB30] ring-2 ring-[#F2CB30]/30 shadow-md'
+                        : 'bg-[#12002E] border-[#E5E5E5]/15 hover:bg-[#2C0E63]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl ${paymentMethod === pm.id ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-900 text-slate-400'}`}>
+                      <div className={`p-2 rounded-xl ${paymentMethod === pm.id ? 'bg-[#F2CB30]/20 text-[#F2CB30]' : 'bg-[#12002E] text-slate-400'}`}>
                         <pm.icon className="w-4 h-4" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-white">{pm.title}</span>
                           {pm.badge && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[9px] font-black uppercase">
+                            <span className="px-1.5 py-0.5 rounded-full bg-[#F2CB30]/20 text-[#F2CB30] text-[9px] font-black uppercase">
                               {pm.badge}
                             </span>
                           )}
@@ -501,8 +501,8 @@ export function CheckoutView() {
                       </div>
                     </div>
 
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === pm.id ? 'border-indigo-400 bg-indigo-500' : 'border-slate-700'}`}>
-                      {paymentMethod === pm.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === pm.id ? 'border-[#F2CB30] bg-[#F2CB30]' : 'border-[#E5E5E5]/20'}`}>
+                      {paymentMethod === pm.id && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
                     </div>
                   </button>
                 ))}
@@ -514,8 +514,8 @@ export function CheckoutView() {
              RIGHT COLUMN (5 COLS): STICKY ORDER SUMMARY & PAYMENT TRIGGER
              ================================================================= */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-28 sm:lg:top-32">
-            <div className="p-6 rounded-3xl bg-studio-900 border border-slate-800 shadow-2xl space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="p-6 rounded-3xl bg-[#12002E] border border-[#E5E5E5]/15 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between border-b border-[#E5E5E5]/15 pb-3">
                 <h2 className="text-sm font-black text-white font-display">
                   Order Summary ({cartItems.length} Custom {cartItems.length === 1 ? 'Item' : 'Items'})
                 </h2>
@@ -527,19 +527,19 @@ export function CheckoutView() {
                 {cartItems.map((item, idx) => (
                   <div
                     key={item.id || idx}
-                    className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center gap-3"
+                    className="p-3 rounded-2xl bg-[#12002E] border border-[#E5E5E5]/15 flex items-center gap-3"
                   >
                     <img
                       src={item.previewImage || item.image}
                       alt={item.productName}
-                      className="w-12 h-12 object-cover rounded-xl border border-slate-800 shrink-0"
+                      className="w-12 h-12 object-cover rounded-xl border border-[#E5E5E5]/15 shrink-0"
                     />
                     <div className="min-w-0 flex-1">
                       <h4 className="text-xs font-bold text-white truncate">{item.productName}</h4>
                       <p className="text-[10px] text-slate-400 font-mono">
                         {item.colorName} • Size {item.size} • Qty {item.quantity}
                       </p>
-                      <span className="text-[10px] text-indigo-400 font-bold block">
+                      <span className="text-[10px] text-[#F2CB30] font-bold block">
                         {item.printingMethodName || 'DTF Print'}
                       </span>
                     </div>
@@ -551,7 +551,7 @@ export function CheckoutView() {
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-2 border-t border-slate-800 pt-3 text-xs">
+              <div className="space-y-2 border-t border-[#E5E5E5]/15 pt-3 text-xs">
                 <div className="flex justify-between text-slate-400">
                   <span>Custom Products Subtotal:</span>
                   <span className="text-white font-mono">₹{subtotal.toLocaleString()}</span>
@@ -576,12 +576,12 @@ export function CheckoutView() {
                   <span className="text-slate-300 font-mono">₹{Math.round(subtotal * 0.05)}</span>
                 </div>
 
-                <div className="flex justify-between items-center border-t border-slate-800 pt-3">
+                <div className="flex justify-between items-center border-t border-[#E5E5E5]/15 pt-3">
                   <div>
                     <span className="text-sm font-black text-white block font-display">Grand Total Payable</span>
                     <span className="text-[10px] text-slate-400 font-mono">Guaranteed print fidelity</span>
                   </div>
-                  <span className="text-xl font-black text-emerald-400 font-display">
+                  <span className="text-xl font-black text-[#F2CB30] font-display">
                     ₹{finalPayable.toLocaleString()}
                   </span>
                 </div>
@@ -591,11 +591,11 @@ export function CheckoutView() {
               <button
                 type="submit"
                 disabled={isProcessing || cartItems.length === 0}
-                className={`w-full py-4 rounded-2xl bg-gradient-to-r ${currentTheme.gradient} ${currentTheme.glow} text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98 disabled:opacity-50`}
+                className="w-full py-4 rounded-2xl bg-[#F2CB30] hover:bg-[#DA0090] text-[#12002E] font-black text-sm shadow-xl shadow-[#F2CB30]/20 flex items-center justify-center gap-2 transition-all hover:scale-102 active:scale-98 disabled:opacity-50"
               >
                 {isProcessing ? (
                   <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
                     <span>Verifying with Payment Gateway...</span>
                   </div>
                 ) : (

@@ -6,10 +6,10 @@ import {
   Check,
 } from 'lucide-react';
 import {
-  READY_TO_BUY_CATEGORIES,
   READY_TO_BUY_COLLECTIONS,
   READY_TO_BUY_PRINT_TYPES,
 } from '../../constants/readyToBuyProducts';
+import { useStore } from '../../context/StoreContext';
 
 export function ProductFiltersSidebar({
   selectedCategory,
@@ -31,6 +31,17 @@ export function ProductFiltersSidebar({
   isMobileDrawer = false,
   onCloseMobileDrawer,
 }) {
+  const { categories = [] } = useStore();
+
+  const categoryItems = [
+    { id: 'all', label: 'All Products', icon: '✨' },
+    ...categories.map((c) => ({
+      id: c.name,
+      label: c.name,
+      icon: c.icon || '🏷️',
+    })),
+  ];
+
   const priceOptions = [
     { id: 'all', label: 'All Prices' },
     { id: 'under_299', label: 'Under ₹299', min: 0, max: 299 },
@@ -64,22 +75,22 @@ export function ProductFiltersSidebar({
   };
 
   return (
-    <div className={`space-y-6 select-none ${isMobileDrawer ? 'p-6 bg-[#0B0B18] overflow-y-auto h-full text-white' : 'text-white'}`}>
+    <div className={`space-y-6 select-none ${isMobileDrawer ? 'p-6 bg-[#2C0E63] overflow-y-auto h-full text-white' : 'text-white'}`}>
       {/* Header & Reset */}
       <div className="flex items-center justify-between border-b border-white/10 pb-3">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#06B6D4]" />
+          <Filter className="w-4 h-4 text-[#DA0090]" />
           <span className="text-xs font-black text-white font-display uppercase tracking-wider">
             Filters
           </span>
-          <span className="text-[10px] text-slate-400 font-mono">({totalResultsCount} items)</span>
+          <span className="text-[10px] text-slate-300 font-mono">({totalResultsCount} items)</span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onResetFilters}
-            className="text-[11px] text-[#06B6D4] hover:text-white font-bold flex items-center gap-1 transition-colors"
+            className="text-[11px] text-[#F2CB30] hover:text-white font-bold flex items-center gap-1 transition-colors"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Reset</span>
@@ -89,7 +100,7 @@ export function ProductFiltersSidebar({
             <button
               type="button"
               onClick={onCloseMobileDrawer}
-              className="p-1 rounded-lg text-slate-400 hover:text-white"
+              className="p-1 rounded-lg text-slate-300 hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
@@ -99,34 +110,43 @@ export function ProductFiltersSidebar({
 
       {/* 1. Category Filter */}
       <div className="space-y-2">
-        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block font-mono">
+        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider block font-mono">
           Category
         </label>
         <div className="space-y-1">
-          {READY_TO_BUY_CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`w-full px-3 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-colors ${
-                selectedCategory === cat.id
-                  ? 'bg-[#6C4DF6]/20 text-[#06B6D4] font-bold border border-[#06B6D4]/30'
-                  : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <span>{cat.icon}</span>
-                <span>{cat.label}</span>
-              </span>
-              {selectedCategory === cat.id && <Check className="w-3.5 h-3.5 text-[#06B6D4]" />}
-            </button>
-          ))}
+          {categoryItems.map((cat) => {
+            const isSelected =
+              (selectedCategory || 'all').toLowerCase() === cat.id.toLowerCase();
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`w-full px-3 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-[#DA0090]/20 text-[#DA0090] font-bold border border-[#DA0090]/40'
+                    : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span>{cat.icon}</span>
+                  <span>{cat.label}</span>
+                </span>
+                {isSelected && <Check className="w-3.5 h-3.5 text-[#DA0090]" />}
+              </button>
+            );
+          })}
+          {categories.length === 0 && (
+            <p className="text-[11px] text-slate-400 font-sans italic px-1 pt-0.5">
+              Custom categories can be created in Admin.
+            </p>
+          )}
         </div>
       </div>
 
       {/* 2. Price Range */}
       <div className="space-y-2 pt-2 border-t border-white/10">
-        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block font-mono">
+        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider block font-mono">
           Price Range
         </label>
         <div className="space-y-1">
@@ -137,12 +157,12 @@ export function ProductFiltersSidebar({
               onClick={() => setPriceRange(opt.id)}
               className={`w-full px-3 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-colors ${
                 priceRange === opt.id
-                  ? 'bg-[#6C4DF6]/20 text-[#06B6D4] font-bold border border-[#06B6D4]/30'
+                  ? 'bg-[#DA0090]/20 text-[#DA0090] font-bold border border-[#DA0090]/40'
                   : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
               }`}
             >
               <span>{opt.label}</span>
-              {priceRange === opt.id && <Check className="w-3.5 h-3.5 text-[#06B6D4]" />}
+              {priceRange === opt.id && <Check className="w-3.5 h-3.5 text-[#DA0090]" />}
             </button>
           ))}
         </div>
@@ -150,7 +170,7 @@ export function ProductFiltersSidebar({
 
       {/* 3. Sizes */}
       <div className="space-y-2 pt-2 border-t border-white/10">
-        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block font-mono">
+        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider block font-mono">
           Size
         </label>
         <div className="grid grid-cols-3 gap-1.5">
@@ -163,8 +183,8 @@ export function ProductFiltersSidebar({
                 onClick={() => toggleSize(sz)}
                 className={`py-1.5 rounded-xl text-xs font-bold border transition-all text-center ${
                   isSelected
-                    ? 'bg-[#6C4DF6] border-[#6C4DF6] text-white shadow-md shadow-[#6C4DF6]/30'
-                    : 'bg-[#101022] border-white/10 text-slate-300 hover:border-white/20 hover:text-white'
+                    ? 'bg-[#F2CB30] border-[#F2CB30] text-[#12002E] font-black shadow-sm'
+                    : 'bg-[#12002E]/60 border-white/15 text-slate-300 hover:border-white/30 hover:text-white'
                 }`}
               >
                 {sz}
@@ -176,7 +196,7 @@ export function ProductFiltersSidebar({
 
       {/* 4. Colors */}
       <div className="space-y-2 pt-2 border-t border-white/10">
-        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block font-mono">
+        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider block font-mono">
           Color
         </label>
         <div className="flex flex-wrap gap-2">
@@ -188,7 +208,7 @@ export function ProductFiltersSidebar({
                 type="button"
                 onClick={() => toggleColor(c.hex)}
                 className={`relative w-6 h-6 rounded-full border transition-all flex items-center justify-center ${
-                  isSelected ? 'scale-125 border-white ring-2 ring-[#06B6D4]' : 'border-white/20 hover:scale-110'
+                  isSelected ? 'scale-125 border-white ring-2 ring-[#F2CB30]' : 'border-white/20 hover:scale-110'
                 }`}
                 style={{ backgroundColor: c.hex }}
                 title={c.name}
@@ -202,7 +222,7 @@ export function ProductFiltersSidebar({
 
       {/* 5. Print Method */}
       <div className="space-y-2 pt-2 border-t border-white/10">
-        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block font-mono">
+        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider block font-mono">
           Print Technology
         </label>
         <div className="space-y-1">
@@ -211,12 +231,12 @@ export function ProductFiltersSidebar({
             onClick={() => setSelectedPrintType('all')}
             className={`w-full px-3 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-colors ${
               selectedPrintType === 'all'
-                ? 'bg-[#6C4DF6]/20 text-[#06B6D4] font-bold border border-[#06B6D4]/30'
+                ? 'bg-[#DA0090]/20 text-[#DA0090] font-bold border border-[#DA0090]/40'
                 : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
             <span>All Print Types</span>
-            {selectedPrintType === 'all' && <Check className="w-3.5 h-3.5 text-[#06B6D4]" />}
+            {selectedPrintType === 'all' && <Check className="w-3.5 h-3.5 text-[#DA0090]" />}
           </button>
           {READY_TO_BUY_PRINT_TYPES.map((pt) => (
             <button
@@ -225,12 +245,12 @@ export function ProductFiltersSidebar({
               onClick={() => setSelectedPrintType(pt.id)}
               className={`w-full px-3 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-colors ${
                 selectedPrintType === pt.id
-                  ? 'bg-[#6C4DF6]/20 text-[#06B6D4] font-bold border border-[#06B6D4]/30'
+                  ? 'bg-[#DA0090]/20 text-[#DA0090] font-bold border border-[#DA0090]/40'
                   : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
               }`}
             >
               <span>{pt.name}</span>
-              {selectedPrintType === pt.id && <Check className="w-3.5 h-3.5 text-[#06B6D4]" />}
+              {selectedPrintType === pt.id && <Check className="w-3.5 h-3.5 text-[#DA0090]" />}
             </button>
           ))}
         </div>
@@ -238,7 +258,7 @@ export function ProductFiltersSidebar({
 
       {/* 6. Collections */}
       <div className="space-y-2 pt-2 border-t border-white/10">
-        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block font-mono">
+        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider block font-mono">
           Collection
         </label>
         <div className="space-y-1">
@@ -249,12 +269,12 @@ export function ProductFiltersSidebar({
               onClick={() => setSelectedCollection(col)}
               className={`w-full px-3 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-colors ${
                 selectedCollection === col
-                  ? 'bg-[#6C4DF6]/20 text-[#06B6D4] font-bold border border-[#06B6D4]/30'
+                  ? 'bg-[#DA0090]/20 text-[#DA0090] font-bold border border-[#DA0090]/40'
                   : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
               }`}
             >
               <span>{col}</span>
-              {selectedCollection === col && <Check className="w-3.5 h-3.5 text-[#06B6D4]" />}
+              {selectedCollection === col && <Check className="w-3.5 h-3.5 text-[#DA0090]" />}
             </button>
           ))}
         </div>
@@ -268,7 +288,7 @@ export function ProductFiltersSidebar({
             type="checkbox"
             checked={inStockOnly}
             onChange={(e) => setInStockOnly(e.target.checked)}
-            className="w-4 h-4 rounded bg-[#101022] border-white/20 text-[#6C4DF6] focus:ring-0 focus:ring-offset-0 cursor-pointer"
+            className="w-4 h-4 rounded bg-[#12002E] border-white/20 accent-[#F2CB30] focus:ring-0 focus:ring-offset-0 cursor-pointer"
           />
         </label>
       </div>

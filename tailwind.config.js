@@ -8,55 +8,62 @@ export default {
   theme: {
     extend: {
       colors: {
-        fog: {
-          950: '#070708',
-          900: '#0A0A0C', // Obsidian Black
-          850: '#111114', // Deep Midnight Graphite
-          800: '#16161A', // Matte Charcoal
-          750: '#1E1E24',
-          700: '#282830',
-          stone: '#F4F2EE', // Warm Limestone Stone
-          bone: '#FAF9F6',  // Architectural Bone Off-White
-          sand: '#EAE7E1',
-          gold: '#C8B896',  // Understated Champagne Gold
-          muted: '#8A8782',
+        printhub: {
+          yellow: '#F2CB30',
+          pink: '#DA0090',
+          purple: '#2C0E63',
+          plum: '#12002E',
+        },
+        navy: {
+          DEFAULT: '#2C0E63',
+          950: '#12002E',
+          900: '#2C0E63',
+          800: '#12002E',
+          700: '#2C0E63',
+          600: '#3A1480',
+        },
+        orange: {
+          DEFAULT: '#F2CB30',
+          accent: '#F2CB30',
+          hover: '#E0BA22',
+          light: '#F8D858',
+        },
+        gray: {
+          soft: '#E5E5E5',
         },
         studio: {
-          950: '#070708',
-          900: '#0A0A0C',
-          850: '#111114',
-          800: '#16161A',
-          750: '#1E1E24',
-          700: '#282830',
-          600: '#3D3D48',
-          500: '#5C5C6B',
-        },
-        surface: {
-          50: '#FAF9F6',
-          100: '#F4F2EE',
-          200: '#EAE7E1',
-          300: '#D6D2C8',
-          400: '#8A8782',
-          text: '#0E0E10',
-          muted: '#716F6A',
+          950: '#12002E',
+          900: '#2C0E63',
+          850: '#1F0B46',
+          800: '#2C0E63',
+          750: '#38127D',
+          700: '#45179B',
+          600: '#5A1FC9',
+          500: '#7333E8',
         },
         brand: {
-          purple: '#1E1E24', // Fear of God refined obsidian
-          blue: '#16161A',
-          cyan: '#C8B896',   // Champagne luxury accent
-          pink: '#8A8782',
-          orange: '#C8B896',
-          yellow: '#D4AF37',
+          navy: '#2C0E63',
+          plum: '#12002E',
+          purple: '#2C0E63',
+          pink: '#DA0090',
+          yellow: '#F2CB30',
+          orange: '#F2CB30',
+          white: '#FFFFFF',
+          gray: '#E5E5E5',
+          black: '#12002E',
+          accent: '#F2CB30',
+          creative: '#DA0090',
+          blue: '#2C0E63',
+          cyan: '#F2CB30',
           emerald: '#10B981',
-          50: '#F5F4F0',
-          100: '#EAE7E1',
-          200: '#D6D2C8',
-          300: '#B8B3A7',
-          400: '#8A8782',
-          500: '#16161A',
-          600: '#0A0A0C',
-          700: '#070708',
-          accent: '#C8B896',
+          50: '#FFFFFF',
+          100: '#F8F6FC',
+          200: '#EBE5F7',
+          300: '#D5C7F0',
+          400: '#A98EE0',
+          500: '#2C0E63',
+          600: '#230B50',
+          700: '#12002E',
         }
       },
       letterSpacing: {
@@ -69,10 +76,11 @@ export default {
         serif: ['Playfair Display', 'Cinzel', 'serif'],
       },
       boxShadow: {
-        'glow-primary': '0 0 25px -4px rgba(99, 102, 241, 0.45)',
-        'glow-cyan': '0 0 25px -4px rgba(6, 182, 212, 0.45)',
+        'glow-primary': '0 0 25px -4px rgba(252, 163, 17, 0.45)',
+        'glow-orange': '0 0 25px -4px rgba(252, 163, 17, 0.45)',
+        'glow-cyan': '0 0 25px -4px rgba(252, 163, 17, 0.45)',
         'glow-emerald': '0 0 25px -4px rgba(16, 185, 129, 0.45)',
-        'glow-violet': '0 0 25px -4px rgba(139, 92, 246, 0.45)',
+        'glow-violet': '0 0 25px -4px rgba(252, 163, 17, 0.45)',
         'studio-card': '0 12px 36px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
         'studio-subtle': '0 4px 24px -2px rgba(0, 0, 0, 0.6)',
       },

@@ -14,12 +14,12 @@ export function TopProductCarousel() {
   };
 
   return (
-    <div className="w-full bg-[#0B0B18] border-b border-white/[0.08] px-3 sm:px-5 py-2 relative select-none shrink-0 z-20 backdrop-blur-md">
+    <div className="w-full bg-[#2C0E63] border-b border-white/10 px-3 sm:px-5 py-2 relative select-none shrink-0 z-20 backdrop-blur-md">
       <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-3">
         {/* Left Studio Label */}
-        <div className="hidden lg:flex items-center gap-2 shrink-0 pr-3 border-r border-white/10">
-          <span className="w-2 h-2 rounded-full bg-[#06B6D4] animate-pulse" />
-          <span className="text-[11px] font-black tracking-widest text-slate-300 uppercase font-mono whitespace-nowrap">
+        <div className="hidden lg:flex items-center gap-2 shrink-0 pr-3 border-r border-white/15">
+          <span className="w-2 h-2 rounded-full bg-[#F2CB30] animate-pulse" />
+          <span className="text-[11px] font-black tracking-widest text-slate-200 uppercase font-mono whitespace-nowrap">
             Select Product
           </span>
         </div>
@@ -29,7 +29,7 @@ export function TopProductCarousel() {
           {/* Scroll Left Button */}
           <button
             onClick={() => scroll('left')}
-            className="hidden sm:flex absolute left-0 z-10 w-7 h-7 -ml-2 rounded-full bg-[#101022] border border-white/20 text-slate-300 hover:text-white items-center justify-center shadow-lg transition-all hover:scale-110"
+            className="hidden sm:flex absolute left-0 z-10 w-7 h-7 -ml-2 rounded-full bg-[#12002E] border border-white/20 text-slate-200 hover:text-white items-center justify-center shadow-lg transition-all hover:scale-110"
             title="Scroll Left"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -48,19 +48,19 @@ export function TopProductCarousel() {
                   onClick={() => selectProduct(p)}
                   className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-2xl transition-all shrink-0 border whitespace-nowrap ${
                     isSelected
-                      ? 'bg-gradient-to-r from-[#6C4DF6]/30 to-[#06B6D4]/30 border-[#06B6D4] shadow-lg shadow-[#6C4DF6]/20 ring-1 ring-[#06B6D4]'
-                      : 'bg-[#101022] border-white/[0.08] hover:bg-[#16162E] hover:border-white/20 text-slate-300'
+                      ? 'bg-[#12002E] border-[#F2CB30] shadow-lg shadow-[#F2CB30]/20 ring-1 ring-[#F2CB30]'
+                      : 'bg-[#2C0E63]/60 border-white/15 hover:bg-[#12002E]/60 text-slate-200'
                   }`}
                 >
                   {/* Thumbnail */}
-                  <div className="relative w-8 h-8 rounded-xl overflow-hidden bg-[#080812] border border-white/10 shrink-0">
+                  <div className="relative w-8 h-8 rounded-xl overflow-hidden bg-[#12002E] border border-white/15 shrink-0">
                     <img
                       src={p.image}
                       alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                     {isSelected && (
-                      <div className="absolute inset-0 bg-[#6C4DF6]/40 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-[#DA0090]/50 flex items-center justify-center">
                         <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
                       </div>
                     )}
@@ -77,19 +77,19 @@ export function TopProductCarousel() {
                         {p.name.split('(')[0].trim()}
                       </span>
                       {p.badge && (
-                        <span className="hidden xl:inline-block px-1.5 py-0.5 rounded text-[8px] font-black bg-[#6C4DF6]/20 text-[#06B6D4] border border-[#06B6D4]/30 uppercase font-mono">
+                        <span className="hidden xl:inline-block px-1.5 py-0.5 rounded text-[8px] font-black bg-[#DA0090]/25 text-[#DA0090] border border-[#DA0090]/40 uppercase font-mono">
                           {p.badge.split(' ')[0]}
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      From <span className="text-[#06B6D4] font-bold">₹{p.basePrice}</span>
+                    <span className="text-[10px] text-slate-300 font-mono">
+                      From <span className="text-[#F2CB30] font-bold">₹{p.basePrice}</span>
                     </span>
                   </div>
 
                   {/* Active Indicator Bar */}
                   {isSelected && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-[#06B6D4]" />
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-[#F2CB30]" />
                   )}
                 </button>
               );
@@ -99,7 +99,7 @@ export function TopProductCarousel() {
           {/* Scroll Right Button */}
           <button
             onClick={() => scroll('right')}
-            className="hidden sm:flex absolute right-0 z-10 w-7 h-7 -mr-2 rounded-full bg-[#101022] border border-white/20 text-slate-300 hover:text-white items-center justify-center shadow-lg transition-all hover:scale-110"
+            className="hidden sm:flex absolute right-0 z-10 w-7 h-7 -ml-2 rounded-full bg-[#12002E] border border-white/20 text-slate-200 hover:text-white items-center justify-center shadow-lg transition-all hover:scale-110"
             title="Scroll Right"
           >
             <ChevronRight className="w-4 h-4" />
