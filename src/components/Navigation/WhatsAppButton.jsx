@@ -1,14 +1,13 @@
 import React from 'react';
-import { MessageCircle } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+import { WhatsAppIcon } from '../UI/WhatsAppIcon';
 
 /**
  * Premium Floating WhatsApp Support Widget
- * Supports desktop pill ("Chat with us") and mobile floating circular button.
- * Configured dynamically from Store Settings or fallback support number.
+ * Features the official original-color WhatsApp icon (#25D366).
  */
 export function WhatsAppButton() {
-  const { storeSettings } = useStore();
+  const { storeSettings, isShopMenuOpen } = useStore();
   const rawNumber = storeSettings?.whatsapp || storeSettings?.whatsappNumber || storeSettings?.supportPhone || '+917992801158';
   const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
 
@@ -18,23 +17,29 @@ export function WhatsAppButton() {
   const whatsappUrl = `https://wa.me/${cleanNumber}?text=${defaultMessage}`;
 
   return (
-    <aside aria-label="WhatsApp live chat support" className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 select-none group">
+    <aside
+      aria-label="WhatsApp live chat support"
+      className={`fixed right-3 sm:right-6 z-40 select-none group transition-all duration-300 ${
+        isShopMenuOpen
+          ? 'bottom-[calc(3.75rem+env(safe-area-inset-bottom,0px))] sm:bottom-3 opacity-60 scale-90 hover:opacity-100 hover:scale-95'
+          : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 opacity-100 scale-100'
+      }`}
+    >
       <a
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat with The PrintHub on WhatsApp"
-        className="flex items-center gap-2.5 px-3.5 sm:px-4 py-3 sm:py-3.5 rounded-full bg-[#00A878] hover:bg-[#00966B] text-white font-bold text-xs sm:text-sm shadow-[0_8px_25px_rgba(0,168,120,0.4)] hover:shadow-[0_12px_32px_rgba(0,168,120,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 border border-[#00A878]/60"
+        className="flex items-center gap-2.5 px-3.5 sm:px-4 py-3 sm:py-3.5 rounded-full bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] hover:text-[#E5C690] font-bold text-xs sm:text-sm shadow-[0_8px_25px_rgba(24,54,48,0.35)] hover:shadow-[0_0_20px_rgba(37,211,102,0.35)] transition-all duration-300 hover:scale-105 active:scale-95 border border-[#B8A98F]"
       >
-        {/* WhatsApp Icon with Online Pulse */}
-        <div className="relative flex items-center justify-center">
-          <MessageCircle className="w-5 h-5 text-white fill-white/20" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-200 border-2 border-[#00A878] animate-pulse" />
+        {/* Official WhatsApp Brand Icon */}
+        <div className="flex items-center justify-center shrink-0">
+          <WhatsAppIcon className="w-6 h-6 drop-shadow-sm transition-transform duration-300 group-hover:scale-110" size={24} />
         </div>
 
         {/* Text Label on Desktop */}
-        <span className="hidden sm:inline font-bold tracking-wide text-white">
-          Chat with us
+        <span className="hidden sm:inline font-bold tracking-wide text-[#E5DAC9]">
+          Chat on WhatsApp
         </span>
       </a>
     </aside>

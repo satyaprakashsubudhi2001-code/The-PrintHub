@@ -19,7 +19,6 @@ export function WalletTopupModal() {
     setIsWalletTopupOpen,
     currentUser,
     addWalletMoney,
-    currentTheme,
   } = useStore();
 
   const [amount, setAmount] = useState(500);
@@ -37,7 +36,12 @@ export function WalletTopupModal() {
     const res = addWalletMoney(finalAmount, paymentMethod);
 
     if (res.success) {
-      confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#183630', '#E5DAC9', '#E5C690', '#B8A98F'],
+      });
       setSuccessBanner(`🎉 ₹${finalAmount} added to your PrintHub Wallet!`);
       setTimeout(() => {
         setSuccessBanner('');
@@ -47,23 +51,23 @@ export function WalletTopupModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in select-none">
-      <div className="relative w-full max-w-md bg-[#12002E] border border-[#E5E5E5]/15 rounded-3xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#183630]/70 backdrop-blur-md animate-in fade-in select-none">
+      <div className="relative w-full max-w-md bg-[#E5DAC9] border-2 border-[#B8A98F] rounded-3xl shadow-2xl overflow-hidden text-[#183630]">
         {/* Header */}
-        <div className="p-4 bg-[#2C0E63] border-b border-[#E5E5E5]/15 flex items-center justify-between">
+        <div className="p-4 bg-[#183630] border-b border-[#B8A98F]/40 flex items-center justify-between text-[#E5DAC9]">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-[#F2CB30]/20 text-[#F2CB30]">
+            <div className="p-2 rounded-xl bg-[#E5C690]/20 text-[#E5C690]">
               <Wallet className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-white">Add Money to Wallet</h3>
-              <p className="text-[10px] text-slate-400">Current Balance: ₹{currentUser.walletBalance || 0}</p>
+              <h3 className="text-xs font-bold text-[#E5DAC9]">Add Money to Wallet</h3>
+              <p className="text-[10px] text-[#E5DAC9]/70">Current Balance: ₹{currentUser.walletBalance || 0}</p>
             </div>
           </div>
 
           <button
             onClick={() => setIsWalletTopupOpen(false)}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#12002E] transition-all"
+            className="p-2 rounded-xl text-[#E5DAC9]/70 hover:text-[#E5DAC9] hover:bg-[#B8A98F]/20 transition-all cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -72,15 +76,15 @@ export function WalletTopupModal() {
         {/* Body */}
         <form onSubmit={handleTopup} className="p-6 space-y-5">
           {successBanner && (
-            <div className="p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <div className="p-3 rounded-2xl bg-[#183630] border border-[#B8A98F] text-[#E5C690] text-xs font-bold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#E5C690]" />
               <span>{successBanner}</span>
             </div>
           )}
 
           {/* Quick Amounts */}
           <div>
-            <label className="text-[11px] font-bold text-slate-300 block mb-2">
+            <label className="text-[11px] font-bold text-[#183630] block mb-2">
               Select Recharge Amount:
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -94,10 +98,10 @@ export function WalletTopupModal() {
                       setAmount(amt);
                       setCustomAmount('');
                     }}
-                    className={`py-2.5 rounded-xl text-xs font-black transition-all border ${
+                    className={`py-2.5 rounded-xl text-xs font-black transition-all border cursor-pointer ${
                       isSelected
-                        ? 'bg-[#F2CB30] text-[#12002E] border-transparent shadow-md shadow-[#F2CB30]/20'
-                        : 'bg-[#12002E] border-[#E5E5E5]/15 text-slate-300 hover:bg-[#2C0E63]'
+                        ? 'bg-[#183630] text-[#E5DAC9] border-[#183630] shadow-md'
+                        : 'bg-[#E5DAC9] border-[#B8A98F] text-[#183630] hover:border-[#183630]'
                     }`}
                   >
                     ₹{amt}
@@ -109,62 +113,61 @@ export function WalletTopupModal() {
 
           {/* Custom Amount Input */}
           <div>
-            <label className="text-[11px] font-bold text-slate-300 block mb-1">
-              Or Enter Custom Amount:
+            <label className="text-[11px] font-bold text-[#183630] block mb-1">
+              Or Custom Amount (₹):
             </label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-2.5 text-xs font-bold text-slate-400">₹</span>
-              <input
-                type="number"
-                min="50"
-                max="50000"
-                value={customAmount}
-                onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder="Enter amount..."
-                className="w-full pl-8 pr-4 py-2 rounded-xl bg-[#12002E] border border-[#E5E5E5]/20 text-xs text-white focus:outline-none focus:border-[#F2CB30] font-mono"
-              />
-            </div>
+            <input
+              type="number"
+              min="50"
+              max="50000"
+              value={customAmount}
+              onChange={(e) => setCustomAmount(e.target.value)}
+              placeholder="e.g. 1500"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#E5DAC9] border border-[#B8A98F] text-xs text-[#183630] font-mono focus:outline-none focus:border-[#183630]"
+            />
           </div>
 
           {/* Payment Method Selector */}
           <div>
-            <label className="text-[11px] font-bold text-slate-300 block mb-2">
-              Payment Gateway:
+            <label className="text-[11px] font-bold text-[#183630] block mb-2">
+              Payment Method:
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-1.5 text-xs">
               {[
-                { id: 'UPI / GPay', label: 'UPI / GPay', icon: Smartphone },
-                { id: 'Card', label: 'Debit / Credit', icon: CreditCard },
-                { id: 'Netbanking', label: 'NetBanking', icon: Building },
-              ].map((m) => {
-                const Icon = m.icon;
-                const isSelected = paymentMethod === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setPaymentMethod(m.id)}
-                    className={`p-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 border transition-all ${
-                      isSelected
-                        ? 'bg-[#F2CB30]/20 border-[#F2CB30] text-[#F2CB30] shadow-sm'
-                        : 'bg-[#12002E] border-[#E5E5E5]/15 text-slate-400 hover:bg-[#2C0E63]'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{m.label}</span>
-                  </button>
-                );
-              })}
+                { name: 'UPI / GPay', icon: Smartphone },
+                { name: 'Credit / Debit Card', icon: CreditCard },
+                { name: 'NetBanking', icon: Building },
+              ].map((m) => (
+                <button
+                  key={m.name}
+                  type="button"
+                  onClick={() => setPaymentMethod(m.name)}
+                  className={`w-full p-2.5 rounded-xl border flex items-center justify-between text-xs transition-all cursor-pointer ${
+                    paymentMethod === m.name
+                      ? 'bg-[#183630] text-[#E5DAC9] border-[#183630]'
+                      : 'bg-[#E5DAC9] border-[#B8A98F] text-[#183630] hover:border-[#183630]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <m.icon className="w-4 h-4" />
+                    <span className="font-semibold">{m.name}</span>
+                  </div>
+                  <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                    paymentMethod === m.name ? 'border-[#E5C690] bg-[#E5C690]' : 'border-[#B8A98F]'
+                  }`}>
+                    {paymentMethod === m.name && <div className="w-1.5 h-1.5 rounded-full bg-[#183630]" />}
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
-            className="w-full py-3.5 rounded-2xl bg-[#F2CB30] hover:bg-[#DA0090] text-[#12002E] text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#F2CB30]/20 transition-all hover:scale-102"
+            className="w-full py-3 rounded-2xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] border border-[#B8A98F] font-black text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
           >
-            <span>Proceed to Top-Up ₹{customAmount || amount}</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Confirm & Add ₹{customAmount || amount}</span>
+            <ArrowRight className="w-4 h-4 text-[#E5C690]" />
           </button>
         </form>
       </div>

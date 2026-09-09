@@ -1,6 +1,6 @@
 import React from 'react';
-import { MessageCircle } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+import { WhatsAppIcon } from './WhatsAppIcon';
 
 export function WhatsAppFloatingButton() {
   const { storeSettings, currentPage } = useStore();
@@ -16,11 +16,11 @@ export function WhatsAppFloatingButton() {
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-20 lg:bottom-6 right-4 sm:right-6 z-30 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all group"
+      className="fixed bottom-20 lg:bottom-6 right-4 sm:right-6 z-30 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] border border-[#B8A98F] font-bold text-xs shadow-lg hover:scale-105 active:scale-95 transition-all group cursor-pointer"
       title="Chat with Customer Support on WhatsApp"
     >
-      <MessageCircle className="w-5 h-5 fill-white text-emerald-500" />
-      <span className="hidden sm:inline font-sans">Chat with Us</span>
+      <WhatsAppIcon size={20} className="w-5 h-5 shrink-0" />
+      <span className="hidden sm:inline font-sans text-[#E5DAC9]">Chat with Us</span>
     </a>
   );
 }

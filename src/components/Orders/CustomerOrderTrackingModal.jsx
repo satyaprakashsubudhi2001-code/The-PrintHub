@@ -5,23 +5,17 @@ import {
   Truck,
   CheckCircle2,
   Clock,
-  MapPin,
   ExternalLink,
-  MessageSquare,
-  Sparkles,
-  Download,
-  Phone,
-  ShieldCheck,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { ORDER_STATUSES } from '../../constants/orderWorkflow';
+import { WhatsAppIcon } from '../UI/WhatsAppIcon';
 
 export function CustomerOrderTrackingModal() {
   const {
     activeTrackingOrder,
     setActiveTrackingOrder,
     storeSettings,
-    currentTheme,
   } = useStore();
 
   if (!activeTrackingOrder) return null;
@@ -39,7 +33,7 @@ export function CustomerOrderTrackingModal() {
   ];
 
   // WhatsApp Support deep-link
-  const whatsappNumber = storeSettings?.whatsapp?.replace(/\D/g, '') || '919876543210';
+  const whatsappNumber = storeSettings?.whatsapp?.replace(/\D/g, '') || '917992801158';
   const whatsappMessage = encodeURIComponent(
     `Hi The PrintHub, I need assistance regarding my Order #${order.id}.${
       order.shipment?.awbNumber ? ` AWB Number: ${order.shipment.awbNumber}.` : ''
@@ -48,24 +42,24 @@ export function CustomerOrderTrackingModal() {
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md select-none animate-in fade-in">
-      <div className="w-full max-w-3xl max-h-[90vh] bg-[#12002E] border border-white/15 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#183630]/70 backdrop-blur-md select-none animate-in fade-in">
+      <div className="w-full max-w-3xl max-h-[90vh] bg-[#E5DAC9] border-2 border-[#B8A98F] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 text-[#183630]">
         {/* Header */}
-        <div className="p-4 sm:p-6 bg-[#2C0E63] border-b border-white/10 flex items-center justify-between">
+        <div className="p-4 sm:p-6 bg-[#183630] border-b border-[#B8A98F]/40 flex items-center justify-between text-[#E5DAC9]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#DA0090]/20 text-[#DA0090] border border-[#DA0090]/30 flex items-center justify-center">
-              <Truck className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-[#E5C690]/20 text-[#E5C690] border border-[#B8A98F]/40 flex items-center justify-center">
+              <Truck className="w-5 h-5 text-[#E5C690]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-black text-white font-display">
+                <h2 className="text-base sm:text-lg font-black text-[#E5DAC9] font-display">
                   Track Order #{order.id}
                 </h2>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase font-mono border ${currentStatusObj.badge || 'bg-[#DA0090]/20 text-[#DA0090] border-[#DA0090]/30'}`}>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase font-mono bg-[#E5C690] text-[#183630] border border-[#B8A98F]">
                   {currentStatusObj.label}
                 </span>
               </div>
-              <span className="text-[11px] text-slate-300 font-mono">
+              <span className="text-[11px] text-[#E5DAC9]/70 font-mono">
                 Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
@@ -73,7 +67,7 @@ export function CustomerOrderTrackingModal() {
 
           <button
             onClick={() => setActiveTrackingOrder(null)}
-            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-xl text-[#E5DAC9]/70 hover:text-[#E5DAC9] hover:bg-[#B8A98F]/20 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -85,18 +79,18 @@ export function CustomerOrderTrackingModal() {
              1. SHIPMENT DISPATCH STATUS BANNER
              ================================================================= */}
           {order.shipment?.awbNumber ? (
-            <div className="p-4 rounded-2xl bg-[#2C0E63]/30 border border-[#DA0090]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+            <div className="p-4 rounded-2xl bg-[#183630]/10 border border-[#B8A98F] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                <span className="text-[10px] font-bold text-[#183630]/70 uppercase tracking-wider block">
                   Carrier & Tracking AWB
                 </span>
-                <span className="text-sm font-black text-white flex items-center gap-1.5 mt-0.5">
+                <span className="text-sm font-black text-[#183630] flex items-center gap-1.5 mt-0.5">
                   <span>{order.shipment.courierName}</span>
-                  <span className="text-slate-500">•</span>
-                  <code className="text-[#F2CB30] font-mono">{order.shipment.awbNumber}</code>
+                  <span className="text-[#B8A98F]">•</span>
+                  <code className="text-[#183630] font-mono">{order.shipment.awbNumber}</code>
                 </span>
                 {order.shipment.estimatedDelivery && (
-                  <span className="text-[11px] text-emerald-400 block mt-0.5">
+                  <span className="text-[11px] text-[#183630] block mt-0.5">
                     Estimated Delivery: {order.shipment.estimatedDelivery}
                   </span>
                 )}
@@ -107,7 +101,7 @@ export function CustomerOrderTrackingModal() {
                   href={order.shipment.trackingUrl || '#'}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3.5 py-2 rounded-xl bg-[#DA0090]/20 hover:bg-[#DA0090]/30 text-[#DA0090] text-xs font-bold border border-[#DA0090]/40 flex items-center gap-1.5 transition-all"
+                  className="px-3.5 py-2 rounded-xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] text-xs font-bold border border-[#B8A98F] flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <span>Live Courier Portal</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -115,11 +109,11 @@ export function CustomerOrderTrackingModal() {
               </div>
             </div>
           ) : (
-            <div className="p-4 rounded-2xl bg-[#2C0E63]/30 border border-white/10 flex items-center gap-3">
-              <Clock className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="p-4 rounded-2xl bg-[#183630]/10 border border-[#B8A98F] flex items-center gap-3">
+              <Clock className="w-5 h-5 text-[#183630] shrink-0" />
               <div className="text-xs">
-                <span className="text-slate-200 font-bold block">Production Queue Active</span>
-                <span className="text-slate-400 text-[11px]">
+                <span className="text-[#183630] font-bold block">Production Queue Active</span>
+                <span className="text-[#183630]/70 text-[11px]">
                   AWB and courier tracking will be generated once printing and quality check are complete.
                 </span>
               </div>
@@ -129,12 +123,12 @@ export function CustomerOrderTrackingModal() {
           {/* =================================================================
              2. STEP-BY-STEP PROGRESS STEPPER
              ================================================================= */}
-          <div className="p-5 rounded-3xl bg-[#2C0E63]/25 border border-white/10 space-y-4">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+          <div className="p-5 rounded-3xl bg-[#183630]/5 border border-[#B8A98F] space-y-4">
+            <h3 className="text-xs font-bold text-[#183630] uppercase tracking-wider">
               Industrial Production & Delivery Progress
             </h3>
 
-            <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#2C0E63]">
+            <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#B8A98F]">
               {trackingSteps.map((step, idx) => {
                 const isPassed = currentStatusObj.step >= (idx + 1) || order.orderStatus === 'DELIVERED';
                 const isCurrent = order.orderStatus === step.id;
@@ -144,18 +138,18 @@ export function CustomerOrderTrackingModal() {
                     <div
                       className={`absolute -left-6 w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-black ${
                         isPassed
-                          ? 'bg-[#F2CB30] border-[#F2CB30] text-[#12002E]'
-                          : 'bg-[#2C0E63] border-white/20 text-slate-400'
+                          ? 'bg-[#183630] border-[#183630] text-[#E5DAC9]'
+                          : 'bg-[#E5DAC9] border-[#B8A98F] text-[#183630]/60'
                       }`}
                     >
-                      {isPassed ? <CheckCircle2 className="w-3.5 h-3.5" /> : idx + 1}
+                      {isPassed ? <CheckCircle2 className="w-3.5 h-3.5 text-[#E5C690]" /> : idx + 1}
                     </div>
 
                     <div className="min-w-0">
-                      <span className={`text-xs font-bold block ${isCurrent ? 'text-[#F2CB30]' : isPassed ? 'text-white' : 'text-slate-500'}`}>
+                      <span className={`text-xs font-bold block ${isCurrent ? 'text-[#183630]' : isPassed ? 'text-[#183630]' : 'text-[#183630]/50'}`}>
                         {step.label}
                       </span>
-                      <span className="text-[11px] text-slate-400 block">{step.desc}</span>
+                      <span className="text-[11px] text-[#183630]/70 block">{step.desc}</span>
                     </div>
                   </div>
                 );
@@ -167,7 +161,7 @@ export function CustomerOrderTrackingModal() {
              3. CUSTOMIZED PRODUCTS SUMMARY
              ================================================================= */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-[#183630] uppercase tracking-wider">
               Customized Merchandise in this Package
             </h3>
 
@@ -175,26 +169,26 @@ export function CustomerOrderTrackingModal() {
               {order.items.map((it) => (
                 <div
                   key={it.id}
-                  className="p-3.5 rounded-2xl bg-[#2C0E63]/30 border border-white/10 flex items-center justify-between gap-3"
+                  className="p-3.5 rounded-2xl bg-[#E5DAC9] border border-[#B8A98F] flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <img
                       src={it.mockupImage || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=300&q=80'}
                       alt={it.productName}
-                      className="w-14 h-14 object-cover rounded-xl border border-white/10 bg-[#12002E] shrink-0"
+                      className="w-14 h-14 object-cover rounded-xl border border-[#B8A98F]/50 bg-[#183630]/10 shrink-0"
                     />
                     <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-white truncate">{it.productName}</h4>
-                      <p className="text-[10px] text-slate-400 font-mono">
+                      <h4 className="text-xs font-bold text-[#183630] truncate">{it.productName}</h4>
+                      <p className="text-[10px] text-[#183630]/70 font-mono">
                         Color: {it.colorName} • Size: {it.size} • Qty: x{it.quantity}
                       </p>
-                      <span className="text-[10px] text-[#DA0090] font-bold block mt-0.5">
+                      <span className="text-[10px] text-[#183630] font-bold block mt-0.5">
                         {it.printingMethodName} • {it.designSpecs?.front ? 'Front Artwork Loaded' : 'Single Sided'}
                       </span>
                     </div>
                   </div>
 
-                  <span className="text-xs font-black text-white font-mono">
+                  <span className="text-xs font-black text-[#183630] font-mono">
                     ₹{(it.unitPrice * it.quantity).toLocaleString()}
                   </span>
                 </div>
@@ -206,48 +200,48 @@ export function CustomerOrderTrackingModal() {
              4. DELIVERY ADDRESS & PAYMENT
              ================================================================= */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div className="p-4 rounded-2xl bg-[#2C0E63]/30 border border-white/10 space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase block">Delivery Address:</span>
-              <span className="font-bold text-white block">{order.shippingAddress?.fullName}</span>
-              <p className="text-slate-300 text-[11px] leading-relaxed">
+            <div className="p-4 rounded-2xl bg-[#183630]/5 border border-[#B8A98F] space-y-1">
+              <span className="text-[10px] font-bold text-[#183630]/70 uppercase block">Delivery Address:</span>
+              <span className="font-bold text-[#183630] block">{order.shippingAddress?.fullName}</span>
+              <p className="text-[#183630]/80 text-[11px] leading-relaxed">
                 {order.shippingAddress?.addressLine1}, {order.shippingAddress?.city}, {order.shippingAddress?.state} - {order.shippingAddress?.pinCode}
               </p>
-              <span className="text-slate-400 font-mono text-[10px] block">📞 {order.shippingAddress?.phone}</span>
+              <span className="text-[#183630]/70 font-mono text-[10px] block">📞 {order.shippingAddress?.phone}</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#2C0E63]/30 border border-white/10 space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase block">Payment & Invoice:</span>
-              <div className="flex justify-between text-slate-300">
+            <div className="p-4 rounded-2xl bg-[#183630]/5 border border-[#B8A98F] space-y-1">
+              <span className="text-[10px] font-bold text-[#183630]/70 uppercase block">Payment & Invoice:</span>
+              <div className="flex justify-between text-[#183630]/80">
                 <span>Method:</span>
-                <span className="font-bold uppercase text-[#F2CB30]">{order.paymentMethod}</span>
+                <span className="font-bold uppercase text-[#183630]">{order.paymentMethod}</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-[#183630]/80">
                 <span>Status:</span>
-                <span className="text-emerald-400 font-bold">{order.paymentStatus}</span>
+                <span className="text-[#183630] font-bold">{order.paymentStatus}</span>
               </div>
-              <div className="flex justify-between text-slate-300 border-t border-white/10 pt-1">
-                <span className="font-bold text-white">Grand Total:</span>
-                <span className="text-[#F2CB30] font-bold font-mono">₹{order.total.toLocaleString()}</span>
+              <div className="flex justify-between text-[#183630]/80 border-t border-[#B8A98F]/40 pt-1">
+                <span className="font-bold text-[#183630]">Grand Total:</span>
+                <span className="text-[#183630] font-bold font-mono">₹{order.total.toLocaleString()}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 sm:p-5 bg-[#2C0E63] border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 bg-[#183630] border-t border-[#B8A98F]/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-[#E5DAC9]">
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#F2CB30] hover:bg-[#DA0090] hover:text-white text-[#12002E] text-xs font-black flex items-center justify-center gap-2 transition-all shadow-md"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] border border-[#B8A98F] text-xs font-black flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
           >
-            <MessageSquare className="w-4 h-4 fill-current/20" />
+            <WhatsAppIcon size={18} className="w-4 h-4 shrink-0" />
             <span>Chat on WhatsApp regarding Order #{order.id}</span>
           </a>
 
           <button
             onClick={() => setActiveTrackingOrder(null)}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#12002E] hover:bg-[#1a0540] text-white text-xs font-bold border border-white/10 transition-colors"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#E5C690] hover:bg-[#d9b87c] text-[#183630] text-xs font-bold transition-colors cursor-pointer"
           >
             Close
           </button>

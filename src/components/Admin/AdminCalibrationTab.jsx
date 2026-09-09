@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Eye,
   Info,
+  Box,
 } from 'lucide-react';
 import {
   MASTER_CALIBRATIONS,

@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Send,
   Lock,
+  ExternalLink,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { ORDER_STATUSES, ALLOWED_STATUS_TRANSITIONS, PAYMENT_STATUSES, SHIPPING_PROVIDERS } from '../../constants/orderWorkflow';

@@ -8,7 +8,7 @@ export const RAZORPAY_CONFIG = {
   keyId: import.meta.env?.VITE_RAZORPAY_KEY_ID || 'rzp_test_PH_live_984218',
   currency: 'INR',
   companyName: 'The PrintHub Studio Pvt Ltd',
-  themeColor: '#2C0E63',
+  themeColor: '#183630',
 };
 
 /**

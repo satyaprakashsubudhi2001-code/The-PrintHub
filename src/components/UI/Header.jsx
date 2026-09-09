@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useCustomizer } from '../../context/CustomizerContext';
 import { PRODUCTS } from '../../constants/products';
+import { BrandLogo } from '../Navigation/BrandLogo';
 
 export function Header() {
   const {
@@ -31,16 +32,7 @@ export function Header() {
   return (
     <header className="h-16 border-b border-slate-800 bg-studio-900/90 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 select-none">
       {/* Brand Logo & Tagline */}
-      <div className="flex items-center gap-3">
-        <img
-          src="/brand-dark.png"
-          alt="The PrintHub"
-          className="h-8 sm:h-9 w-auto object-contain"
-        />
-        <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30 uppercase tracking-wider">
-          3D Studio Pro
-        </span>
-      </div>
+      <BrandLogo variant="dark" size="sm" badge="3D Studio Pro" />
 
       {/* Center Product Quick-Switch Menu */}
       <div className="hidden md:flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle border border-slate-700/50">

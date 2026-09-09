@@ -14,12 +14,12 @@ export function TopProductCarousel() {
   };
 
   return (
-    <div className="w-full bg-[#2C0E63] border-b border-white/10 px-3 sm:px-5 py-2 relative select-none shrink-0 z-20 backdrop-blur-md">
+    <div className="w-full bg-[#183630] border-b border-[#B8A98F]/40 px-3 sm:px-5 py-2 relative select-none shrink-0 z-20 backdrop-blur-md text-[#E5DAC9]">
       <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-3">
         {/* Left Studio Label */}
-        <div className="hidden lg:flex items-center gap-2 shrink-0 pr-3 border-r border-white/15">
-          <span className="w-2 h-2 rounded-full bg-[#F2CB30] animate-pulse" />
-          <span className="text-[11px] font-black tracking-widest text-slate-200 uppercase font-mono whitespace-nowrap">
+        <div className="hidden lg:flex items-center gap-2 shrink-0 pr-3 border-r border-[#B8A98F]/30">
+          <span className="w-2 h-2 rounded-full bg-[#E5C690] animate-pulse" />
+          <span className="text-[11px] font-black tracking-widest text-[#E5DAC9] uppercase font-mono whitespace-nowrap">
             Select Product
           </span>
         </div>
@@ -29,7 +29,7 @@ export function TopProductCarousel() {
           {/* Scroll Left Button */}
           <button
             onClick={() => scroll('left')}
-            className="hidden sm:flex absolute left-0 z-10 w-7 h-7 -ml-2 rounded-full bg-[#12002E] border border-white/20 text-slate-200 hover:text-white items-center justify-center shadow-lg transition-all hover:scale-110"
+            className="hidden sm:flex absolute left-0 z-10 w-7 h-7 -ml-2 rounded-full bg-[#183630] border border-[#B8A98F] text-[#E5DAC9] hover:bg-[#B8A98F]/20 items-center justify-center shadow-lg transition-all cursor-pointer"
             title="Scroll Left"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -46,22 +46,22 @@ export function TopProductCarousel() {
                 <button
                   key={p.id}
                   onClick={() => selectProduct(p)}
-                  className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-2xl transition-all shrink-0 border whitespace-nowrap ${
+                  className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-2xl transition-all shrink-0 border whitespace-nowrap cursor-pointer ${
                     isSelected
-                      ? 'bg-[#12002E] border-[#F2CB30] shadow-lg shadow-[#F2CB30]/20 ring-1 ring-[#F2CB30]'
-                      : 'bg-[#2C0E63]/60 border-white/15 hover:bg-[#12002E]/60 text-slate-200'
+                      ? 'bg-[#E5DAC9] text-[#183630] border-[#E5C690] shadow-md'
+                      : 'bg-[#183630] text-[#E5DAC9] border-[#B8A98F]/40 hover:border-[#B8A98F]'
                   }`}
                 >
                   {/* Thumbnail */}
-                  <div className="relative w-8 h-8 rounded-xl overflow-hidden bg-[#12002E] border border-white/15 shrink-0">
+                  <div className="relative w-8 h-8 rounded-xl overflow-hidden bg-[#183630]/20 border border-[#B8A98F]/40 shrink-0">
                     <img
                       src={p.image}
                       alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                     {isSelected && (
-                      <div className="absolute inset-0 bg-[#DA0090]/50 flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+                      <div className="absolute inset-0 bg-[#183630]/60 flex items-center justify-center">
+                        <Check className="w-3.5 h-3.5 text-[#E5C690] stroke-[3]" />
                       </div>
                     )}
                   </div>
@@ -71,25 +71,27 @@ export function TopProductCarousel() {
                     <div className="flex items-center gap-1.5">
                       <span
                         className={`text-xs font-bold whitespace-nowrap ${
-                          isSelected ? 'text-white font-black' : 'text-slate-200'
+                          isSelected ? 'text-[#183630] font-black' : 'text-[#E5DAC9]'
                         }`}
                       >
                         {p.name.split('(')[0].trim()}
                       </span>
                       {p.badge && (
-                        <span className="hidden xl:inline-block px-1.5 py-0.5 rounded text-[8px] font-black bg-[#DA0090]/25 text-[#DA0090] border border-[#DA0090]/40 uppercase font-mono">
+                        <span className={`hidden xl:inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase font-mono border ${
+                          isSelected ? 'bg-[#183630] text-[#E5DAC9] border-[#183630]' : 'bg-[#E5C690]/20 text-[#E5C690] border-[#E5C690]/40'
+                        }`}>
                           {p.badge.split(' ')[0]}
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] text-slate-300 font-mono">
-                      From <span className="text-[#F2CB30] font-bold">₹{p.basePrice}</span>
+                    <span className={`text-[10px] font-mono ${isSelected ? 'text-[#183630]/80' : 'text-[#E5DAC9]/70'}`}>
+                      From <span className={`font-bold ${isSelected ? 'text-[#183630]' : 'text-[#E5C690]'}`}>₹{p.basePrice}</span>
                     </span>
                   </div>
 
                   {/* Active Indicator Bar */}
                   {isSelected && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-[#F2CB30]" />
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-[#183630]" />
                   )}
                 </button>
               );
@@ -99,7 +101,7 @@ export function TopProductCarousel() {
           {/* Scroll Right Button */}
           <button
             onClick={() => scroll('right')}
-            className="hidden sm:flex absolute right-0 z-10 w-7 h-7 -ml-2 rounded-full bg-[#12002E] border border-white/20 text-slate-200 hover:text-white items-center justify-center shadow-lg transition-all hover:scale-110"
+            className="hidden sm:flex absolute right-0 z-10 w-7 h-7 -ml-2 rounded-full bg-[#183630] border border-[#B8A98F] text-[#E5DAC9] hover:bg-[#B8A98F]/20 items-center justify-center shadow-lg transition-all cursor-pointer"
             title="Scroll Right"
           >
             <ChevronRight className="w-4 h-4" />

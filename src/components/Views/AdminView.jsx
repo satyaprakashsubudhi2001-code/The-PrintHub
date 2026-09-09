@@ -1,435 +1,523 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
-  ShieldCheck,
-  TrendingUp,
-  Box,
+  LayoutDashboard,
+  FileText,
+  Bell,
   Image as ImageIcon,
-  Phone,
-  Mail,
-  Calendar,
-  Plus,
-  Edit2,
-  Trash2,
-  Check,
-  Sparkles,
-  Save,
-  Palette,
-  Users,
-  Search,
-  Eye,
-  Sliders,
-  Maximize2,
-  LogOut,
+  ShoppingBag,
+  Grid,
+  Layers,
   Package,
-  MessageCircle,
-  Clock,
+  PlusCircle,
+  DollarSign,
+  Receipt,
+  BarChart3,
+  Sliders,
+  Users,
+  PhoneCall,
+  ShieldCheck,
+  Activity,
+  LogOut,
+  Eye,
   CheckCircle2,
-  Download,
-  AlertCircle,
+  AlertTriangle,
+  ExternalLink,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { DESIGN_REQUEST_STATUSES } from '../../constants/requests';
-import { AdminRequestDetailModal } from '../Admin/AdminRequestDetailModal';
-import { AdminCalibrationTab } from '../Admin/AdminCalibrationTab';
+import { AdminDashboardTab } from '../Admin/AdminDashboardTab';
+import { AdminHomepageCmsTab } from '../Admin/AdminHomepageCmsTab';
+import { AdminAnnouncementTab } from '../Admin/AdminAnnouncementTab';
+import { AdminImageManagerTab } from '../Admin/AdminImageManagerTab';
 import { AdminProductsTab } from '../Admin/AdminProductsTab';
 import { AdminCategoriesTab } from '../Admin/AdminCategoriesTab';
-import { generateDesignRequestZip } from '../../services/packageExporter';
+import { AdminStockTab } from '../Admin/AdminStockTab';
+import { AdminOrdersTab } from '../Admin/AdminOrdersTab';
+import { AdminManualOrderTab } from '../Admin/AdminManualOrderTab';
+import { AdminFinanceTab } from '../Admin/AdminFinanceTab';
+import { AdminExpensesTab } from '../Admin/AdminExpensesTab';
+import { AdminReportsTab } from '../Admin/AdminReportsTab';
+import { AdminDesignRequestsTab } from '../Admin/AdminDesignRequestsTab';
+import { Admin3DStudioConfigTab } from '../Admin/Admin3DStudioConfigTab';
+import { AdminCustomersTab } from '../Admin/AdminCustomersTab';
+import { AdminContactSettingsTab } from '../Admin/AdminContactSettingsTab';
+import { AdminAuditLogTab } from '../Admin/AdminAuditLogTab';
+import { AdminRolesTab } from '../Admin/AdminRolesTab';
 
 /**
- * The PrintHub — Dedicated Admin Command Center
- * Manage Products, Customer Custom Design Requests, View/Download Artwork Files & Mockups,
- * Export Complete Request ZIP Packages, Contact Customers, and Calibrate Print Dimensions.
+ * The PrintHub — Complete Atelier Command Center
+ * Unified enterprise management portal controlling all storefront content,
+ * inventory, orders, financials, customizer settings, and security.
+ *
+ * Strictly adheres to the 4-Color Palette:
+ * - Primary Dark Green: #183630
+ * - Primary Beige: #E5DAC9
+ * - Primary Soft Gold: #E5C690
+ * - Highlight Taupe: #B8A98F
  */
 export function AdminView() {
   const {
-    designRequests = [],
     adminUser,
     logoutAdmin,
     navigateTo,
     storeSettings,
-    updateStoreSettings,
     products = [],
     categories = [],
-    updateDesignRequestStatus,
+    adminOrders = [],
+    inventory = [],
+    designRequests = [],
+    customers = [],
+    announcements = [],
+    homepageContent = {},
+    publishAllHomepageDrafts,
+    adminRole,
+    changeAdminRole,
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState('products'); // 'products' | 'requests' | 'calibration' | 'settings'
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [publishBannerDismissed, setPublishBannerDismissed] = useState(false);
+  const [isModulesMenuOpen, setIsModulesMenuOpen] = useState(false);
 
-  // Stats calculation
-  const totalCount = designRequests.length;
-  const newCount = designRequests.filter((r) => r.status === 'NEW').length;
-  const reviewCount = designRequests.filter((r) => r.status === 'UNDER_REVIEW').length;
-  const contactedCount = designRequests.filter((r) => r.status === 'CUSTOMER_CONTACTED').length;
-  const completedCount = designRequests.filter((r) => r.status === 'COMPLETED').length;
+  // Tabs horizontal scroll ref and state
+  const tabsContainerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Filtered Requests List
-  const filteredRequests = useMemo(() => {
-    return designRequests.filter((req) => {
-      if (statusFilter !== 'ALL' && req.status !== statusFilter) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const matchId = req.id?.toLowerCase().includes(q);
-        const matchName = req.customer?.name?.toLowerCase().includes(q);
-        const matchPhone = req.customer?.mobile?.toLowerCase().includes(q);
-        const matchEmail = req.customer?.email?.toLowerCase().includes(q);
-        const matchProduct = req.product?.name?.toLowerCase().includes(q);
-        if (!matchId && !matchName && !matchPhone && !matchEmail && !matchProduct) return false;
-      }
-      return true;
+  const checkScroll = useCallback(() => {
+    if (!tabsContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = tabsContainerRef.current;
+    setCanScrollLeft(scrollLeft > 6);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, [checkScroll]);
+
+  const scrollTabs = (direction) => {
+    if (!tabsContainerRef.current) return;
+    const scrollAmount = 300;
+    tabsContainerRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
     });
-  }, [designRequests, statusFilter, searchQuery]);
+  };
 
-  // Handle Logout
+  const selectTab = (tabId) => {
+    setActiveTab(tabId);
+    setIsModulesMenuOpen(false);
+    setTimeout(() => {
+      const el = document.getElementById(`nav-tab-${tabId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }, 50);
+  };
+
+  // Status badges & KPI counts for navigation items
+  const newRequestsCount = useMemo(
+    () => designRequests.filter((r) => r.status === 'NEW').length,
+    [designRequests]
+  );
+  const lowStockCount = useMemo(
+    () => inventory.filter((i) => (Number(i.currentStock) || 0) <= (Number(i.minStock) || 5)).length,
+    [inventory]
+  );
+  const pendingOrdersCount = useMemo(
+    () => adminOrders.filter((o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'IN_PRODUCTION').length,
+    [adminOrders]
+  );
+
+  const hasDrafts = homepageContent?.hasUnpublishedDrafts;
+
+  const handlePublishAll = () => {
+    publishAllHomepageDrafts();
+  };
+
   const handleLogout = () => {
     logoutAdmin();
     navigateTo('home');
   };
 
-  return (
-    <div className="min-h-screen bg-[#060813] text-slate-100 select-none pb-20 font-sans">
-      {/* Detail Modal Inspector */}
-      {selectedRequest && (
-        <AdminRequestDetailModal
-          request={selectedRequest}
-          onClose={() => setSelectedRequest(null)}
-        />
-      )}
+  // Nav item definitions
+  const NAV_TABS = [
+    { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard, badge: null },
+    { id: 'cms', label: 'HOMEPAGE CMS', icon: FileText, badge: hasDrafts ? 'DRAFTS' : null, alert: hasDrafts },
+    { id: 'announcements', label: 'ANNOUNCEMENTS', icon: Bell, badge: announcements.length > 0 ? `${announcements.length}` : null },
+    { id: 'images', label: 'MEDIA & IMAGES', icon: ImageIcon, badge: null },
+    { id: 'products', label: 'PRODUCTS', icon: ShoppingBag, badge: products.length > 0 ? `${products.length}` : null },
+    { id: 'categories', label: 'CATEGORIES', icon: Grid, badge: categories.length > 0 ? `${categories.length}` : null },
+    { id: 'stock', label: 'STOCK & INVENTORY', icon: Layers, badge: lowStockCount > 0 ? `${lowStockCount} LOW` : null, alert: lowStockCount > 0 },
+    { id: 'orders', label: 'ORDERS FULFILLMENT', icon: Package, badge: pendingOrdersCount > 0 ? `${pendingOrdersCount} ACTIVE` : null },
+    { id: 'manual-order', label: 'MANUAL ORDER (POS)', icon: PlusCircle, badge: 'NEW' },
+    { id: 'finance', label: 'P&L FINANCIALS', icon: DollarSign, badge: null },
+    { id: 'expenses', label: 'EXPENSES LEDGER', icon: Receipt, badge: null },
+    { id: 'reports', label: 'EXECUTIVE REPORTS', icon: BarChart3, badge: null },
+    { id: 'requests', label: 'DESIGN REQUESTS', icon: Package, badge: newRequestsCount > 0 ? `${newRequestsCount} NEW` : null, alert: newRequestsCount > 0 },
+    { id: 'studio3d', label: '3D STUDIO CONFIG', icon: Sliders, badge: null },
+    { id: 'customers', label: 'CLIENT CRM', icon: Users, badge: customers.length > 0 ? `${customers.length}` : null },
+    { id: 'contact', label: 'CONTACT & SOCIAL', icon: PhoneCall, badge: null },
+    { id: 'audit', label: 'AUDIT LOG', icon: Activity, badge: null },
+    { id: 'roles', label: 'ROLES & RBAC', icon: ShieldCheck, badge: adminRole?.badge || 'FULL ACCESS' },
+  ];
 
-      {/* Admin Top Header */}
-      <header className="sticky top-0 z-30 bg-[#090d1c]/95 backdrop-blur-xl border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+  return (
+    <div className="min-h-screen bg-[#E5DAC9] text-[#183630] select-none font-sans pb-24">
+      {/* Top Header (#183630 Primary Dark Green) */}
+      <header className="sticky top-0 z-40 bg-[#183630] border-b border-[#B8A98F]/30 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4 text-[#E5DAC9] shadow-md">
+        {/* Brand & Identity */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center p-1.5 shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-[#183630] border border-[#B8A98F]/40 flex items-center justify-center p-1.5 shadow-md shrink-0">
             <img
-              src="/logo-mark-white.png"
+              src="/logo-mark-symbol.png"
               alt="The PrintHub"
               className="w-full h-full object-contain"
             />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-display font-black text-sm sm:text-base text-white uppercase tracking-tight">
-                {storeSettings.storeName} Admin Command Center
+              <span className="font-display font-black text-sm sm:text-base text-[#E5DAC9] uppercase tracking-tight">
+                {storeSettings?.storeName || 'The PrintHub'} Atelier Command Center
               </span>
-              <span className="px-2 py-0.5 rounded bg-lime-400/20 text-lime-400 border border-lime-400/30 text-[9px] font-mono font-bold">
+              <span className="px-2 py-0.5 rounded bg-[#E5C690]/20 text-[#E5C690] border border-[#B8A98F]/40 text-[9px] font-mono font-bold">
                 SECURE
               </span>
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">
-              Logged in as: {adminUser?.email || 'admin@theprinthub.com'}
+            <span className="text-[10px] text-[#E5DAC9]/70 font-mono block">
+              Operator: {adminUser?.email || 'admin@theprinthub.com'} • Tier:{' '}
+              <span className="text-[#E5C690] font-bold">{adminRole?.name || adminRole?.id || 'Super Administrator'}</span>
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right Actions & Shortcuts */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Live Storefront Link */}
           <button
             type="button"
             onClick={() => navigateTo('home')}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-cyan-400 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E5DAC9]/10 border border-[#B8A98F]/40 text-xs font-mono text-[#E5C690] hover:text-[#E5DAC9] hover:bg-[#E5DAC9]/20 transition-colors cursor-pointer"
+            title="Open Live Customer Storefront"
           >
             <span>Customer Storefront</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </button>
 
+          {/* Logout */}
           <button
             type="button"
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:bg-rose-500/25 text-xs font-mono font-bold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E5C690] text-[#183630] hover:bg-[#d9b87c] text-xs font-mono font-bold transition-colors cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Logout</span>
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
 
-      {/* Navigation Tabs Bar */}
-      <div className="bg-[#0a0e20] border-b border-slate-800 px-4 sm:px-8">
-        <div className="max-w-[1500px] mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar">
-          {[
-            { id: 'products', label: 'PRODUCT CATALOG', count: products.length > 0 ? `${products.length} ITEMS` : 'EMPTY' },
-            { id: 'categories', label: 'CATEGORIES', count: categories.length > 0 ? `${categories.length} CATS` : 'EMPTY' },
-            { id: 'requests', label: 'DESIGN REQUESTS QUEUE', count: newCount > 0 ? `${newCount} NEW` : null },
-            { id: 'calibration', label: 'PRINT AREA CALIBRATIONS' },
-            { id: 'settings', label: 'STUDIO & CONTACT SETTINGS' },
-          ].map((tab) => (
+      {/* Unpublished CMS Drafts Global Notification Banner */}
+      {hasDrafts && !publishBannerDismissed && (
+        <div className="bg-[#E5C690] border-b border-[#B8A98F] px-4 sm:px-8 py-2.5 text-[#183630] font-mono text-xs flex flex-col sm:flex-row items-center justify-between gap-2 shadow-inner">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping shrink-0" />
+            <span className="font-bold">
+              [ UNPUBLISHED DRAFTS ]: You have modified homepage copy saved in draft mode.
+            </span>
+            <span className="text-[11px] text-[#183630]/80 hidden md:inline">
+              Storefront visitors will see current live text until you publish.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             <button
-              key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-3.5 px-4 text-xs font-mono font-bold tracking-wider border-b-2 transition-all shrink-0 flex items-center gap-2 ${
-                activeTab === tab.id
-                  ? 'border-lime-400 text-lime-400'
-                  : 'border-transparent text-slate-400 hover:text-white'
-              }`}
+              onClick={handlePublishAll}
+              className="px-3 py-1 rounded-xl bg-[#183630] text-[#E5C690] hover:bg-[#183630]/90 font-bold text-[11px] cursor-pointer shadow-sm transition-all"
             >
-              <span>{tab.label}</span>
-              {tab.count !== null && (
-                <span className="px-1.5 py-0.5 rounded-full bg-lime-400/20 text-lime-400 border border-lime-400/30 text-[10px] font-black font-mono">
-                  {tab.count}
-                </span>
-              )}
+              [ PUBLISH ALL TO STOREFRONT ]
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setActiveTab('cms')}
+              className="px-2.5 py-1 rounded-xl bg-[#E5DAC9] border border-[#B8A98F] text-[#183630] font-bold text-[11px] cursor-pointer"
+            >
+              REVIEW IN CMS
+            </button>
+            <button
+              type="button"
+              onClick={() => setPublishBannerDismissed(true)}
+              className="p-1 text-[#183630]/60 hover:text-[#183630] text-xs font-bold"
+              title="Dismiss Notice"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Horizontal Navigation Tabs Bar (#183630 with [ Bracket ] treatment) */}
+      <div className="sticky top-[61px] z-30 bg-[#183630] border-b border-[#B8A98F]/30 px-3 sm:px-6 text-[#E5DAC9] shadow-sm">
+        <div className="max-w-[1700px] mx-auto flex items-center relative py-1.5">
+          {/* Scroll Left Button */}
+          {canScrollLeft && (
+            <button
+              type="button"
+              onClick={() => scrollTabs('left')}
+              className="shrink-0 p-1.5 mr-1 rounded-lg bg-[#183630] border border-[#B8A98F]/50 text-[#E5C690] hover:bg-[#E5DAC9]/20 hover:text-[#E5DAC9] transition-all shadow-md cursor-pointer z-10"
+              title="Scroll Tabs Left"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Left Fade Indicator */}
+          {canScrollLeft && (
+            <div className="absolute left-7 top-0 bottom-0 w-8 bg-gradient-to-r from-[#183630] to-transparent pointer-events-none z-10" />
+          )}
+
+          {/* Scrollable Tabs Track */}
+          <div
+            ref={tabsContainerRef}
+            onScroll={checkScroll}
+            onWheel={(e) => {
+              if (e.deltaY !== 0 && tabsContainerRef.current) {
+                tabsContainerRef.current.scrollLeft += e.deltaY;
+              }
+            }}
+            className="flex-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 scroll-smooth"
+          >
+            {NAV_TABS.map((tab) => {
+              const active = activeTab === tab.id;
+              const Icon = tab.icon;
+              return (
+                <button
+                  id={`nav-tab-${tab.id}`}
+                  key={tab.id}
+                  type="button"
+                  onClick={() => selectTab(tab.id)}
+                  className={`py-2 px-3 text-[11px] font-mono font-bold tracking-wider rounded-xl transition-all shrink-0 flex items-center gap-1.5 cursor-pointer whitespace-nowrap select-none ${
+                    active
+                      ? 'bg-[#E5DAC9]/15 text-[#E5C690] border border-[#B8A98F]/60 font-black shadow-xs'
+                      : 'text-[#E5DAC9]/75 hover:text-[#E5C690] hover:bg-[#E5DAC9]/10 border border-transparent'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-[#E5C690]' : 'text-[#E5DAC9]/60'}`} />
+                  <span className="tracking-wide">
+                    {active ? (
+                      <>
+                        <span className="text-[#B8A98F] font-black mr-0.5">[</span>
+                        <span>{tab.label}</span>
+                        <span className="text-[#B8A98F] font-black ml-0.5">]</span>
+                      </>
+                    ) : (
+                      tab.label
+                    )}
+                  </span>
+                  {tab.badge && (
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[9px] font-black font-mono border ${
+                        tab.alert
+                          ? 'bg-amber-600 text-white border-amber-500 animate-pulse'
+                          : active
+                          ? 'bg-[#E5C690] text-[#183630] border-[#E5C690]'
+                          : 'bg-[#E5DAC9]/20 text-[#E5C690] border-[#B8A98F]/40'
+                      }`}
+                    >
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right Fade Indicator */}
+          {canScrollRight && (
+            <div className="absolute right-28 top-0 bottom-0 w-8 bg-gradient-to-l from-[#183630] to-transparent pointer-events-none z-10" />
+          )}
+
+          {/* Scroll Right Button */}
+          {canScrollRight && (
+            <button
+              type="button"
+              onClick={() => scrollTabs('right')}
+              className="shrink-0 p-1.5 ml-1 rounded-lg bg-[#183630] border border-[#B8A98F]/50 text-[#E5C690] hover:bg-[#E5DAC9]/20 hover:text-[#E5DAC9] transition-all shadow-md cursor-pointer z-10"
+              title="Scroll Tabs Right"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Quick Jump Dropdown Trigger */}
+          <div className="relative shrink-0 ml-2">
+            <button
+              type="button"
+              onClick={() => setIsModulesMenuOpen(!isModulesMenuOpen)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#E5DAC9]/10 hover:bg-[#E5DAC9]/20 border border-[#B8A98F]/40 text-[11px] font-mono font-bold text-[#E5C690] transition-colors cursor-pointer"
+              title="Jump directly to any module"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Jump To</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${isModulesMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isModulesMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsModulesMenuOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-2 w-80 max-h-[75vh] overflow-y-auto rounded-2xl bg-[#183630] border border-[#B8A98F] p-3 shadow-2xl z-50 text-[#E5DAC9] font-mono text-xs space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#B8A98F]/30">
+                    <span className="font-bold text-[#E5C690] uppercase tracking-wider text-[11px]">
+                      All 18 Command Center Modules
+                    </span>
+                    <span className="text-[10px] text-[#E5DAC9]/60">Quick Access</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-1">
+                    {NAV_TABS.map((t) => {
+                      const isActive = activeTab === t.id;
+                      const Icon = t.icon;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => selectTab(t.id)}
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer ${
+                            isActive
+                              ? 'bg-[#E5C690] text-[#183630] font-bold'
+                              : 'hover:bg-[#E5DAC9]/15 text-[#E5DAC9]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon className="w-4 h-4 shrink-0" />
+                            <span className="text-[11px]">{t.label}</span>
+                          </div>
+                          {t.badge && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#183630]/20">
+                              {t.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* TAB 0: PRODUCT CATALOG MANAGEMENT */}
-      {activeTab === 'products' && (
-        <main className="max-w-[1500px] mx-auto px-4 sm:px-8 py-8 animate-in fade-in">
-          <AdminProductsTab onNavigateToCategories={() => setActiveTab('categories')} />
-        </main>
-      )}
+      {/* Main Command Center Stage */}
+      <main className="max-w-[1700px] mx-auto px-4 sm:px-8 py-8 animate-in fade-in">
+        {/* TAB 1: EXECUTIVE DASHBOARD */}
+        {activeTab === 'dashboard' && (
+          <AdminDashboardTab
+            onNavigate={(tabKey) => setActiveTab(tabKey)}
+          />
+        )}
 
-      {/* TAB: CATEGORIES TAXONOMY MANAGEMENT */}
-      {activeTab === 'categories' && (
-        <main className="max-w-[1500px] mx-auto px-4 sm:px-8 py-8 animate-in fade-in">
+        {/* TAB 2: HOMEPAGE CMS */}
+        {activeTab === 'cms' && (
+          <AdminHomepageCmsTab
+            onNavigateToImages={() => setActiveTab('images')}
+          />
+        )}
+
+        {/* TAB 3: ANNOUNCEMENTS MANAGER */}
+        {activeTab === 'announcements' && (
+          <AdminAnnouncementTab />
+        )}
+
+        {/* TAB 4: IMAGE & MEDIA MANAGER */}
+        {activeTab === 'images' && (
+          <AdminImageManagerTab />
+        )}
+
+        {/* TAB 5: PRODUCT CATALOG */}
+        {activeTab === 'products' && (
+          <AdminProductsTab
+            onNavigateToCategories={() => setActiveTab('categories')}
+          />
+        )}
+
+        {/* TAB 6: CATEGORIES TAXONOMY */}
+        {activeTab === 'categories' && (
           <AdminCategoriesTab />
-        </main>
-      )}
+        )}
 
-      {/* TAB 1: DESIGN REQUESTS QUEUE */}
-      {activeTab === 'requests' && (
-        <main className="max-w-[1500px] mx-auto px-4 sm:px-8 py-8 space-y-8 animate-in fade-in">
-          {/* Quick Metrics Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-[#0c101d] border border-slate-800 space-y-1">
-              <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">TOTAL REQUESTS</span>
-              <div className="text-2xl sm:text-3xl font-black text-white font-mono">{totalCount}</div>
-            </div>
+        {/* TAB 7: STOCK & INVENTORY */}
+        {activeTab === 'stock' && (
+          <AdminStockTab />
+        )}
 
-            <div className="p-5 rounded-2xl bg-[#0c101d] border border-cyan-500/30 space-y-1">
-              <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold">NEW SUBMISSIONS</span>
-              <div className="text-2xl sm:text-3xl font-black text-cyan-300 font-mono">{newCount}</div>
-            </div>
+        {/* TAB 8: ORDERS FULFILLMENT */}
+        {activeTab === 'orders' && (
+          <AdminOrdersTab
+            onNavigateToManualOrder={() => setActiveTab('manual-order')}
+          />
+        )}
 
-            <div className="p-5 rounded-2xl bg-[#0c101d] border border-indigo-500/30 space-y-1">
-              <span className="text-[10px] font-mono text-indigo-400 uppercase font-bold">CONTACTED</span>
-              <div className="text-2xl sm:text-3xl font-black text-indigo-300 font-mono">{contactedCount}</div>
-            </div>
+        {/* TAB 9: MANUAL ORDER (POS) */}
+        {activeTab === 'manual-order' && (
+          <AdminManualOrderTab
+            onOrderCreated={() => setActiveTab('orders')}
+          />
+        )}
 
-            <div className="p-5 rounded-2xl bg-[#0c101d] border border-emerald-500/30 space-y-1">
-              <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold">COMPLETED</span>
-              <div className="text-2xl sm:text-3xl font-black text-emerald-300 font-mono">{completedCount}</div>
-            </div>
-          </div>
+        {/* TAB 10: PROFIT & LOSS FINANCIALS */}
+        {activeTab === 'finance' && (
+          <AdminFinanceTab />
+        )}
 
-          {/* Search and Status Filters */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#0c101d] border border-slate-800">
-            {/* Status Filter Buttons */}
-            <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto no-scrollbar">
-              {['ALL', 'NEW', 'UNDER_REVIEW', 'CUSTOMER_CONTACTED', 'COMPLETED', 'ARCHIVED'].map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold tracking-wider shrink-0 transition-all ${
-                    statusFilter === st
-                      ? 'bg-lime-400 text-slate-950 font-black shadow-sm'
-                      : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {st.replace('_', ' ')}
-                </button>
-              ))}
-            </div>
+        {/* TAB 11: EXPENSES LEDGER */}
+        {activeTab === 'expenses' && (
+          <AdminExpensesTab />
+        )}
 
-            {/* Search Input */}
-            <div className="relative w-full sm:w-80 shrink-0">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search Request ID, customer, product..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono focus:outline-none focus:border-cyan-400"
-              />
-            </div>
-          </div>
+        {/* TAB 12: EXECUTIVE REPORTS */}
+        {activeTab === 'reports' && (
+          <AdminReportsTab />
+        )}
 
-          {/* Requests Table */}
-          <div className="rounded-3xl bg-[#0c101d] border border-slate-800 overflow-hidden shadow-2xl">
-            {filteredRequests.length === 0 ? (
-              <div className="p-12 text-center space-y-2">
-                <Package className="w-8 h-8 text-slate-600 mx-auto" />
-                <h3 className="text-sm font-bold text-white">No design requests found</h3>
-                <p className="text-xs text-slate-500 font-mono">Try adjusting your search query or status filter.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left font-mono text-xs">
-                  <thead className="bg-[#0e1424] border-b border-slate-800 text-slate-400 text-[10px] uppercase font-bold">
-                    <tr>
-                      <th className="py-3.5 px-4">Request ID</th>
-                      <th className="py-3.5 px-4">Date</th>
-                      <th className="py-3.5 px-4">Customer</th>
-                      <th className="py-3.5 px-4">Product & Specs</th>
-                      <th className="py-3.5 px-4">Placements & Files</th>
-                      <th className="py-3.5 px-4">Status</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60">
-                    {filteredRequests.map((req) => {
-                      const statusDef = DESIGN_REQUEST_STATUSES[req.status] || {
-                        label: req.status,
-                        badgeBg: 'bg-slate-800',
-                        textColor: 'text-slate-300',
-                      };
+        {/* TAB 13: DESIGN REQUESTS QUEUE */}
+        {activeTab === 'requests' && (
+          <AdminDesignRequestsTab />
+        )}
 
-                      const whatsappNumber = req.customer?.mobile?.replace(/\D/g, '') || '';
-                      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-                        `Hello ${req.customer?.name}! This is The PrintHub regarding your Custom Design Request (${req.id}).`
-                      )}`;
+        {/* TAB 14: 3D STUDIO CONFIG */}
+        {activeTab === 'studio3d' && (
+          <Admin3DStudioConfigTab />
+        )}
 
-                      return (
-                        <tr key={req.id} className="hover:bg-slate-900/50 transition-colors">
-                          <td className="py-4 px-4 font-bold text-cyan-300">
-                            {req.id}
-                          </td>
+        {/* TAB 15: CLIENT CRM DIRECTORY */}
+        {activeTab === 'customers' && (
+          <AdminCustomersTab />
+        )}
 
-                          <td className="py-4 px-4 text-slate-400 text-[11px]">
-                            {new Date(req.createdAt).toLocaleDateString()}
-                          </td>
+        {/* TAB 16: CONTACT & SOCIAL SETTINGS */}
+        {activeTab === 'contact' && (
+          <AdminContactSettingsTab />
+        )}
 
-                          <td className="py-4 px-4">
-                            <span className="font-bold text-white block">{req.customer?.name}</span>
-                            <span className="text-[11px] text-emerald-400 block">{req.customer?.mobile}</span>
-                            <span className="text-[10px] text-slate-500 block truncate max-w-[150px]">{req.customer?.email}</span>
-                          </td>
+        {/* TAB 17: SECURITY & ACTIVITY AUDIT LOG */}
+        {activeTab === 'audit' && (
+          <AdminAuditLogTab />
+        )}
 
-                          <td className="py-4 px-4">
-                            <span className="font-bold text-slate-200 block">{req.product?.name}</span>
-                            <span className="text-[11px] text-slate-400 block font-sans">
-                              {req.color?.name} • Size {req.size}
-                            </span>
-                          </td>
-
-                          <td className="py-4 px-4">
-                            <span className="text-slate-300 block font-bold">
-                              {req.placements?.length || 0} Print Location(s)
-                            </span>
-                            <span className="text-[10px] text-cyan-400 block">
-                              {req.artworkFiles?.length || 0} Artwork File(s)
-                            </span>
-                          </td>
-
-                          <td className="py-4 px-4">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusDef.badgeBg} ${statusDef.textColor} border ${statusDef.border || 'border-transparent'}`}>
-                              {statusDef.label}
-                            </span>
-                          </td>
-
-                          <td className="py-4 px-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedRequest(req)}
-                                className="px-3 py-1.5 rounded-lg bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold text-[11px] uppercase transition-colors"
-                              >
-                                Inspect
-                              </button>
-
-                              <a
-                                href={whatsappUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
-                                title="Chat on WhatsApp"
-                              >
-                                <MessageCircle className="w-4 h-4" />
-                              </a>
-
-                              <button
-                                type="button"
-                                onClick={() => generateDesignRequestZip(req)}
-                                className="p-1.5 rounded-lg bg-slate-800 text-cyan-400 hover:text-white transition-colors"
-                                title="Download Complete Request ZIP"
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </main>
-      )}
-
-      {/* TAB 2: PRODUCT CALIBRATION MATRIX */}
-      {activeTab === 'calibration' && (
-        <main className="max-w-[1500px] mx-auto px-4 sm:px-8 py-8 animate-in fade-in">
-          <AdminCalibrationTab />
-        </main>
-      )}
-
-      {/* TAB 3: STUDIO & CONTACT SETTINGS */}
-      {activeTab === 'settings' && (
-        <main className="max-w-3xl mx-auto px-4 sm:px-8 py-8 space-y-6 animate-in fade-in">
-          <div className="p-6 rounded-3xl bg-[#0c101d] border border-slate-800 space-y-5">
-            <h2 className="text-base font-bold text-white uppercase font-display border-b border-slate-800 pb-3">
-              Production Facility & Contact Details
-            </h2>
-
-            <div className="space-y-4 font-mono text-xs">
-              <div>
-                <label className="text-slate-400 block mb-1">Studio Brand Name</label>
-                <input
-                  type="text"
-                  value={storeSettings.storeName}
-                  onChange={(e) => updateStoreSettings({ storeName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1">WhatsApp Support Number</label>
-                <input
-                  type="text"
-                  value={storeSettings.whatsapp}
-                  onChange={(e) => updateStoreSettings({ whatsapp: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1">Production Facility Email</label>
-                <input
-                  type="email"
-                  value={storeSettings.email}
-                  onChange={(e) => updateStoreSettings({ email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1">Factory Address</label>
-                <textarea
-                  rows="2"
-                  value={storeSettings.address}
-                  onChange={(e) => updateStoreSettings({ address: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1">Working Production Hours</label>
-                <input
-                  type="text"
-                  value={storeSettings.workingHours}
-                  onChange={(e) => updateStoreSettings({ workingHours: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
-                />
-              </div>
-            </div>
-          </div>
-        </main>
-      )}
+        {/* TAB 18: ROLES & RBAC */}
+        {activeTab === 'roles' && (
+          <AdminRolesTab />
+        )}
+      </main>
     </div>
   );
 }

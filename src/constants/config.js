@@ -12,10 +12,25 @@ export const STORE_CONFIG = {
   currencySymbol: '₹',
   currencyCode: 'INR',
   socialLinks: {
-    instagram: 'https://instagram.com/theprinthub',
+    instagram: 'https://instagram.com/theprinthub_official',
     twitter: 'https://twitter.com/theprinthub',
     facebook: 'https://facebook.com/theprinthub',
   }
+};
+
+/**
+ * Central Official The PrintHub Social & Contact Links Configuration
+ * Used across Top Announcement Bar, Footer, and Floating widgets.
+ */
+export const OFFICIAL_CONTACT_LINKS = {
+  WHATSAPP_URL: `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${encodeURIComponent('Hi The PrintHub! I would like to enquire about custom merchandise and orders.')}`,
+  INSTAGRAM_URL: 'https://instagram.com/theprinthub_official',
+  FACEBOOK_URL: 'https://facebook.com/theprinthub',
+  WHATSAPP_CATALOG_URL: `https://wa.me/c/${STORE_CONFIG.whatsappNumber}`,
+  EMAIL_ADDRESS: STORE_CONFIG.supportEmail,
+  GMAIL_URL: `mailto:${STORE_CONFIG.supportEmail}?subject=${encodeURIComponent('The PrintHub Inquiry')}`,
+  GOOGLE_MAPS_URL: 'https://maps.google.com/?q=The+PrintHub+Sector+18+Gurugram+Haryana+122015',
+  PHONE_NUMBER: STORE_CONFIG.supportPhone,
 };
 
 /**
