@@ -13,6 +13,7 @@ import {
   ArrowDownRight,
   ArrowRight,
   Filter,
+  RotateCcw,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 
@@ -33,9 +34,23 @@ export function AdminDashboardTab({ onNavigateTab, onNavigate }) {
     designRequests = [],
     inventory = [],
     computeFinancialOverview,
+    cleanAllDemoData,
   } = useStore();
 
   const [dateFilter, setDateFilter] = useState('30DAYS'); // 'TODAY' | 'YESTERDAY' | '7DAYS' | '30DAYS' | 'THIS_MONTH' | 'LAST_MONTH' | 'ALL'
+  const [cleanNotice, setCleanNotice] = useState('');
+
+  const handleCleanDemoData = () => {
+    if (typeof window !== 'undefined') {
+      if (window.confirm('Are you sure you want to clean all existing demo data (orders, expenses, inventory, and design requests) to a fresh clean slate?')) {
+        cleanAllDemoData();
+        setCleanNotice('✓ All demo data has been cleaned successfully. Database is now at 0.');
+        setTimeout(() => setCleanNotice(''), 4500);
+      }
+    } else {
+      cleanAllDemoData();
+    }
+  };
 
   // Inventory KPIs
   const totalProducts = products.length;
@@ -64,6 +79,14 @@ export function AdminDashboardTab({ onNavigateTab, onNavigate }) {
 
   return (
     <div className="space-y-6 select-none animate-in fade-in duration-200">
+      {/* Notice Banner */}
+      {cleanNotice && (
+        <div className="p-3.5 px-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{cleanNotice}</span>
+        </div>
+      )}
+
       {/* =====================================================================
           HEADER CONTROLS & DATE FILTER BAR
           ===================================================================== */}
@@ -77,35 +100,49 @@ export function AdminDashboardTab({ onNavigateTab, onNavigate }) {
           </h2>
         </div>
 
-        {/* Date Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
-          <div className="flex items-center gap-1 text-[11px] font-mono text-[#B8A98F] mr-1 shrink-0">
-            <Filter className="w-3.5 h-3.5" />
-            <span>Range:</span>
+        {/* Action Buttons & Date Filter Pills */}
+        <div className="flex items-center gap-2.5 flex-wrap w-full md:w-auto">
+          {/* Date Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+            <div className="flex items-center gap-1 text-[11px] font-mono text-[#B8A98F] mr-1 shrink-0">
+              <Filter className="w-3.5 h-3.5" />
+              <span>Range:</span>
+            </div>
+            {[
+              { id: 'TODAY', label: 'Today' },
+              { id: '7DAYS', label: '7 Days' },
+              { id: '30DAYS', label: '30 Days' },
+              { id: 'THIS_MONTH', label: 'This Month' },
+              { id: 'ALL', label: 'All Time' },
+            ].map((item) => {
+              const active = dateFilter === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setDateFilter(item.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap border ${
+                    active
+                      ? 'bracket-selected-dark text-[#E5C690] bg-[#E5DAC9]/10 border-[#B8A98F]/70 shadow-sm'
+                      : 'bg-[#E5DAC9]/5 text-[#E5DAC9]/70 border-transparent hover:text-[#E5C690] hover:bg-[#E5DAC9]/10'
+                  }`}
+                >
+                  <span>{active ? `[ ${item.label} ]` : item.label}</span>
+                </button>
+              );
+            })}
           </div>
-          {[
-            { id: 'TODAY', label: 'Today' },
-            { id: '7DAYS', label: '7 Days' },
-            { id: '30DAYS', label: '30 Days' },
-            { id: 'THIS_MONTH', label: 'This Month' },
-            { id: 'ALL', label: 'All Time' },
-          ].map((item) => {
-            const active = dateFilter === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setDateFilter(item.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap border ${
-                  active
-                    ? 'bracket-selected-dark text-[#E5C690] bg-[#E5DAC9]/10 border-[#B8A98F]/70 shadow-sm'
-                    : 'bg-[#E5DAC9]/5 text-[#E5DAC9]/70 border-transparent hover:text-[#E5C690] hover:bg-[#E5DAC9]/10'
-                }`}
-              >
-                <span>{active ? `[ ${item.label} ]` : item.label}</span>
-              </button>
-            );
-          })}
+
+          {/* Clean Demo Data Action Button */}
+          <button
+            type="button"
+            onClick={handleCleanDemoData}
+            title="Reset demo data to 0"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-[#E5DAC9]/85 hover:text-[#E5C690] bg-[#E5DAC9]/10 hover:bg-[#E5DAC9]/20 border border-[#B8A98F]/40 hover:border-[#E5C690]/60 transition-all cursor-pointer whitespace-nowrap ml-auto"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-[#E5C690]" />
+            <span>Clean Demo Data</span>
+          </button>
         </div>
       </div>
 

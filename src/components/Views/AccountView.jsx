@@ -128,10 +128,10 @@ export function AccountView() {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-display font-black text-sm sm:text-base text-[#E5DAC9] uppercase tracking-tight">
-                THE PRINTHUB ATELIER COMMAND CENTER
+                THE PRINTHUB CUSTOMER ACCOUNT
               </span>
               <span className="px-2 py-0.5 rounded bg-[#E5C690]/20 text-[#E5C690] border border-[#B8A98F]/40 text-[9px] font-mono font-bold">
-                SECURE
+                SECURE PORTAL
               </span>
             </div>
             <span className="text-[10px] text-[#E5DAC9]/70 font-mono block">
@@ -363,39 +363,46 @@ export function AccountView() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/25 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">👕</span>
-                    <div>
-                      <span className="text-xs font-bold text-[#E5DAC9] block">Streetwear Oversized T-Shirt</span>
-                      <span className="text-[10px] text-[#B8A98F] font-mono">Variant: Black • DTF Print (2 Areas)</span>
-                    </div>
-                  </div>
+              {!savedDesigns || savedDesigns.length === 0 ? (
+                <div className="p-8 text-center text-[#B8A98F] text-xs bg-[#E5DAC9]/5 rounded-xl border border-[#B8A98F]/20 space-y-2">
+                  <Palette className="w-8 h-8 text-[#B8A98F] mx-auto opacity-60" />
+                  <p className="font-bold text-[#E5DAC9]">No custom creations yet.</p>
+                  <p className="text-[11px] text-[#B8A98F]">Create your own unique custom apparel, mugs, and merchandise in the 3D Studio!</p>
                   <button
                     onClick={() => navigateTo('design-by-customer')}
-                    className="px-3 py-1.5 rounded-xl bg-[#E5C690] text-[#183630] hover:bg-[#d9b87c] text-xs font-bold cursor-pointer"
+                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E5C690] text-[#183630] font-bold text-xs hover:bg-[#d9b87c] cursor-pointer transition-all"
                   >
-                    Edit →
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Start Customizing</span>
                   </button>
                 </div>
-
-                <div className="p-4 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/25 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">☕</span>
-                    <div>
-                      <span className="text-xs font-bold text-[#E5DAC9] block">Ceramic 11oz Coffee Mug</span>
-                      <span className="text-[10px] text-[#B8A98F] font-mono">Variant: White • 360° Wrap Sublimation</span>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {savedDesigns.map((des) => (
+                    <div
+                      key={des.id}
+                      className="p-4 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/25 flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">✨</span>
+                        <div>
+                          <span className="text-xs font-bold text-[#E5DAC9] block">{des.productName || 'Custom Product'}</span>
+                          <span className="text-[10px] text-[#B8A98F] font-mono">Saved {des.savedAt || 'Recently'}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (des.customization) loadCustomization(des.customization);
+                          navigateTo('design-by-customer');
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-[#E5C690] text-[#183630] hover:bg-[#d9b87c] text-xs font-bold cursor-pointer"
+                      >
+                        Edit →
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    onClick={() => navigateTo('design-by-customer')}
-                    className="px-3 py-1.5 rounded-xl bg-[#E5C690] text-[#183630] hover:bg-[#d9b87c] text-xs font-bold cursor-pointer"
-                  >
-                    Edit →
-                  </button>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
           )}
 

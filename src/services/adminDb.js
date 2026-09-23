@@ -289,504 +289,34 @@ export const INITIAL_CONTACT_SETTINGS = {
 };
 
 // =========================================================================
-// 4. DEFAULT SKU-LEVEL INVENTORY
+// 4. SKU-LEVEL INVENTORY (Clean state)
 // =========================================================================
-export const INITIAL_INVENTORY = [
-  {
-    sku: 'TSH-OVR-BLK-M',
-    productId: 'blank_oversized_tee',
-    productName: 'Streetwear Oversized T-Shirt',
-    variant: 'Black / M',
-    size: 'M',
-    color: 'Black',
-    openingStock: 150,
-    currentStock: 124,
-    reservedStock: 8,
-    soldQuantity: 18,
-    damagedQuantity: 0,
-    returnedQuantity: 0,
-    minStockLevel: 25,
-    unitCost: 190,
-    supplier: 'Vardhman Mills Tirupur',
-    status: 'IN STOCK',
-  },
-  {
-    sku: 'TSH-OVR-BLK-L',
-    productId: 'blank_oversized_tee',
-    productName: 'Streetwear Oversized T-Shirt',
-    variant: 'Black / L',
-    size: 'L',
-    color: 'Black',
-    openingStock: 200,
-    currentStock: 168,
-    reservedStock: 12,
-    soldQuantity: 20,
-    damagedQuantity: 0,
-    returnedQuantity: 0,
-    minStockLevel: 30,
-    unitCost: 190,
-    supplier: 'Vardhman Mills Tirupur',
-    status: 'IN STOCK',
-  },
-  {
-    sku: 'TSH-OVR-WHT-L',
-    productId: 'blank_oversized_tee',
-    productName: 'Streetwear Oversized T-Shirt',
-    variant: 'White / L',
-    size: 'L',
-    color: 'White',
-    openingStock: 100,
-    currentStock: 14,
-    reservedStock: 4,
-    soldQuantity: 82,
-    damagedQuantity: 0,
-    returnedQuantity: 0,
-    minStockLevel: 20,
-    unitCost: 185,
-    supplier: 'Vardhman Mills Tirupur',
-    status: 'LOW STOCK',
-  },
-  {
-    sku: 'HOD-HVY-BLK-XL',
-    productId: 'blank_fleece_hoodie',
-    productName: 'Heavyweight Fleece Hoodie',
-    variant: 'Black / XL',
-    size: 'XL',
-    color: 'Black',
-    openingStock: 80,
-    currentStock: 52,
-    reservedStock: 5,
-    soldQuantity: 23,
-    damagedQuantity: 0,
-    returnedQuantity: 0,
-    minStockLevel: 15,
-    unitCost: 450,
-    supplier: 'Ludhiana Knits Atelier',
-    status: 'IN STOCK',
-  },
-  {
-    sku: 'HOD-HVY-MNT-L',
-    productId: 'blank_fleece_hoodie',
-    productName: 'Heavyweight Fleece Hoodie',
-    variant: 'Sage Green / L',
-    size: 'L',
-    color: 'Sage Green',
-    openingStock: 50,
-    currentStock: 0,
-    reservedStock: 0,
-    soldQuantity: 50,
-    damagedQuantity: 0,
-    returnedQuantity: 0,
-    minStockLevel: 10,
-    unitCost: 460,
-    supplier: 'Ludhiana Knits Atelier',
-    status: 'OUT OF STOCK',
-  },
-  {
-    sku: 'MUG-CRM-11OZ',
-    productId: 'blank_ceramic_mug',
-    productName: 'Ceramic 11oz Coffee Mug',
-    variant: 'Gloss White',
-    size: '11oz',
-    color: 'White',
-    openingStock: 300,
-    currentStock: 245,
-    reservedStock: 10,
-    soldQuantity: 45,
-    damagedQuantity: 0,
-    returnedQuantity: 0,
-    minStockLevel: 40,
-    unitCost: 48,
-    supplier: 'Khurja Ceramics Ltd',
-    status: 'IN STOCK',
-  },
-  {
-    sku: 'VIS-CRD-MAT-100',
-    productId: 'blank_visiting_cards',
-    productName: 'Velvet Matte Business Cards (Pack of 100)',
-    variant: '350 GSM Velvet',
-    size: '3.5 x 2 in',
-    color: 'Matte',
-    openingStock: 500,
-    currentStock: 380,
-    reservedStock: 20,
-    soldQuantity: 100,
-    damagedQuantity: 0,
-    returnedQuantity: 0,
-    minStockLevel: 50,
-    unitCost: 110,
-    supplier: 'ITC Paperboards',
-    status: 'IN STOCK',
-  },
-];
+export const INITIAL_INVENTORY = [];
 
 // =========================================================================
-// 5. DEFAULT STOCK MOVEMENTS HISTORY
+// 5. DEFAULT STOCK MOVEMENTS HISTORY (Clean state)
 // =========================================================================
-export const INITIAL_STOCK_MOVEMENTS = [
-  {
-    id: 'SM-1001',
-    sku: 'TSH-OVR-BLK-M',
-    productName: 'Streetwear Oversized T-Shirt',
-    variant: 'Black / M',
-    quantity: 150,
-    type: 'ADD',
-    reason: 'Initial Inventory Stocking',
-    supplier: 'Vardhman Mills Tirupur',
-    unitCost: 190,
-    totalCost: 28500,
-    date: '2026-08-15T10:30:00.000Z',
-    admin: 'admin@theprinthub.com',
-  },
-  {
-    id: 'SM-1002',
-    sku: 'TSH-OVR-BLK-L',
-    productName: 'Streetwear Oversized T-Shirt',
-    variant: 'Black / L',
-    quantity: 200,
-    type: 'ADD',
-    reason: 'Initial Inventory Stocking',
-    supplier: 'Vardhman Mills Tirupur',
-    unitCost: 190,
-    totalCost: 38000,
-    date: '2026-08-15T10:45:00.000Z',
-    admin: 'admin@theprinthub.com',
-  },
-  {
-    id: 'SM-1003',
-    sku: 'HOD-HVY-BLK-XL',
-    productName: 'Heavyweight Fleece Hoodie',
-    variant: 'Black / XL',
-    quantity: 80,
-    type: 'ADD',
-    reason: 'New Purchase Order Batch #409',
-    supplier: 'Ludhiana Knits Atelier',
-    unitCost: 450,
-    totalCost: 36000,
-    date: '2026-08-20T14:10:00.000Z',
-    admin: 'admin@theprinthub.com',
-  },
-  {
-    id: 'SM-1004',
-    sku: 'MUG-CRM-11OZ',
-    productName: 'Ceramic 11oz Coffee Mug',
-    variant: 'Gloss White',
-    quantity: 300,
-    type: 'ADD',
-    reason: 'Bulk Crate Delivery',
-    supplier: 'Khurja Ceramics Ltd',
-    unitCost: 48,
-    totalCost: 14400,
-    date: '2026-08-22T11:00:00.000Z',
-    admin: 'admin@theprinthub.com',
-  },
-];
+export const INITIAL_STOCK_MOVEMENTS = [];
 
 // =========================================================================
-// 6. DEFAULT ORDERS (Online, Manual, WhatsApp, Walk-in)
+// 6. DEFAULT ORDERS (Clean state)
 // =========================================================================
-export const INITIAL_ORDERS = [
-  {
-    id: 'ORD-9842',
-    orderNumber: '#9842',
-    channel: 'online',
-    customer: {
-      name: 'Aarav Sharma',
-      email: 'aarav.sharma@gmail.com',
-      phone: '+91 98112 34567',
-      address: 'A-402, Nirvana Country, Sector 50, Gurugram 122018',
-    },
-    date: '2026-09-08T11:20:00.000Z',
-    items: [
-      {
-        sku: 'TSH-OVR-BLK-L',
-        name: 'Streetwear Oversized T-Shirt',
-        variant: 'Black / L',
-        quantity: 2,
-        price: 699,
-        unitCost: 240, // blank 190 + print 50
-        printArea: 'Center Chest + Upper Back',
-      },
-    ],
-    subtotal: 1398,
-    discount: 100,
-    shipping: 0,
-    tax: 65,
-    total: 1363,
-    totalCost: 480,
-    netProfit: 883,
-    marginPercent: 64.8,
-    paymentStatus: 'PAID',
-    paymentMethod: 'UPI / Razorpay',
-    orderStatus: 'Printing',
-    notes: 'Prioritize chest print resolution 300 DPI.',
-  },
-  {
-    id: 'ORD-9843',
-    orderNumber: '#9843',
-    channel: 'whatsapp',
-    customer: {
-      name: 'Priya Mehra (Zomato Merch Lead)',
-      email: 'priya.mehra@zomato.com',
-      phone: '+91 98710 88990',
-      address: 'Zomato HQ, DLF Phase 5, Gurugram 122002',
-    },
-    date: '2026-09-09T09:15:00.000Z',
-    items: [
-      {
-        sku: 'TSH-OVR-BLK-M',
-        name: 'Streetwear Oversized T-Shirt',
-        variant: 'Black / M',
-        quantity: 15,
-        price: 550,
-        unitCost: 220,
-        printArea: 'Pocket Logo + Back Vector',
-      },
-    ],
-    subtotal: 8250,
-    discount: 500,
-    shipping: 250,
-    tax: 400,
-    total: 8400,
-    totalCost: 3300,
-    netProfit: 5100,
-    marginPercent: 60.7,
-    paymentStatus: 'PAID',
-    paymentMethod: 'Bank Transfer (NEFT)',
-    orderStatus: 'Packed',
-    notes: 'WhatsApp confirmation provided with vector logo file.',
-  },
-  {
-    id: 'ORD-9844',
-    orderNumber: '#9844',
-    channel: 'manual_walkin',
-    customer: {
-      name: 'Karan Malhotra',
-      email: 'karan.malhotra@creativeminds.io',
-      phone: '+91 99990 12345',
-      address: 'Walk-in Atelier Client, Gurugram',
-    },
-    date: '2026-09-09T16:40:00.000Z',
-    items: [
-      {
-        sku: 'HOD-HVY-BLK-XL',
-        name: 'Heavyweight Fleece Hoodie',
-        variant: 'Black / XL',
-        quantity: 5,
-        price: 1399,
-        unitCost: 520, // blank 450 + thermal print 70
-        printArea: 'Center Chest Embroidery Look',
-      },
-    ],
-    subtotal: 6995,
-    discount: 400,
-    shipping: 0,
-    tax: 330,
-    total: 6925,
-    totalCost: 2600,
-    netProfit: 4325,
-    marginPercent: 62.5,
-    paymentStatus: 'PAID',
-    paymentMethod: 'Cash',
-    orderStatus: 'Delivered',
-    notes: 'Walk-in pickup at Atelier counter.',
-  },
-  {
-    id: 'ORD-9845',
-    orderNumber: '#9845',
-    channel: 'online',
-    customer: {
-      name: 'Simran Kaur',
-      email: 'simran.kaur98@gmail.com',
-      phone: '+91 98100 54321',
-      address: 'Flat 12B, Palm Springs, Golf Course Road, Gurugram',
-    },
-    date: '2026-09-10T00:30:00.000Z',
-    items: [
-      {
-        sku: 'MUG-CRM-11OZ',
-        name: 'Ceramic 11oz Coffee Mug',
-        variant: 'Gloss White',
-        quantity: 2,
-        price: 299,
-        unitCost: 65, // blank 48 + sublimation 17
-        printArea: '360 Wrap',
-      },
-    ],
-    subtotal: 598,
-    discount: 50,
-    shipping: 49,
-    tax: 27,
-    total: 624,
-    totalCost: 130,
-    netProfit: 494,
-    marginPercent: 79.1,
-    paymentStatus: 'PAID',
-    paymentMethod: 'UPI / GPay',
-    orderStatus: 'Processing',
-    notes: 'Gift wrap requested with message card.',
-  },
-];
+export const INITIAL_ORDERS = [];
 
 // =========================================================================
-// 7. DEFAULT OPERATIONAL EXPENSES
+// 7. DEFAULT OPERATIONAL EXPENSES (Clean state)
 // =========================================================================
-export const INITIAL_EXPENSES = [
-  {
-    id: 'EXP-501',
-    name: 'Industrial DTF White & CMYK Inks 5L Set',
-    category: 'Ink',
-    amount: 14500,
-    date: '2026-08-25T11:00:00.000Z',
-    paymentMethod: 'Corporate Card',
-    description: 'SubliSmart Pro 5-bottle pigment inks for Roland printing line.',
-    notes: 'Batch #IK-9921',
-  },
-  {
-    id: 'EXP-502',
-    name: 'Garment Corrugated Boxes & Butter Paper (500 pcs)',
-    category: 'Packaging',
-    amount: 6200,
-    date: '2026-08-28T14:30:00.000Z',
-    paymentMethod: 'UPI',
-    description: 'Branded eco-friendly kraft boxes with gold sticker seals.',
-    notes: 'Delivered by PackRight Faridabad',
-  },
-  {
-    id: 'EXP-503',
-    name: 'Industrial Heat Press Teflon Sheet Replacement & Servicing',
-    category: 'Machine maintenance',
-    amount: 3800,
-    date: '2026-09-02T16:00:00.000Z',
-    paymentMethod: 'Bank Transfer',
-    description: 'Calibration of temperature sensors and pneumatic pressure pads.',
-    notes: 'Technician: Rajesh Sharma Engineers',
-  },
-  {
-    id: 'EXP-504',
-    name: 'Instagram Sponsored Ads Campaign (Drop #4)',
-    category: 'Marketing',
-    amount: 8500,
-    date: '2026-09-05T09:00:00.000Z',
-    paymentMethod: 'Corporate Card',
-    description: 'Targeted ad set for oversized tees across Delhi-NCR and Mumbai.',
-    notes: 'ROI tracking via Meta Business Suite',
-  },
-  {
-    id: 'EXP-505',
-    name: 'Atelier Studio Electricity & Air Cooling',
-    category: 'Electricity',
-    amount: 9400,
-    date: '2026-09-07T10:00:00.000Z',
-    paymentMethod: 'Net Banking',
-    description: 'Monthly utility consumption for climate-controlled printing room.',
-    notes: 'DHBVN Bill #8812903',
-  },
-];
+export const INITIAL_EXPENSES = [];
 
 // =========================================================================
-// 8. DEFAULT CUSTOMERS CRM
+// 8. DEFAULT CUSTOMERS CRM (Clean state)
 // =========================================================================
-export const INITIAL_CUSTOMERS = [
-  {
-    id: 'CUST-001',
-    name: 'Aarav Sharma',
-    email: 'aarav.sharma@gmail.com',
-    phone: '+91 98112 34567',
-    city: 'Gurugram',
-    state: 'Haryana',
-    ordersCount: 4,
-    totalSpent: 6240,
-    lastOrderDate: '2026-09-08T11:20:00.000Z',
-    status: 'ACTIVE',
-    notes: 'Regular streetwear creator. Prefers heavy drop-shoulder cotton.',
-  },
-  {
-    id: 'CUST-002',
-    name: 'Priya Mehra',
-    email: 'priya.mehra@zomato.com',
-    phone: '+91 98710 88990',
-    city: 'Gurugram',
-    state: 'Haryana',
-    ordersCount: 3,
-    totalSpent: 28400,
-    lastOrderDate: '2026-09-09T09:15:00.000Z',
-    status: 'VIP',
-    notes: 'Corporate account manager at Zomato. Contact for bulk seasonal orders.',
-  },
-  {
-    id: 'CUST-003',
-    name: 'Karan Malhotra',
-    email: 'karan.malhotra@creativeminds.io',
-    phone: '+91 99990 12345',
-    city: 'New Delhi',
-    state: 'Delhi',
-    ordersCount: 2,
-    totalSpent: 11425,
-    lastOrderDate: '2026-09-09T16:40:00.000Z',
-    status: 'ACTIVE',
-    notes: 'Design studio director. Prefers matte finish visiting cards & hoodies.',
-  },
-  {
-    id: 'CUST-004',
-    name: 'Simran Kaur',
-    email: 'simran.kaur98@gmail.com',
-    phone: '+91 98100 54321',
-    city: 'Gurugram',
-    state: 'Haryana',
-    ordersCount: 1,
-    totalSpent: 624,
-    lastOrderDate: '2026-09-10T00:30:00.000Z',
-    status: 'ACTIVE',
-    notes: 'New direct consumer. Personalized mugs & gifts.',
-  },
-];
+export const INITIAL_CUSTOMERS = [];
 
 // =========================================================================
-// 9. DEFAULT AUDIT / ACTIVITY LOGS
+// 9. DEFAULT AUDIT / ACTIVITY LOGS (Clean state)
 // =========================================================================
-export const INITIAL_AUDIT_LOGS = [
-  {
-    id: 'LOG-901',
-    admin: 'admin@theprinthub.com',
-    action: 'INVENTORY_RESTOCK',
-    section: 'Inventory',
-    record: 'TSH-OVR-BLK-L',
-    oldValue: '118 units',
-    newValue: '168 units (+50)',
-    timestamp: '2026-09-08T14:22:10.000Z',
-  },
-  {
-    id: 'LOG-902',
-    admin: 'admin@theprinthub.com',
-    action: 'ORDER_STATUS_UPDATE',
-    section: 'Orders',
-    record: 'ORD-9843',
-    oldValue: 'Processing',
-    newValue: 'Packed',
-    timestamp: '2026-09-09T11:45:00.000Z',
-  },
-  {
-    id: 'LOG-903',
-    admin: 'admin@theprinthub.com',
-    action: 'HOMEPAGE_CMS_PUBLISH',
-    section: 'Hero Section',
-    record: 'hero',
-    oldValue: 'Draft Saved',
-    newValue: 'Published to Live Storefront',
-    timestamp: '2026-09-09T15:30:00.000Z',
-  },
-  {
-    id: 'LOG-904',
-    admin: 'admin@theprinthub.com',
-    action: 'EXPENSE_RECORDED',
-    section: 'Finance',
-    record: 'EXP-505',
-    oldValue: 'None',
-    newValue: '₹9,400 Utility bill logged',
-    timestamp: '2026-09-09T17:10:00.000Z',
-  },
-];
+export const INITIAL_AUDIT_LOGS = [];
 
 // =========================================================================
 // 10. ROLE-BASED ACCESS PERMISSION PROFILES
@@ -924,6 +454,51 @@ export function computeFinancialOverview(orders = [], expenses = [], filterRange
 }
 
 /**
+ * Purges known legacy demo records from localStorage automatically
+ */
+export function purgeLegacyDemoData() {
+  if (typeof window === 'undefined') return;
+  try {
+    const keysToCheck = [
+      { key: DB_KEYS.ORDERS, marker: 'ORD-9842' },
+      { key: DB_KEYS.EXPENSES, marker: 'EXP-501' },
+      { key: DB_KEYS.CUSTOMERS, marker: 'CUST-001' },
+      { key: DB_KEYS.STOCK_MOVEMENTS, marker: 'SM-1001' },
+      { key: DB_KEYS.INVENTORY, marker: 'TSH-OVR-' },
+      { key: DB_KEYS.AUDIT_LOGS, marker: 'LOG-901' },
+      { key: 'the_printhub_design_requests', marker: 'PH-2026-00001' },
+    ];
+
+    keysToCheck.forEach(({ key, marker }) => {
+      const stored = localStorage.getItem(key);
+      if (stored && stored.includes(marker)) {
+        localStorage.setItem(key, JSON.stringify([]));
+      }
+    });
+  } catch (e) {
+    console.warn('[adminDb] Demo purge error:', e);
+  }
+}
+
+/**
+ * Unconditionally resets all transactional business data to a fresh clean slate
+ */
+export function clearAllDatabaseDemoData() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify([]));
+    localStorage.setItem(DB_KEYS.EXPENSES, JSON.stringify([]));
+    localStorage.setItem(DB_KEYS.CUSTOMERS, JSON.stringify([]));
+    localStorage.setItem(DB_KEYS.STOCK_MOVEMENTS, JSON.stringify([]));
+    localStorage.setItem(DB_KEYS.INVENTORY, JSON.stringify([]));
+    localStorage.setItem(DB_KEYS.AUDIT_LOGS, JSON.stringify([]));
+    localStorage.setItem('the_printhub_design_requests', JSON.stringify([]));
+  } catch (e) {
+    console.warn('[adminDb] clearAllDatabaseDemoData error:', e);
+  }
+}
+
+/**
  * Loads data from localStorage or provides robust initial fallback
  */
 export function loadAdminDatabase() {
@@ -940,6 +515,9 @@ export function loadAdminDatabase() {
       auditLogs: INITIAL_AUDIT_LOGS,
     };
   }
+
+  // Auto-purge any stale mock data on load
+  purgeLegacyDemoData();
 
   const loadItem = (key, fallback) => {
     try {

@@ -31,15 +31,15 @@ export function CheckoutView() {
     openAuthModal,
   } = useStore();
 
-  // Checkout Form State
+  // Checkout Form State (Clean customer input state)
   const [address, setAddress] = useState({
-    fullName: currentUser?.name || 'Satya Kumar',
-    phone: currentUser?.mobile || '+91 98765 43210',
-    email: currentUser?.email || 'satya.designer@gmail.com',
-    addressLine1: 'Villa 14, Lotus Boulevard, Sector 100',
-    city: 'Noida',
-    state: 'Uttar Pradesh',
-    pinCode: '201304',
+    fullName: currentUser?.name || '',
+    phone: currentUser?.mobile || '',
+    email: currentUser?.email || '',
+    addressLine1: '',
+    city: '',
+    state: '',
+    pinCode: '',
     country: 'India',
     addressType: 'Home',
   });

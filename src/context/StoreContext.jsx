@@ -26,6 +26,7 @@ import {
   computeFinancialOverview,
   loadAdminDatabase,
   saveAdminData,
+  clearAllDatabaseDemoData,
 } from '../services/adminDb';
 
 export const THEMES = [
@@ -1207,6 +1208,18 @@ export function StoreProvider({ children }) {
     }
   }, []);
 
+  // Clean All Demo Data across entire database
+  const cleanAllDemoData = useCallback(() => {
+    clearAllDatabaseDemoData();
+    setOrders([]);
+    setExpenses([]);
+    setCustomers([]);
+    setInventory([]);
+    setStockMovements([]);
+    setAuditLogs([]);
+    setDesignRequests([]);
+  }, []);
+
   // Screenshot / Snapshot Modal State
   const [screenshotData, setScreenshotData] = useState(null);
   const [isScreenshotModalOpen, setIsScreenshotModalOpen] = useState(false);
@@ -1280,6 +1293,7 @@ export function StoreProvider({ children }) {
 
         // Orders & Admin Workflow
         orders,
+        adminOrders: orders,
         setOrders,
         updateOrderStatus,
         createAdminShipment,
@@ -1367,6 +1381,7 @@ export function StoreProvider({ children }) {
         changeAdminRole,
         ADMIN_ROLES,
         computeFinancialOverview,
+        cleanAllDemoData,
       }}
     >
       {children}

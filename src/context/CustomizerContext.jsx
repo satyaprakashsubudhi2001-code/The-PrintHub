@@ -79,30 +79,7 @@ export function CustomizerProvider({ children }) {
   const [is2DFallback, setIs2DFallback] = useState(false);
 
   // Cart & Order History
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 'sample_cart_item_1',
-      productId: 'tshirt',
-      productName: 'Classic T-Shirt',
-      color: '#121214',
-      colorName: 'Obsidian Black',
-      size: 'L',
-      quantity: 2,
-      printingMethod: 'dtf',
-      printingMethodName: 'HD Direct-to-Film (DTF)',
-      unitPrice: 619,
-      totalPrice: 1238,
-      printAreasUsed: ['front_center'],
-      previewImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23121214"/><text x="100" y="105" fill="%23f97316" font-size="48" font-family="Arial" text-anchor="middle">👕</text></svg>',
-      config: {
-        productId: 'tshirt',
-        color: '#121214',
-        designsCount: 1,
-        textsCount: 1,
-      },
-      createdAt: new Date().toISOString()
-    }
-  ]);
+  const [cartItems, setCartItems] = useState([]);
 
   // Undo / Redo history stacks
   const [history, setHistory] = useState([]);
