@@ -164,9 +164,24 @@ export function StoreProvider({ children }) {
   // Navigation Page State with URL Hash / Path resolution
   const resolvePageFromLocation = () => {
     if (typeof window === 'undefined') return 'home';
-    const hash = window.location.hash.replace('#', '').replace(/^\//, '').split('?')[0];
-    const path = window.location.pathname.replace(/^\//, '').split('?')[0];
-    const route = hash || path;
+
+    const clean = (val) =>
+      (val || '')
+        .replace(/^#\/?/, '')
+        .replace(/^\/+/, '')
+        .replace(/\/+$/, '')
+        .split('?')[0]
+        .trim()
+        .toLowerCase();
+
+    const hashRoute = clean(window.location.hash);
+    const pathRoute = clean(window.location.pathname);
+
+    // If pathname is a specific known route (e.g. /admin, /admin-login, /products), prioritize it
+    const isSpecificPath = pathRoute && pathRoute !== 'index.html' && pathRoute !== 'index';
+    const isSpecificHash = hashRoute && hashRoute !== 'home';
+
+    const route = isSpecificPath ? pathRoute : (isSpecificHash ? hashRoute : (pathRoute || hashRoute || 'home'));
 
     if (route === 'admin' || route === 'admin/dashboard') return 'admin';
     if (route === 'admin/login' || route === 'admin-login') return 'admin-login';
@@ -1180,6 +1195,12 @@ export function StoreProvider({ children }) {
       if (window.location.hash.replace('#', '') !== targetHash) {
         window.location.hash = targetHash;
       }
+      try {
+        const targetPath = targetPage === 'home' ? '/' : '/' + targetPage;
+        if (window.history && window.history.pushState && window.location.pathname !== targetPath) {
+          window.history.pushState({ page: targetPage }, '', targetPath);
+        }
+      } catch (e) {}
       if (!options.preserveScroll) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
