@@ -555,8 +555,8 @@ export function StoreProvider({ children }) {
     ];
     const validPasswords = ['admin123', 'admin', 'admin@123', 'printhub123', '123456'];
 
-    const isValidUser = validEmails.includes(rawEmail) || rawEmail.includes('admin') || rawEmail === '';
-    const isValidPass = validPasswords.includes(rawPass) || rawPass === 'admin123';
+    const isValidUser = (validEmails.includes(rawEmail) || rawEmail.includes('admin')) && rawEmail.length > 0;
+    const isValidPass = (validPasswords.includes(rawPass) || rawPass === 'admin123') && rawPass.length > 0;
 
     if (isValidUser && isValidPass) {
       const userObj = {
@@ -571,7 +571,7 @@ export function StoreProvider({ children }) {
       }
       return { success: true };
     }
-    return { success: false, message: 'Invalid credentials. Hint: use password "admin123"' };
+    return { success: false, message: 'Access Denied: Invalid administrator credentials.' };
   }, []);
 
   const logoutAdmin = useCallback(() => {

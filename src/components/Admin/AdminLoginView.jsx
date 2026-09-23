@@ -13,8 +13,8 @@ import { useStore } from '../../context/StoreContext';
 
 export function AdminLoginView() {
   const { loginAdmin, navigateTo } = useStore();
-  const [identifier, setIdentifier] = useState('admin@theprinthub.com');
-  const [passcode, setPasscode] = useState('admin123');
+  const [identifier, setIdentifier] = useState('');
+  const [passcode, setPasscode] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -39,12 +39,6 @@ export function AdminLoginView() {
   const handleSubmit = (e) => {
     e.preventDefault();
     executeLogin();
-  };
-
-  const handleQuickDemoLogin = () => {
-    setIdentifier('admin@theprinthub.com');
-    setPasscode('admin123');
-    executeLogin('admin@theprinthub.com', 'admin123');
   };
 
   return (
@@ -86,23 +80,8 @@ export function AdminLoginView() {
             Staff Gateway 🛡
           </h1>
           <p className="text-xs text-slate-400">
-            Authorized personnel only. Access design requests, product catalog manager, and calibrations.
+            Authorized personnel only. Access design requests, product catalog manager, and operational tools.
           </p>
-        </div>
-
-        {/* Quick 1-Click Access Pill */}
-        <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-between gap-2 text-xs">
-          <div>
-            <span className="text-[11px] font-bold text-cyan-300 block">Default Admin Credentials</span>
-            <span className="text-[10px] font-mono text-slate-400">admin@theprinthub.com • admin123</span>
-          </div>
-          <button
-            type="button"
-            onClick={handleQuickDemoLogin}
-            className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-[11px] uppercase tracking-wider shrink-0 transition-transform active:scale-95 shadow-md shadow-cyan-500/30"
-          >
-            ⚡ 1-Click Sign In
-          </button>
         </div>
 
         {/* Error Feedback */}
@@ -119,9 +98,11 @@ export function AdminLoginView() {
             <input
               type="text"
               required
+              autoComplete="username"
+              placeholder="Enter admin email"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
+              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400"
             />
           </div>
 
@@ -131,10 +112,11 @@ export function AdminLoginView() {
               <input
                 type={showPasscode ? 'text' : 'password'}
                 required
-                placeholder="Enter admin password"
+                autoComplete="current-password"
+                placeholder="Enter password"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 pr-10"
+                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 pr-10"
               />
               <button
                 type="button"

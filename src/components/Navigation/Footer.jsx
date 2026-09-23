@@ -241,18 +241,6 @@ export function Footer() {
                 Artwork Guidelines (PNG / PDF)
               </button>
             </li>
-            <li>
-              <button
-                onClick={() => {
-                  navigateTo('admin-login');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="flex items-center gap-1.5 pt-1 text-[#E5DAC9]/60 hover:text-[#E5C690] transition-colors font-mono text-[11px]"
-              >
-                <Lock className="w-3 h-3 text-[#B8A98F]" />
-                <span>Staff Admin Portal</span>
-              </button>
-            </li>
           </ul>
         </div>
 

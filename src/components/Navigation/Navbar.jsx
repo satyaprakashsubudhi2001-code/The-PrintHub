@@ -486,15 +486,7 @@ export function Navbar() {
 
           <div className="pt-3 border-t border-[#B8A98F]/30 flex items-center justify-between text-xs text-[#E5DAC9]/75 font-medium">
             <span>The PrintHub Atelier</span>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                navigateTo('admin-login');
-              }}
-              className="text-[#E5C690] hover:underline font-mono text-[11px] font-bold cursor-pointer"
-            >
-              Staff Portal →
-            </button>
+            <span className="text-[11px] font-mono text-[#E5C690]/80">Est. 2026</span>
           </div>
         </div>
       )}
