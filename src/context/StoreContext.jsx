@@ -547,21 +547,26 @@ export function StoreProvider({ children }) {
     const rawPass = (credentials?.password || '').trim();
 
     const validEmails = [
+      'theprinthub.in@gmail.com',
       'admin@theprinthub.com',
       'admin@theprinthub.in',
       'admin',
-      'theprinthub.in@gmail.com',
-      'admin@gmail.com',
     ];
-    const validPasswords = ['admin123', 'admin', 'admin@123', 'printhub123', '123456'];
+    const validPasswords = [
+      'Theprinthub@123',
+      'theprinthub@123',
+      'ThePrintHub@123',
+      'admin123',
+      'printhub123',
+    ];
 
-    const isValidUser = (validEmails.includes(rawEmail) || rawEmail.includes('admin')) && rawEmail.length > 0;
-    const isValidPass = (validPasswords.includes(rawPass) || rawPass === 'admin123') && rawPass.length > 0;
+    const isValidUser = (validEmails.includes(rawEmail) || rawEmail.includes('theprinthub') || rawEmail.includes('admin')) && rawEmail.length > 0;
+    const isValidPass = (validPasswords.includes(rawPass) || rawPass.toLowerCase() === 'theprinthub@123') && rawPass.length > 0;
 
     if (isValidUser && isValidPass) {
       const userObj = {
         name: 'The PrintHub Admin',
-        email: rawEmail || 'admin@theprinthub.com',
+        email: rawEmail || 'theprinthub.in@gmail.com',
         role: 'admin',
         loginAt: new Date().toISOString(),
       };
