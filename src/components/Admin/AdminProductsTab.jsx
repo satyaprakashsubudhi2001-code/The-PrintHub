@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { MASTER_CALIBRATIONS } from '../../constants/printCalibration';
+import ImageCropperModal from '../UI/ImageCropperModal';
 
 // Available 3D Models (.GLB)
 const AVAILABLE_3D_MODELS = [
@@ -191,6 +192,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [cropQueue, setCropQueue] = useState([]);
 
   // Form State with Comprehensive Options
   const [formData, setFormData] = useState({
@@ -204,6 +206,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
     compareAtPrice: 799,
     badge: 'New Arrival',
     image: PRODUCT_PRESETS[0].image,
+    images: [PRODUCT_PRESETS[0].image],
     modelPath: PRODUCT_PRESETS[0].modelPath,
     defaultColor: '#18181b',
     colors: [
@@ -223,7 +226,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
   const [formError, setFormError] = useState('');
 
   // Auto-fill category when categories load if empty
-  const defaultCategory = categories[0]?.name || 'Apparel';
+  const defaultCategory = categories.length > 0 ? categories[0].name : '';
 
   // Open Modal for New Product
   const handleOpenAddModal = (preset = null) => {
@@ -248,6 +251,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       compareAtPrice: preset ? preset.compareAtPrice : 799,
       badge: 'New Arrival',
       image: preset ? preset.image : PRODUCT_PRESETS[0].image,
+      images: preset ? [preset.image] : [PRODUCT_PRESETS[0].image],
       modelPath: preset ? preset.modelPath : PRODUCT_PRESETS[0].modelPath,
       defaultColor: '#18181b',
       colors: [
@@ -281,6 +285,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       compareAtPrice: prod.compareAtPrice || 0,
       badge: prod.badge || 'None',
       image: prod.image || prod.images?.[0] || '',
+      images: prod.images && prod.images.length > 0 ? prod.images : [prod.image || ''],
       modelPath: prod.modelPath || '/models/round-neck-tshirt.glb',
       defaultColor: prod.defaultColor || '#18181b',
       colors: prod.colors && prod.colors.length > 0 ? prod.colors : [{ name: 'Default', hex: prod.defaultColor || '#18181b' }],
@@ -353,6 +358,14 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       setFormError('Product SKU / Identifier is required.');
       return;
     }
+    if (!formData.category) {
+      setFormError('Please select a category.');
+      return;
+    }
+    if (!formData.images || formData.images.length === 0) {
+      setFormError('Please add at least one product image.');
+      return;
+    }
 
     const parsedSizes = customSizesInput
       .split(',')
@@ -396,7 +409,8 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       printAreas: editingProduct?.printAreas || printAreas,
       defaultPrintArea: printAreas?.[0]?.id || 'center_chest',
       tags: parsedTags,
-      images: [formData.image],
+      images: formData.images,
+      image: formData.images[0], // primary is always the first index by design
     };
 
     if (editingProduct) {
@@ -477,8 +491,9 @@ export function AdminProductsTab({ onNavigateToCategories }) {
 
       {/* Confirmation Modal for Clearing All Products */}
       {showClearConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-[#0c101d] border border-rose-500/40 p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+          <div className="relative w-full max-w-md rounded-[22px] bg-[#0B1020] border border-rose-500/30 p-6 space-y-4 shadow-[0_24px_80px_rgba(0,0,0,0.40)] animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
             <div className="flex items-center gap-3 text-rose-400">
               <AlertCircle className="w-6 h-6" />
               <h3 className="font-display font-black text-lg text-white uppercase">Remove All Products?</h3>
@@ -744,8 +759,9 @@ export function AdminProductsTab({ onNavigateToCategories }) {
          5. ADD / EDIT PRODUCT MODAL (COMPREHENSIVE PARAMETERS)
          ========================================================================= */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in">
-          <div className="w-full max-w-3xl rounded-3xl bg-[#0c101d] border border-slate-800 p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto my-auto shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+          <div className="relative w-full max-w-3xl rounded-[22px] bg-[#0B1020] border border-[rgba(255,255,255,0.08)] p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto my-auto shadow-[0_24px_80px_rgba(0,0,0,0.40)] animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div>
@@ -830,21 +846,18 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-cyan-400 focus:outline-none"
                     >
+                      <option value="" disabled>Select Category ▼</option>
                       {categories.map((c) => (
                         <option key={c.id} value={c.name}>{c.name}</option>
                       ))}
                     </select>
                   ) : (
                     <div className="space-y-1">
-                      <input
-                        type="text"
-                        placeholder="Type category name..."
-                        value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-amber-500/40 text-white focus:border-amber-400 focus:outline-none"
-                      />
+                      <div className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-amber-500/40 text-amber-500/80 text-sm">
+                        No categories available. Please create a category first.
+                      </div>
                       <span className="text-[10px] text-amber-400/90 block font-mono">
-                        Tip: Add categories in Categories tab for auto grouping.
+                        Tip: Add categories in Categories tab.
                       </span>
                     </div>
                   )}
@@ -927,27 +940,88 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-slate-400 uppercase font-bold block mb-1.5">
-                      Product Photography Image URL *
+                      Product Photography Images *
                     </label>
-                    <div className="flex gap-3 items-center">
-                      <div className="w-14 h-14 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden shrink-0">
-                        <img
-                          src={formData.image || PRODUCT_PRESETS[0].image}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.src = PRODUCT_PRESETS[0].image;
-                          }}
-                        />
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <label className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-cyan-400 cursor-pointer text-center font-bold font-mono text-sm transition-colors border-dashed flex items-center justify-center gap-2">
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const files = Array.from(e.target.files || []);
+                              if (files.length === 0) return;
+                              
+                              const newSources = [];
+                              let loadedCount = 0;
+                              files.forEach(file => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  if (reader.result) {
+                                    newSources.push(reader.result);
+                                  }
+                                  loadedCount++;
+                                  if (loadedCount === files.length) {
+                                    setCropQueue(prev => [...prev, ...newSources]);
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              });
+                              e.target.value = '';
+                            }}
+                          />
+                          <span>+ Upload Images</span>
+                        </label>
                       </div>
-                      <input
-                        type="url"
-                        required
-                        placeholder="https://images.unsplash.com/..."
-                        value={formData.image}
-                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-cyan-400 focus:outline-none"
-                      />
+
+                      {/* Image Gallery Previews */}
+                      {formData.images && formData.images.length > 0 && (
+                        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                          {formData.images.map((img, idx) => (
+                            <div key={idx} className="relative w-24 h-24 shrink-0 rounded-xl bg-slate-950 border border-slate-700 overflow-hidden group">
+                              <img src={img} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" onError={(e) => { e.target.src = '/logo-mark-symbol.png'; }} />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                {idx !== 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData(prev => {
+                                        const newImages = [...prev.images];
+                                        const temp = newImages[0];
+                                        newImages[0] = newImages[idx];
+                                        newImages[idx] = temp;
+                                        return { ...prev, images: newImages };
+                                      });
+                                    }}
+                                    className="text-[9px] font-bold px-2 py-1 bg-cyan-500 text-slate-900 rounded cursor-pointer"
+                                  >
+                                    ★ PRIMARY
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      images: prev.images.filter((_, i) => i !== idx)
+                                    }));
+                                  }}
+                                  className="text-[9px] font-bold px-2 py-1 bg-red-500/80 text-white rounded hover:bg-red-500 cursor-pointer"
+                                >
+                                  Remove ×
+                                </button>
+                              </div>
+                              {idx === 0 && (
+                                <div className="absolute bottom-0 left-0 right-0 bg-cyan-500 text-slate-900 text-[9px] font-bold text-center py-0.5">
+                                  ★ PRIMARY
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1156,6 +1230,20 @@ export function AdminProductsTab({ onNavigateToCategories }) {
             </form>
           </div>
         </div>
+      )}
+      {/* Image Cropper Modal */}
+      {cropQueue.length > 0 && (
+        <ImageCropperModal
+          imageSrc={cropQueue[0]}
+          aspectRatio={4 / 5}
+          onCropComplete={(croppedImage) => {
+            setFormData(prev => ({ ...prev, images: [...(prev.images || []), croppedImage] }));
+            setCropQueue(prev => prev.slice(1));
+          }}
+          onCancel={() => {
+            setCropQueue(prev => prev.slice(1));
+          }}
+        />
       )}
     </div>
   );

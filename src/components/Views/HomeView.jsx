@@ -128,7 +128,10 @@ export function HomeView() {
     setSelectedCategory,
     storeSettings,
     homepageContent = {},
+    categories = [],
   } = useStore();
+
+  const activeCategories = categories.filter((c) => c.status !== 'inactive');
 
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
 
@@ -271,7 +274,7 @@ export function HomeView() {
                 OUR BESPOKE MERCHANDISE ARCHIVE
               </span>
               <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#183630]">
-                8 Core Product Categories
+                {activeCategories.length} Core Product Categories
               </h2>
               <p className="text-xs sm:text-sm text-[#183630]/80 mt-1 max-w-xl">
                 Explore our full line of custom merchandise manufactured with industrial-grade pigmentation and zero minimum thresholds.
@@ -301,75 +304,83 @@ export function HomeView() {
                   : 'bg-[#E5DAC9] border border-[#B8A98F]/50 text-[#183630]/80 hover:border-[#183630]'
               }`}
             >
-              {activeCategoryFilter === 'all' ? '[ All 8 Categories ]' : 'All Categories'}
+              {activeCategoryFilter === 'all' ? `[ All ${activeCategories.length} Categories ]` : 'All Categories'}
             </button>
-            {EIGHT_PRODUCT_CATEGORIES.map((cat) => (
+            {activeCategories.map((cat) => (
               <button
-                key={cat.category}
-                onClick={() => setActiveCategoryFilter(cat.category)}
+                key={cat.id}
+                onClick={() => setActiveCategoryFilter(cat.name)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-250 cursor-pointer flex items-center gap-1.5 ${
-                  activeCategoryFilter === cat.category
+                  activeCategoryFilter === cat.name
                     ? 'bracket-selected font-black shadow-sm'
                     : 'bg-[#E5DAC9] border border-[#B8A98F]/50 text-[#183630]/80 hover:border-[#183630]'
                 }`}
               >
                 <span>{cat.icon}</span>
-                <span>{activeCategoryFilter === cat.category ? `[ ${cat.title} ]` : cat.title}</span>
+                <span>{activeCategoryFilter === cat.name ? `[ ${cat.name} ]` : cat.name}</span>
               </button>
             ))}
           </div>
 
-          {/* 8 Product Categories Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {EIGHT_PRODUCT_CATEGORIES.filter(
-              (cat) => activeCategoryFilter === 'all' || activeCategoryFilter === cat.category
-            ).map((item, idx) => (
-              <div
-                key={idx}
-                className="group rounded-3xl border border-[#B8A98F] bg-[#E5DAC9] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-[0_12px_28px_rgba(24,54,48,0.12)] hover:border-[#183630]"
-              >
-                {/* Image Cover */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#183630]">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#183630]/80 via-transparent to-transparent pointer-events-none" />
-                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#183630]/85 backdrop-blur-md text-[#E5C690] border border-[#B8A98F]/40 shadow-xs">
-                    {item.tag}
-                  </span>
-                </div>
+          {/* Product Categories Grid */}
+          {activeCategories.length === 0 ? (
+            <div className="py-12 text-center border border-[#B8A98F]/40 rounded-3xl bg-[#E5DAC9]/50">
+              <p className="text-[#183630] font-bold">No categories available yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {activeCategories.filter(
+                (cat) => activeCategoryFilter === 'all' || activeCategoryFilter === cat.name
+              ).map((item) => (
+                <div
+                  key={item.id}
+                  className="group rounded-3xl border border-[#B8A98F] bg-[#E5DAC9] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-[0_12px_28px_rgba(24,54,48,0.12)] hover:border-[#183630]"
+                >
+                  {/* Image Cover */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#183630]">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#183630]/80 via-transparent to-transparent pointer-events-none" />
+                    {item.badge && (
+                      <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#183630]/85 backdrop-blur-md text-[#E5C690] border border-[#B8A98F]/40 shadow-xs">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
 
-                {/* Card Content */}
-                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{item.icon}</span>
-                      <h3 className="text-base sm:text-lg font-bold text-[#183630] group-hover:text-[#183630]">
-                        {item.title}
-                      </h3>
+                  {/* Card Content */}
+                  <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{item.icon}</span>
+                        <h3 className="text-base sm:text-lg font-bold text-[#183630] group-hover:text-[#183630]">
+                          {item.name}
+                        </h3>
+                      </div>
+                      <p className="text-xs leading-relaxed text-[#183630]/75">
+                        {item.description}
+                      </p>
                     </div>
-                    <p className="text-xs leading-relaxed text-[#183630]/75">
-                      {item.desc}
-                    </p>
-                  </div>
 
-                  <div className="pt-3 border-t border-[#B8A98F]/40 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => handleCategorySelect(item.category)}
-                      className="text-xs font-black text-[#183630] hover:text-[#183630] flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <span>Explore {item.title}</span>
-                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1 text-[#183630]" />
-                    </button>
+                    <div className="pt-3 border-t border-[#B8A98F]/40 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => handleCategorySelect(item.name)}
+                        className="text-xs font-black text-[#183630] hover:text-[#183630] flex items-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        <span>Explore {item.name}</span>
+                        <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1 text-[#183630]" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

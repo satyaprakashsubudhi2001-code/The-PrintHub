@@ -40,7 +40,7 @@ export function TopProductCarousel() {
             ref={scrollRef}
             className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1 px-1 sm:px-6 w-full scroll-smooth"
           >
-            {products.map((p) => {
+            {products.filter(p => p.status !== 'inactive').map((p) => {
               const isSelected = customizerProduct.id === p.id;
               return (
                 <button

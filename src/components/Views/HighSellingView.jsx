@@ -28,7 +28,7 @@ export function HighSellingView() {
 
   const categoryOptions = [
     { id: 'all', label: 'All Categories' },
-    ...categories.map((c) => ({
+    ...categories.filter(c => c.status !== 'inactive').map((c) => ({
       id: c.name.toLowerCase(),
       label: c.name,
     })),
@@ -43,6 +43,7 @@ export function HighSellingView() {
   };
 
   const filteredProducts = products
+    .filter(p => p.status !== 'inactive')
     .filter((p) => {
       if (highSellingCategory === 'all') return true;
       const catLower = highSellingCategory.toLowerCase();

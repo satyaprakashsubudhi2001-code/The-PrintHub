@@ -102,8 +102,9 @@ export function AdminOrderDetailModal({ order, onClose }) {
   const invoiceData = shippingService.generateInvoice(order);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md select-none animate-in fade-in">
-      <div className="w-full max-w-5xl max-h-[92vh] bg-studio-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 select-none">
+      <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+      <div className="relative w-full max-w-5xl max-h-[92vh] bg-studio-900 border border-[rgba(255,255,255,0.08)] rounded-[22px] shadow-[0_24px_80px_rgba(0,0,0,0.40)] flex flex-col overflow-hidden animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
         {/* Modal Header */}
         <div className="p-4 sm:p-6 bg-studio-950 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">

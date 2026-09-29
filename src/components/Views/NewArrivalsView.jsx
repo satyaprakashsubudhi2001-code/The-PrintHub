@@ -9,7 +9,7 @@ export function NewArrivalsView() {
   const [selectedCat, setSelectedCat] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
 
-  const allNew = [...products].reverse();
+  const allNew = [...products].filter(p => p.status !== 'inactive').reverse();
   const filtered = allNew
     .filter((p) => {
       if (selectedCat === 'all') return true;
@@ -25,7 +25,7 @@ export function NewArrivalsView() {
 
   const categoryOptions = [
     { id: 'all', label: 'All Items' },
-    ...categories.map((c) => ({ id: c.name.toLowerCase(), label: c.name })),
+    ...categories.filter(c => c.status !== 'inactive').map((c) => ({ id: c.name.toLowerCase(), label: c.name })),
   ];
   const getBadge = (index) => ARRIVAL_BADGES[index % ARRIVAL_BADGES.length];
 

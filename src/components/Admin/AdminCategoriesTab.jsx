@@ -18,6 +18,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+import ImageCropperModal from '../UI/ImageCropperModal';
 
 // Curated royalty-free visual image presets for 1-click category creation
 const PRESET_CATEGORY_IMAGES = [
@@ -92,11 +93,13 @@ export function AdminCategoriesTab() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [formError, setFormError] = useState('');
+  const [cropImageSrc, setCropImageSrc] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
+    audience: 'MAN',
     icon: '👕',
     badge: '',
     description: '',
@@ -143,6 +146,7 @@ export function AdminCategoriesTab() {
     setFormData({
       name: '',
       slug: '',
+      audience: 'MAN',
       icon: '👕',
       badge: '',
       description: '',
@@ -158,6 +162,7 @@ export function AdminCategoriesTab() {
     setFormData({
       name: cat.name || '',
       slug: cat.slug || '',
+      audience: cat.audience || 'MAN',
       icon: cat.icon || '🏷️',
       badge: cat.badge || '',
       description: cat.description || '',
@@ -285,8 +290,9 @@ export function AdminCategoriesTab() {
 
       {/* Confirmation Modal for Clearing All Categories */}
       {showClearConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-[#0c101d] border border-rose-500/40 p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+          <div className="relative w-full max-w-md rounded-[22px] bg-[#0B1020] border border-rose-500/30 p-6 space-y-4 shadow-[0_24px_80px_rgba(0,0,0,0.40)] animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
             <div className="flex items-center gap-3 text-rose-400">
               <AlertCircle className="w-6 h-6" />
               <h3 className="font-display font-black text-lg text-white uppercase">Remove All Categories?</h3>
@@ -414,6 +420,7 @@ export function AdminCategoriesTab() {
                     setFormData({
                       name: preset.label,
                       slug: preset.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+                      audience: 'MAN',
                       icon: preset.icon,
                       badge: 'New',
                       description: `Premium quality custom printed ${preset.label.toLowerCase()} collection.`,
@@ -648,8 +655,9 @@ export function AdminCategoriesTab() {
          6. ADD / EDIT CATEGORY MODAL
          ========================================================================= */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in">
-          <div className="w-full max-w-2xl rounded-3xl bg-[#0c101d] border border-slate-800 p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto my-auto shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+          <div className="relative w-full max-w-2xl rounded-[22px] bg-[#0B1020] border border-[rgba(255,255,255,0.08)] p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto my-auto shadow-[0_24px_80px_rgba(0,0,0,0.40)] animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div>
@@ -676,8 +684,8 @@ export function AdminCategoriesTab() {
             )}
 
             <form onSubmit={handleFormSubmit} className="space-y-5 font-mono text-xs">
-              {/* Row 1: Name & Slug */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Row 1: Name, Audience & Slug */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-slate-400 uppercase font-bold block mb-1.5">
                     Category Name *
@@ -690,6 +698,23 @@ export function AdminCategoriesTab() {
                     onChange={(e) => handleNameChange(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-lime-400 focus:outline-none"
                   />
+                </div>
+
+                <div>
+                  <label className="text-slate-400 uppercase font-bold block mb-1.5">
+                    Category Audience *
+                  </label>
+                  <select
+                    required
+                    value={formData.audience}
+                    onChange={(e) => setFormData({ ...formData, audience: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-lime-400 focus:outline-none appearance-none"
+                  >
+                    <option value="MAN">MAN</option>
+                    <option value="WOMAN">WOMAN</option>
+                    <option value="BOYS">BOYS</option>
+                    <option value="GIRLS">GIRLS</option>
+                  </select>
                 </div>
 
                 <div>
@@ -781,7 +806,7 @@ export function AdminCategoriesTab() {
               {/* Row 3: Cover Image */}
               <div>
                 <label className="text-slate-400 uppercase font-bold block mb-1.5">
-                  Cover Image URL
+                  Cover Image
                 </label>
                 <div className="flex flex-col sm:flex-row gap-4 items-start mb-3">
                   <div className="w-24 h-24 rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden shrink-0 relative">
@@ -796,15 +821,38 @@ export function AdminCategoriesTab() {
                     <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl pointer-events-none" />
                   </div>
                   <div className="flex-1 w-full space-y-2">
-                    <input
-                      type="url"
-                      placeholder="https://images.unsplash.com/..."
-                      value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-lime-400 focus:outline-none"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="url"
+                        placeholder="https://images.unsplash.com/..."
+                        value={formData.image.startsWith('data:') ? '' : formData.image}
+                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-lime-400 focus:outline-none"
+                      />
+                      <span className="text-slate-500 text-xs font-bold">OR</span>
+                      <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-lime-400/40 text-slate-300 hover:text-white transition-all flex items-center gap-2 shrink-0">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setCropImageSrc(reader.result);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                            e.target.value = null;
+                          }}
+                        />
+                        <ImageIcon className="w-4 h-4" />
+                        <span className="font-mono text-xs font-bold">UPLOAD</span>
+                      </label>
+                    </div>
                     <span className="text-[10px] text-slate-500 font-sans block">
-                      Choose from curated visual presets below or paste an image URL.
+                      Upload an image, paste a URL, or choose a preset below.
                     </span>
                   </div>
                 </div>
@@ -879,6 +927,18 @@ export function AdminCategoriesTab() {
             </form>
           </div>
         </div>
+      )}
+      {/* Image Cropper Modal */}
+      {cropImageSrc && (
+        <ImageCropperModal
+          imageSrc={cropImageSrc}
+          aspectRatio={16 / 9}
+          onCropComplete={(croppedImage) => {
+            setFormData((prev) => ({ ...prev, image: croppedImage }));
+            setCropImageSrc(null);
+          }}
+          onCancel={() => setCropImageSrc(null)}
+        />
       )}
     </div>
   );

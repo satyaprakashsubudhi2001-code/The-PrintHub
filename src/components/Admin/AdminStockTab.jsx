@@ -22,7 +22,7 @@ import { useStore } from '../../context/StoreContext';
  * Strict 4-Color Luxury System.
  */
 export function AdminStockTab() {
-  const { inventory = [], stockMovements = [], adjustStock } = useStore();
+  const { inventory = [], stockMovements = [], adjustStock, addStockItem } = useStore();
 
   const [activeView, setActiveView] = useState('inventory'); // 'inventory' | 'history'
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,6 +37,18 @@ export function AdminStockTab() {
     supplier: '',
     unitCost: 0,
   });
+
+  const [isCreatingSku, setIsCreatingSku] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    sku: '',
+    productName: '',
+    variant: '',
+    initialStock: 0,
+    minStockLevel: 10,
+    unitCost: 0,
+    supplier: '',
+  });
+
   const [toastMsg, setToastMsg] = useState('');
 
   const showToast = (msg) => {
@@ -94,6 +106,60 @@ export function AdminStockTab() {
       `✓ Stock adjusted for ${selectedSkuItem.sku}: ${delta > 0 ? '+' : ''}${delta} units (${adjustForm.reason})`
     );
     setSelectedSkuItem(null);
+  };
+
+  const handleCreateSku = (e) => {
+    e.preventDefault();
+    if (!createForm.sku || !createForm.productName) return;
+    
+    // Check if SKU exists
+    if (inventory.find(i => i.sku === createForm.sku)) {
+      showToast('SKU already exists in inventory.');
+      return;
+    }
+
+    const currentStock = Number(createForm.initialStock) || 0;
+    const status = currentStock === 0 ? 'OUT OF STOCK' : currentStock <= Number(createForm.minStockLevel) ? 'LOW STOCK' : 'IN STOCK';
+
+    const newItem = {
+      sku: createForm.sku.toUpperCase(),
+      productName: createForm.productName,
+      variant: createForm.variant || 'Standard',
+      currentStock,
+      reservedStock: 0,
+      soldQuantity: 0,
+      minStockLevel: Number(createForm.minStockLevel),
+      supplier: createForm.supplier || 'Unknown',
+      unitCost: Number(createForm.unitCost),
+      status,
+      lastUpdated: new Date().toISOString()
+    };
+
+    addStockItem(newItem);
+
+    if (currentStock > 0) {
+        // Log movement for initial stock
+        adjustStock(
+            newItem.sku,
+            currentStock,
+            'ADD',
+            'Initial Inventory Setup',
+            newItem.supplier,
+            newItem.unitCost
+        );
+    }
+
+    showToast(`✓ Created new SKU ${newItem.sku} in inventory.`);
+    setIsCreatingSku(false);
+    setCreateForm({
+      sku: '',
+      productName: '',
+      variant: '',
+      initialStock: 0,
+      minStockLevel: 10,
+      unitCost: 0,
+      supplier: '',
+    });
   };
 
   return (
@@ -168,6 +234,14 @@ export function AdminStockTab() {
             </div>
 
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              <button
+                type="button"
+                onClick={() => setIsCreatingSku(true)}
+                className="px-3 py-1.5 rounded-lg bg-[#E5C690] text-[#183630] font-bold hover:bg-[#d9b87c] cursor-pointer shrink-0 mr-2 flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Initialize New SKU
+              </button>
               <span className="text-[10px] text-[#B8A98F] uppercase mr-1">Status:</span>
               {[
                 { id: 'ALL', label: 'All' },
@@ -211,7 +285,13 @@ export function AdminStockTab() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#B8A98F]/15">
-                  {filteredInventory.map((item) => {
+                  {filteredInventory.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="py-8 text-center text-[#B8A98F] font-mono text-xs">
+                        No inventory items found. Click "Initialize New SKU" to add stock items.
+                      </td>
+                    </tr>
+                  ) : filteredInventory.map((item) => {
                     const isLow = item.status === 'LOW STOCK';
                     const isOut = item.status === 'OUT OF STOCK';
 
@@ -358,8 +438,9 @@ export function AdminStockTab() {
           MODAL: MANUAL STOCK ENTRY / ADJUSTMENT
           ===================================================================== */}
       {selectedSkuItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#183630]/75 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-[#183630] border border-[#E5C690] p-6 text-[#E5DAC9] space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+          <div className="relative w-full max-w-lg rounded-[22px] bg-[#183630] border border-[#E5C690] p-6 text-[#E5DAC9] space-y-4 shadow-[0_24px_80px_rgba(0,0,0,0.40)] animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
             <div className="flex items-center justify-between border-b border-[#B8A98F]/20 pb-3">
               <div>
                 <span className="text-[10px] font-mono text-[#E5C690] font-bold uppercase block">
@@ -459,6 +540,132 @@ export function AdminStockTab() {
                   className="px-4 py-2 rounded-xl bg-[#E5C690] hover:bg-[#d9b87c] text-[#183630] text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
                 >
                   Save Stock Adjustment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL: INITIALIZE NEW SKU
+          ===================================================================== */}
+      {isCreatingSku && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+          <div className="relative w-full max-w-xl rounded-[22px] bg-[#183630] border border-[#E5C690] p-6 text-[#E5DAC9] space-y-4 shadow-[0_24px_80px_rgba(0,0,0,0.40)] animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
+            <div className="flex items-center justify-between border-b border-[#B8A98F]/20 pb-3">
+              <div>
+                <span className="text-[10px] font-mono text-[#E5C690] font-bold uppercase block">
+                  INVENTORY SETUP
+                </span>
+                <h3 className="text-base font-black font-display uppercase tracking-tight text-[#E5DAC9]">
+                  Initialize New SKU
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreatingSku(false)}
+                className="text-xs font-mono text-[#B8A98F] hover:text-[#E5DAC9]"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateSku} className="space-y-3.5 text-xs font-mono">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[#E5C690] uppercase text-[10px] font-bold">Product Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.productName}
+                    onChange={(e) => setCreateForm({ ...createForm, productName: e.target.value })}
+                    placeholder="e.g. Premium Hoodie"
+                    className="w-full px-3 py-2 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/40 text-[#E5DAC9] focus:outline-none focus:border-[#E5C690]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[#E5C690] uppercase text-[10px] font-bold">Unique SKU *</label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.sku}
+                    onChange={(e) => setCreateForm({ ...createForm, sku: e.target.value })}
+                    placeholder="e.g. HOOD-BLK-L"
+                    className="w-full px-3 py-2 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/40 text-[#E5C690] font-bold focus:outline-none focus:border-[#E5C690] uppercase"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[#B8A98F] uppercase text-[10px] font-bold">Variant / Spec</label>
+                <input
+                  type="text"
+                  value={createForm.variant}
+                  onChange={(e) => setCreateForm({ ...createForm, variant: e.target.value })}
+                  placeholder="e.g. Black / Large"
+                  className="w-full px-3 py-2 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/40 text-[#E5DAC9] focus:outline-none focus:border-[#E5C690]"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[#B8A98F] uppercase text-[10px] font-bold">Initial Stock</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={createForm.initialStock}
+                    onChange={(e) => setCreateForm({ ...createForm, initialStock: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/40 text-[#E5DAC9] focus:outline-none focus:border-[#E5C690]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[#B8A98F] uppercase text-[10px] font-bold">Min Level</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={createForm.minStockLevel}
+                    onChange={(e) => setCreateForm({ ...createForm, minStockLevel: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/40 text-[#E5DAC9] focus:outline-none focus:border-[#E5C690]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[#B8A98F] uppercase text-[10px] font-bold">Unit Cost (₹)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={createForm.unitCost}
+                    onChange={(e) => setCreateForm({ ...createForm, unitCost: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/40 text-[#E5DAC9] focus:outline-none focus:border-[#E5C690]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[#B8A98F] uppercase text-[10px] font-bold">Supplier Name</label>
+                <input
+                  type="text"
+                  value={createForm.supplier}
+                  onChange={(e) => setCreateForm({ ...createForm, supplier: e.target.value })}
+                  placeholder="e.g. Vardhman Mills"
+                  className="w-full px-3 py-2 rounded-xl bg-[#E5DAC9]/5 border border-[#B8A98F]/40 text-[#E5DAC9] focus:outline-none focus:border-[#E5C690]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#B8A98F]/20">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingSku(false)}
+                  className="px-3.5 py-1.5 rounded-xl border border-[#B8A98F]/30 text-xs font-mono text-[#E5DAC9]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#E5C690] hover:bg-[#d9b87c] text-[#183630] text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
+                >
+                  Create & Initialize SKU
                 </button>
               </div>
             </form>

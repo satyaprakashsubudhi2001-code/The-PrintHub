@@ -87,8 +87,9 @@ export function AdminRequestDetailModal({ request, onClose }) {
   )}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md select-none overflow-y-auto">
-      <div className="w-full max-w-4xl rounded-3xl bg-[#0a0e1a] border border-slate-800 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 select-none overflow-y-auto">
+      <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+      <div className="relative w-full max-w-4xl rounded-[22px] bg-[#0a0e1a] border border-[rgba(255,255,255,0.08)] shadow-[0_24px_80px_rgba(0,0,0,0.40)] animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out overflow-hidden my-auto max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between gap-4 bg-[#0c1020] shrink-0">
           <div className="flex items-center gap-3">

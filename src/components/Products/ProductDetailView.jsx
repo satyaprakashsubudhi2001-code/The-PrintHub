@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   Star,
@@ -47,6 +47,13 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
     product?.defaultSize || product?.sizes?.[0] || 'L'
   );
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    setActiveImage(product?.images?.[0] || product?.image || '/logo-mark-symbol.png');
+    setSelectedColor(product?.colors?.[0] || { name: 'Standard', hex: '#183630' });
+    setSelectedSize(product?.defaultSize || product?.sizes?.[0] || 'L');
+    setQuantity(1);
+  }, [product]);
 
   if (!product) return null;
 

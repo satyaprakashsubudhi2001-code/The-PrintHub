@@ -286,19 +286,23 @@ export function StoreProvider({ children }) {
     setStoreSettings((prev) => ({ ...prev, themeId }));
   };
 
-  // Product Catalog (Defaults to pre-calibrated products if empty)
-  const [products, setProducts] = useState(() => {
-    if (typeof window !== 'undefined') {
+  // Product Catalog
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
       try {
-        const saved = localStorage.getItem('printhub_custom_products_v2');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
         }
-      } catch (e) {}
-    }
-    return DEFAULT_PRESET_PRODUCTS || [];
-  });
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   // Ready-to-Buy Direct Catalog
   const [readyToBuyProducts, setReadyToBuyProducts] = useState(() => {
@@ -307,94 +311,132 @@ export function StoreProvider({ children }) {
         const saved = localStorage.getItem('printhub_rtb_products_v2');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed)) return parsed;
         }
       } catch (e) {}
     }
     return [];
   });
 
-  // Dynamic Categories Management (Defaults to the 8 core brand categories)
-  const [categories, setCategories] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('printhub_custom_categories');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch (e) {}
-    }
-    return DEFAULT_8_CATEGORIES;
-  });
+  const [categories, setCategories] = useState([]);
 
-  const addCategory = useCallback((categoryData) => {
-    let newId = categoryData.id || `cat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-    setCategories((prev) => {
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const addCategory = useCallback(async (categoryData) => {
+    try {
       const slug = categoryData.slug
         ? categoryData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
         : categoryData.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      const newCat = {
-        id: newId,
+      
+      // Fallback for Phase 3 audience rule if not provided by UI yet
+      const audience = categoryData.audience || 'MAN';
+
+      const payload = {
         name: categoryData.name.trim(),
-        slug,
-        icon: categoryData.icon || '🏷️',
-        badge: categoryData.badge ? categoryData.badge.trim() : '',
+        audience,
         description: categoryData.description ? categoryData.description.trim() : '',
+        icon: categoryData.icon || '🏷️',
         image: categoryData.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
-        createdAt: new Date().toISOString(),
       };
-      const updated = [...prev, newCat];
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_categories', JSON.stringify(updated));
-      }
-      return updated;
-    });
-    return newId;
-  }, []);
 
-  const updateCategory = useCallback((id, updatedData) => {
-    setCategories((prev) => {
-      const updated = prev.map((cat) => {
-        if (cat.id !== id) return cat;
-        const slug = updatedData.slug
-          ? updatedData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-          : updatedData.name
-          ? updatedData.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-          : cat.slug;
-        return {
-          ...cat,
-          ...updatedData,
-          name: updatedData.name ? updatedData.name.trim() : cat.name,
-          slug,
-          badge: updatedData.badge !== undefined ? updatedData.badge.trim() : cat.badge,
-          description: updatedData.description !== undefined ? updatedData.description.trim() : cat.description,
-          updatedAt: new Date().toISOString(),
-        };
+      const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_categories', JSON.stringify(updated));
-      }
-      return updated;
-    });
-  }, []);
 
-  const deleteCategory = useCallback((id) => {
-    setCategories((prev) => {
-      const updated = prev.filter((cat) => cat.id !== id && cat.name !== id);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_categories', JSON.stringify(updated));
-      }
-      return updated;
-    });
-  }, []);
+      if (response.ok) {
+        const newCat = await response.json();
+        // Add frontend specific fields for compatibility
+        newCat.slug = slug;
+        newCat.badge = categoryData.badge ? categoryData.badge.trim() : '';
 
-  const clearAllCategories = useCallback(() => {
-    setCategories([]);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('printhub_custom_categories');
+        setCategories((prev) => [...prev, newCat]);
+        return newCat.id;
+      } else {
+        console.error('Failed to create category:', await response.text());
+        return null;
+      }
+    } catch (err) {
+      console.error('Error adding category:', err);
+      return null;
     }
   }, []);
+
+  const updateCategory = useCallback(async (id, updatedData) => {
+    try {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (response.ok) {
+        const updatedCat = await response.json();
+        
+        setCategories((prev) => prev.map((cat) => {
+          if (cat.id !== id) return cat;
+          const slug = updatedData.slug
+            ? updatedData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+            : updatedData.name
+            ? updatedData.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+            : cat.slug;
+            
+          return {
+            ...cat,
+            ...updatedCat,
+            slug,
+            badge: updatedData.badge !== undefined ? updatedData.badge.trim() : cat.badge,
+          };
+        }));
+      } else {
+        console.error('Failed to update category:', await response.text());
+      }
+    } catch (err) {
+      console.error('Error updating category:', err);
+    }
+  }, []);
+
+  const deleteCategory = useCallback(async (id) => {
+    try {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setCategories((prev) => prev.filter((cat) => cat.id !== id && cat.name !== id));
+      } else {
+        console.error('Failed to delete category:', await response.text());
+      }
+    } catch (err) {
+      console.error('Error deleting category:', err);
+    }
+  }, []);
+
+  const clearAllCategories = useCallback(async () => {
+    try {
+      // Loop and delete each category using the API
+      await Promise.all(categories.map(cat => 
+        fetch(`/api/categories/${cat.id || cat.name}`, { method: 'DELETE' })
+      ));
+      setCategories([]);
+    } catch (err) {
+      console.error('Error clearing all categories:', err);
+    }
+  }, [categories]);
 
   // Global Search & Category Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -442,45 +484,61 @@ export function StoreProvider({ children }) {
     }
   };
 
-  const addProduct = useCallback((newProduct) => {
-    setProducts((prev) => {
-      const updated = [newProduct, ...prev];
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_products_v2', JSON.stringify(updated));
+  const addProduct = useCallback(async (newProduct) => {
+    try {
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct)
+      });
+      if (response.ok) {
+        const created = await response.json();
+        setProducts((prev) => [created, ...prev]);
+        return created;
       }
-      return updated;
-    });
-  }, []);
-
-  const updateProduct = useCallback((productId, updatedFields) => {
-    setProducts((prev) => {
-      const updated = prev.map((p) => (p.id === productId ? { ...p, ...updatedFields } : p));
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_products_v2', JSON.stringify(updated));
-      }
-      return updated;
-    });
-  }, []);
-
-  const deleteProduct = useCallback((productId) => {
-    setProducts((prev) => {
-      const updated = prev.filter((p) => p.id !== productId);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_custom_products_v2', JSON.stringify(updated));
-      }
-      return updated;
-    });
-  }, []);
-
-  const clearAllProducts = useCallback(() => {
-    setProducts([]);
-    setReadyToBuyProducts([]);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('printhub_custom_products_v2', JSON.stringify([]));
-      localStorage.setItem('printhub_rtb_products_v2', JSON.stringify([]));
-      localStorage.removeItem('printhub_custom_products');
+    } catch (err) {
+      console.error('Failed to add product:', err);
     }
   }, []);
+
+  const updateProduct = useCallback(async (productId, updatedFields) => {
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFields)
+      });
+      if (response.ok) {
+        const updatedProduct = await response.json();
+        setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, ...updatedProduct } : p)));
+      }
+    } catch (err) {
+      console.error('Failed to update product:', err);
+    }
+  }, []);
+
+  const deleteProduct = useCallback(async (productId) => {
+    try {
+      const response = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+      if (response.ok) {
+        setProducts((prev) => prev.filter((p) => p.id !== productId));
+      }
+    } catch (err) {
+      console.error('Failed to delete product:', err);
+    }
+  }, []);
+
+  const clearAllProducts = useCallback(async () => {
+    try {
+      await Promise.all(products.map(p => 
+        fetch(`/api/products/${p.id}`, { method: 'DELETE' })
+      ));
+      setProducts([]);
+      setReadyToBuyProducts([]);
+    } catch (err) {
+      console.error('Error clearing products:', err);
+    }
+  }, [products]);
 
   const restorePresetProducts = useCallback(() => {
     setProducts(DEFAULT_PRESET_PRODUCTS);
@@ -518,38 +576,90 @@ export function StoreProvider({ children }) {
   }, []);
 
   // Design Requests System (Pure Design Submission & Quotation Model)
-  const [designRequests, setDesignRequests] = useState(() => getStoredDesignRequests());
+  const [designRequests, setDesignRequests] = useState([]);
 
-  const addDesignRequest = useCallback((requestObj) => {
-    saveDesignRequest(requestObj);
-    setDesignRequests((prev) => [requestObj, ...prev]);
-    return requestObj;
+  useEffect(() => {
+    const fetchDesignRequests = async () => {
+      try {
+        const response = await fetch('/api/design-requests');
+        if (response.ok) {
+          const data = await response.json();
+          setDesignRequests(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch design requests:', err);
+      }
+    };
+    fetchDesignRequests();
   }, []);
 
-  const updateDesignRequestStatus = useCallback((requestId, newStatus) => {
-    updateDesignRequest(requestId, { status: newStatus });
-    setDesignRequests((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r))
-    );
+  const addDesignRequest = useCallback(async (requestObj) => {
+    try {
+      const response = await fetch('/api/design-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestObj)
+      });
+      if (response.ok) {
+        const newReq = await response.json();
+        setDesignRequests((prev) => [newReq, ...prev]);
+        return newReq;
+      }
+    } catch (err) {
+      console.error('Failed to create design request:', err);
+    }
+    return null;
   }, []);
 
-  const updateDesignRequestNotes = useCallback((requestId, adminNotes) => {
-    updateDesignRequest(requestId, { adminNotes });
-    setDesignRequests((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, adminNotes } : r))
-    );
+  const updateDesignRequestStatus = useCallback(async (requestId, newStatus) => {
+    try {
+      const response = await fetch(`/api/design-requests/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (response.ok) {
+        setDesignRequests((prev) =>
+          prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to update design request status:', err);
+    }
   }, []);
 
-  const removeDesignRequest = useCallback((requestId) => {
-    deleteStoredDesignRequest(requestId);
-    setDesignRequests((prev) => prev.filter((r) => r.id !== requestId));
+  const updateDesignRequestNotes = useCallback(async (requestId, adminNotes) => {
+    try {
+      const response = await fetch(`/api/design-requests/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminNotes })
+      });
+      if (response.ok) {
+        setDesignRequests((prev) =>
+          prev.map((r) => (r.id === requestId ? { ...r, adminNotes } : r))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to update design request notes:', err);
+    }
+  }, []);
+
+  const removeDesignRequest = useCallback(async (requestId) => {
+    try {
+      // Assuming you might add DELETE to design requests later, though usually they are just archived
+      // For now, removing locally if successful API call exists (mocking it if not defined)
+      setDesignRequests((prev) => prev.filter((r) => r.id !== requestId));
+    } catch (err) {
+      console.error('Failed to delete design request:', err);
+    }
   }, []);
 
   // Admin Authentication State (Only for Store Administrators)
   const [adminUser, setAdminUser] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('printhub_admin_session');
+        const saved = sessionStorage.getItem('printhub_admin_session');
         if (saved) return JSON.parse(saved);
       } catch (e) {}
     }
@@ -588,7 +698,7 @@ export function StoreProvider({ children }) {
       };
       setAdminUser(userObj);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('printhub_admin_session', JSON.stringify(userObj));
+        sessionStorage.setItem('printhub_admin_session', JSON.stringify(userObj));
       }
       return { success: true };
     }
@@ -598,7 +708,8 @@ export function StoreProvider({ children }) {
   const logoutAdmin = useCallback(() => {
     setAdminUser(null);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('printhub_admin_session');
+      sessionStorage.removeItem('printhub_admin_session');
+      localStorage.removeItem('printhub_admin_session'); // clear legacy storage just in case
     }
   }, []);
 
@@ -667,18 +778,10 @@ export function StoreProvider({ children }) {
   const [contactSettings, setContactSettings] = useState(
     () => normalizeContactSettings(adminDbState.contactSettings)
   );
-  const [inventory, setInventory] = useState(
-    () => adminDbState.inventory || INITIAL_INVENTORY
-  );
-  const [stockMovements, setStockMovements] = useState(
-    () => adminDbState.stockMovements || INITIAL_STOCK_MOVEMENTS
-  );
-  const [expenses, setExpenses] = useState(
-    () => adminDbState.expenses || INITIAL_EXPENSES
-  );
-  const [customers, setCustomers] = useState(
-    () => adminDbState.customers || INITIAL_CUSTOMERS
-  );
+  const [inventory, setInventory] = useState([]);
+  const [stockMovements, setStockMovements] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [auditLogs, setAuditLogs] = useState(
     () => adminDbState.auditLogs || INITIAL_AUDIT_LOGS
   );
@@ -704,10 +807,29 @@ export function StoreProvider({ children }) {
   });
 
   // Orders State (defaults to initialDb.orders)
-  const [orders, setOrders] = useState(() => {
-    if (adminDbState.orders && adminDbState.orders.length > 0) return adminDbState.orders;
-    return INITIAL_ORDERS;
-  });
+  const [orders, setOrders] = useState([]);
+
+  // Fetch Admin Data from APIs
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const [invRes, ordRes, custRes, expRes] = await Promise.all([
+          fetch('/api/inventory'),
+          fetch('/api/orders'),
+          fetch('/api/customers'),
+          fetch('/api/expenses')
+        ]);
+        if (invRes.ok) setInventory(await invRes.json());
+        if (ordRes.ok) setOrders(await ordRes.json());
+        if (custRes.ok) setCustomers(await custRes.json());
+        if (expRes.ok) setExpenses(await expRes.json());
+      } catch (err) {
+        console.error('Failed to fetch admin data:', err);
+      }
+    };
+    fetchAdminData();
+  }, []);
+
 
   // 1. Audit Logging Action
   const logAdminActivity = useCallback((action, section, record, oldValue, newValue) => {
@@ -1211,6 +1333,8 @@ export function StoreProvider({ children }) {
   // Clean All Demo Data across entire database
   const cleanAllDemoData = useCallback(() => {
     clearAllDatabaseDemoData();
+    clearAllProducts();
+    clearAllCategories();
     setOrders([]);
     setExpenses([]);
     setCustomers([]);

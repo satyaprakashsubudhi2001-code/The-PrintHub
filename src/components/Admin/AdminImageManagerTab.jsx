@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+import ImageCropperModal from '../UI/ImageCropperModal';
 
 /**
  * AdminImageManagerTab Component — Visual Asset Library
@@ -80,6 +81,7 @@ export function AdminImageManagerTab() {
   const [selectedImage, setSelectedImage] = useState(imagesList[0]);
   const [editingFields, setEditingFields] = useState(imagesList[0]);
   const [toastMsg, setToastMsg] = useState('');
+  const [cropImageSrc, setCropImageSrc] = useState(null);
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -99,14 +101,11 @@ export function AdminImageManagerTab() {
     reader.onload = (event) => {
       const dataUrl = event.target?.result;
       if (dataUrl) {
-        setEditingFields((prev) => ({
-          ...prev,
-          url: dataUrl,
-        }));
-        showToast('Image file loaded! Click "Save Image Metadata" to apply.');
+        setCropImageSrc(dataUrl);
       }
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const handleSaveImageChanges = () => {
@@ -272,6 +271,22 @@ export function AdminImageManagerTab() {
           </div>
         </div>
       </div>
+      {/* Image Cropper Modal */}
+      {cropImageSrc && (
+        <ImageCropperModal
+          imageSrc={cropImageSrc}
+          aspectRatio={16 / 9}
+          onCropComplete={(croppedImage) => {
+            setEditingFields((prev) => ({
+              ...prev,
+              url: croppedImage,
+            }));
+            setCropImageSrc(null);
+            showToast('Image cropped and loaded! Click "Save Image Metadata" to apply.');
+          }}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
     </div>
   );
 }

@@ -372,8 +372,9 @@ export function AdminExpensesTab() {
 
       {/* Add / Edit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-[#E5DAC9] rounded-3xl border border-[#B8A98F] shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+          <div className="relative w-full max-w-xl bg-[#E5DAC9] rounded-[22px] border border-[#B8A98F] shadow-[0_24px_80px_rgba(0,0,0,0.40)] p-6 space-y-5 animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
             <div className="flex items-center justify-between border-b border-[#B8A98F]/40 pb-3">
               <h3 className="text-sm font-bold text-[#183630] uppercase font-display">
                 {editingExpense ? '[ EDIT EXPENSE ENTRY ]' : '[ LOG NEW PRODUCTION EXPENSE ]'}

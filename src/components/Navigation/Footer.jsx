@@ -151,33 +151,6 @@ export function Footer() {
               <>
                 <li>
                   <button
-                    onClick={() => handleCategoryClick('Custom T-Shirts')}
-                    className="hover:text-[#E5C690] transition-colors text-left flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <ArrowRight className="w-3 h-3 text-[#B8A98F]" />
-                    <span>👕 Custom T-Shirts</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleCategoryClick('Hoodies')}
-                    className="hover:text-[#E5C690] transition-colors text-left flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <ArrowRight className="w-3 h-3 text-[#B8A98F]" />
-                    <span>🧥 Premium Hoodies</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => handleCategoryClick('Mugs')}
-                    className="hover:text-[#E5C690] transition-colors text-left flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <ArrowRight className="w-3 h-3 text-[#B8A98F]" />
-                    <span>☕ Ceramic Drinkware</span>
-                  </button>
-                </li>
-                <li>
-                  <button
                     onClick={() => handleCategoryClick('all')}
                     className="hover:text-[#E5C690] transition-colors text-left flex items-center gap-1.5 cursor-pointer"
                   >
