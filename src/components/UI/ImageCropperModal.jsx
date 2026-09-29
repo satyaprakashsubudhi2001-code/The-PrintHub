@@ -93,6 +93,13 @@ export default function ImageCropperModal({
             CANCEL
           </button>
           <button
+            onClick={() => onCropComplete(imageSrc)}
+            className="px-4 py-2 rounded-xl bg-slate-900 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-bold hover:bg-cyan-500/10"
+            title="Use original uncropped image"
+          >
+            USE ORIGINAL
+          </button>
+          <button
             onClick={handleSave}
             disabled={isProcessing}
             className="flex items-center gap-2 px-6 py-2 rounded-xl bg-lime-400 text-slate-950 hover:bg-lime-300 text-xs font-mono font-black shadow-lg shadow-lime-400/20 disabled:opacity-50"

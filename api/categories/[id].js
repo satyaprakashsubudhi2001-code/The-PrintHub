@@ -16,7 +16,10 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'DELETE') {
     try {
-      await prisma.category.delete({ where: { id } });
+      await prisma.category.update({
+        where: { id },
+        data: { isActive: false }
+      });
       res.status(200).json({ success: true });
     } catch (err) {
       res.status(400).json({ error: err.message });

@@ -89,8 +89,6 @@ export function AnnouncementBar() {
   const { navigateTo, storeSettings, announcements: storeAnnouncements = [], contactSettings = {} } = useStore();
   const [isDismissed, setIsDismissed] = useState(false);
 
-  if (isDismissed) return null;
-
   const phone = storeSettings?.phone || contactSettings?.whatsapp || '+91 79928 01158';
 
   // Dynamic Announcements from Admin or fallback to initial defaults
@@ -114,6 +112,8 @@ export function AnnouncementBar() {
     }
     return ANNOUNCEMENTS;
   }, [storeAnnouncements]);
+
+  if (isDismissed) return null;
 
   // Helper to safely extract string values from contactSettings (handling strings, objects, numbers)
   const resolveContactString = (item, fallback = '') => {
