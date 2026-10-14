@@ -45,8 +45,8 @@ export function AdminDashboardTab({ onNavigateTab, onNavigate }) {
   };
 
   // Inventory KPIs
-  const totalProducts = products.length;
-  const activeProducts = products.filter((p) => p.status !== 'inactive').length;
+  const totalProducts = products.filter((p) => p.status !== 'ARCHIVED').length;
+  const activeProducts = products.filter((p) => p.status !== 'inactive' && p.status !== 'ARCHIVED').length;
   const outOfStockCount = inventory.filter((i) => i.currentStock === 0).length;
   const lowStockCount = inventory.filter((i) => i.currentStock > 0 && i.currentStock <= (i.minStockLevel || 10)).length;
 

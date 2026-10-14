@@ -30,7 +30,7 @@ export function ShopMegaMenu({
   const [selectedCatId, setSelectedCatId] = useState('men');
   const menuRef = useRef(null);
 
-  const activeCategories = categories.filter(c => c.status !== 'INACTIVE');
+  const activeCategories = categories.filter(c => c.isActive !== false && c.status !== 'INACTIVE' && c.status !== 'inactive');
   const activeGroup = SHOP_GROUPS.find((g) => g.id === selectedCatId) || SHOP_GROUPS[0];
 
   const groupCategories = activeCategories
@@ -266,7 +266,7 @@ export function ShopMobileSheet({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const activeCategories = categories.filter(c => c.status !== 'INACTIVE');
+  const activeCategories = categories.filter(c => c.isActive !== false && c.status !== 'INACTIVE' && c.status !== 'inactive');
   const activeGroup = SHOP_GROUPS.find((c) => c.id === selectedCatId) || SHOP_GROUPS[0];
 
   const groupCategories = activeCategories
@@ -434,7 +434,7 @@ export function ShopMobileAccordion({ onNavigate, onClose }) {
   const { categories = [], setSelectedCategory, setSearchQuery } = useStore();
   const [expandedCat, setExpandedCat] = useState('women');
 
-  const activeCategories = categories.filter(c => c.status !== 'INACTIVE');
+  const activeCategories = categories.filter(c => c.isActive !== false && c.status !== 'INACTIVE' && c.status !== 'inactive');
 
   const handleSubClick = (catId) => {
     if (catId === 'all') {

@@ -2,9 +2,10 @@ import prisma from '../_lib/prisma.js';
 import { verifyAdmin } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+
   if (req.method === 'GET') {
     try {
-      res.setHeader('Cache-Control', 'no-store');
       const products = await prisma.product.findMany({
         where: { status: 'ACTIVE' },
         include: { category: true, images: { orderBy: { sortOrder: 'asc' } }, inventory: true },
@@ -19,21 +20,102 @@ export default async function handler(req, res) {
       verifyAdmin(req);
       const data = req.body;
       const { images, inventory, ...productData } = data;
-      
+
+      // Auto-resolve or create categoryId if only category name is provided
+      let categoryId = productData.categoryId;
+      if (!categoryId && productData.category) {
+        const catName = productData.category.trim();
+        let cat = await prisma.category.findFirst({
+          where: {
+            OR: [
+              { name: { equals: catName, mode: 'insensitive' } },
+              { id: catName }
+            ]
+          }
+        });
+
+        if (!cat) {
+          cat = await prisma.category.create({
+            data: {
+              name: catName,
+              audience: productData.audience || 'UNISEX',
+              icon: '🏷️'
+            }
+          });
+        }
+        categoryId = cat.id;
+      }
+
+      // Ensure required SKU exists
+      const sku = productData.sku || `SKU-${Date.now().toString(36).toUpperCase()}`;
+      const audience = productData.audience || 'UNISEX';
+
+      // Normalize images input
+      let imageCreate = undefined;
+      if (Array.isArray(images) && images.length > 0) {
+        imageCreate = {
+          create: images.map((img, idx) => ({
+            url: typeof img === 'string' ? img : (img.url || ''),
+            sortOrder: idx,
+            isPrimary: idx === 0
+          }))
+        };
+      }
+
+      const inventoryCreate = inventory ? {
+        create: {
+          sku: inventory.sku || `${sku}-INV`,
+          quantity: Number(inventory.quantity ?? inventory.currentStock ?? inventory.stock ?? 50),
+          minLevel: Number(inventory.minLevel ?? inventory.minStockLevel ?? 10)
+        }
+      } : undefined;
+
       const product = await prisma.product.create({
         data: {
-          ...productData,
-          images: images ? { create: images } : undefined,
-          inventory: inventory ? { create: inventory } : undefined
+          name: productData.name || 'Untitled Product',
+          sku,
+          audience,
+          categoryId: categoryId || (await prisma.category.findFirst())?.id,
+          description: productData.description || '',
+          basePrice: Number(productData.basePrice || productData.price) || 0,
+          salePrice: productData.compareAtPrice ? Number(productData.compareAtPrice) : null,
+          costPrice: Number(productData.costPrice) || 0,
+          status: 'ACTIVE',
+          isCustomizable: productData.isCustomizable !== false,
+          defaultColor: productData.defaultColor || '#18181b',
+          defaultSize: productData.defaultSize || 'L',
+          sizes: Array.isArray(productData.sizes) ? JSON.stringify(productData.sizes) : (productData.sizes || '["S","M","L","XL"]'),
+          colors: Array.isArray(productData.colors) ? JSON.stringify(productData.colors) : (productData.colors || '[]'),
+          features: productData.features ? JSON.stringify(productData.features) : null,
+          images: imageCreate,
+          inventory: inventoryCreate
         },
-        include: { images: true, inventory: true }
+        include: { images: true, inventory: true, category: true }
       });
+
       res.status(201).json(product);
+    } catch (err) {
+      console.error('Failed to create product in DB:', err);
+      res.status(400).json({ error: err.message });
+    }
+  } else if (req.method === 'DELETE') {
+    try {
+      verifyAdmin(req);
+      try {
+        await prisma.productImage.deleteMany({});
+        await prisma.inventory.deleteMany({});
+        await prisma.product.deleteMany({});
+      } catch (delErr) {
+        await prisma.product.updateMany({
+          data: { status: 'ARCHIVED' }
+        });
+      }
+      res.status(200).json({ success: true, message: 'All products cleared' });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
   } else {
-    res.setHeader('Allow', ['GET', 'POST']);
+    res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

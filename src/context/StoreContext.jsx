@@ -341,7 +341,7 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories');
+        const response = await fetch('/api/categories', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           setCategories(data);
@@ -430,27 +430,39 @@ export function StoreProvider({ children }) {
 
   const deleteCategory = useCallback(async (id) => {
     try {
-      const response = await fetch(`/api/categories/${id}`, {
+      const response = await fetch(`/api/categories/${encodeURIComponent(id)}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
         setCategories((prev) => prev.filter((cat) => cat.id !== id && cat.name !== id));
+        return true;
       } else {
-        console.error('Failed to delete category:', await response.text());
+        const errText = await response.text();
+        console.error('Failed to delete category:', errText);
+        return false;
       }
     } catch (err) {
       console.error('Error deleting category:', err);
+      return false;
     }
   }, []);
 
   const clearAllCategories = useCallback(async () => {
     try {
-      // Loop and delete each category using the API
-      await Promise.all(categories.map(cat => 
-        fetch(`/api/categories/${cat.id || cat.name}`, { method: 'DELETE' })
-      ));
-      setCategories([]);
+      const response = await fetch('/api/categories', { method: 'DELETE' });
+      if (response.ok) {
+        setCategories([]);
+        return true;
+      } else {
+        const results = await Promise.all(categories.map(cat => 
+          fetch(`/api/categories/${encodeURIComponent(cat.id || cat.name)}`, { method: 'DELETE' })
+        ));
+        if (results.some(r => r.ok)) {
+          const fresh = await fetch('/api/categories', { cache: 'no-store' });
+          if (fresh.ok) setCategories(await fresh.json());
+        }
+      }
     } catch (err) {
       console.error('Error clearing all categories:', err);
     }
@@ -537,22 +549,37 @@ export function StoreProvider({ children }) {
 
   const deleteProduct = useCallback(async (productId) => {
     try {
-      const response = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/products/${encodeURIComponent(productId)}`, { method: 'DELETE' });
       if (response.ok) {
-        setProducts((prev) => prev.filter((p) => p.id !== productId));
+        setProducts((prev) => prev.filter((p) => p.id !== productId && p.sku !== productId && p.name !== productId));
+        return true;
+      } else {
+        const errText = await response.text();
+        console.error('Failed to delete product from DB:', errText);
+        return false;
       }
     } catch (err) {
       console.error('Failed to delete product:', err);
+      return false;
     }
   }, []);
 
   const clearAllProducts = useCallback(async () => {
     try {
-      await Promise.all(products.map(p => 
-        fetch(`/api/products/${p.id}`, { method: 'DELETE' })
-      ));
-      setProducts([]);
-      setReadyToBuyProducts([]);
+      const response = await fetch('/api/products', { method: 'DELETE' });
+      if (response.ok) {
+        setProducts([]);
+        setReadyToBuyProducts([]);
+        return true;
+      } else {
+        const results = await Promise.all(products.map(p => 
+          fetch(`/api/products/${encodeURIComponent(p.id)}`, { method: 'DELETE' })
+        ));
+        if (results.some(r => r.ok)) {
+          const fresh = await fetch('/api/products', { cache: 'no-store' });
+          if (fresh.ok) setProducts(await fresh.json());
+        }
+      }
     } catch (err) {
       console.error('Error clearing products:', err);
     }

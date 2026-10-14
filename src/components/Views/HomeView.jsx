@@ -131,7 +131,7 @@ export function HomeView() {
     categories = [],
   } = useStore();
 
-  const activeCategories = categories.filter((c) => c.status !== 'inactive');
+  const activeCategories = categories.filter((c) => c.isActive !== false && c.status !== 'inactive');
 
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
 

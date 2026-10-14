@@ -436,6 +436,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
   // Filter products list
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
+      if (p.status === 'ARCHIVED' || p.status === 'inactive') return false;
       if (selectedCategory !== 'ALL') {
         const catLower = selectedCategory.toLowerCase();
         const pCat = (p.category || '').toLowerCase();

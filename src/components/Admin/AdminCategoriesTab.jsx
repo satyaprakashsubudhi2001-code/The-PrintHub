@@ -140,9 +140,10 @@ export function AdminCategoriesTab() {
 
   // Filtered categories
   const filteredCategories = useMemo(() => {
-    if (!searchQuery.trim()) return categories;
+    const activeOnly = categories.filter((c) => c.isActive !== false && c.status !== 'inactive');
+    if (!searchQuery.trim()) return activeOnly;
     const q = searchQuery.toLowerCase().trim();
-    return categories.filter(
+    return activeOnly.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         (c.slug && c.slug.toLowerCase().includes(q)) ||

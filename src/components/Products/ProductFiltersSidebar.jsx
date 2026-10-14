@@ -35,7 +35,7 @@ export function ProductFiltersSidebar({
 
   const categoryItems = [
     { id: 'all', label: 'All Products', icon: '✨' },
-    ...categories.filter(c => c.status !== 'inactive').map((c) => ({
+    ...categories.filter(c => c.isActive !== false && c.status !== 'inactive').map((c) => ({
       id: c.name,
       label: c.name,
       icon: c.icon || '🏷️',

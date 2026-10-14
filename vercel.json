@@ -1,6 +1,10 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/categories/:id", "destination": "/api/categories/[id]" },
+    { "source": "/api/products/:id", "destination": "/api/products/[id]" },
+    { "source": "/api/orders/:id", "destination": "/api/orders/[id]" },
+    { "source": "/api/design-requests/:id", "destination": "/api/design-requests/[id]" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

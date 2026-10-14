@@ -142,8 +142,40 @@ app.patch('/api/categories/:id', async (req, res) => {
 app.delete('/api/categories/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.category.delete({ where: { id } });
+    const existing = await prisma.category.findFirst({
+      where: {
+        OR: [{ id: id }, { name: id }]
+      }
+    });
+
+    if (!existing) {
+      return res.json({ success: true, message: 'Category already deleted or not found' });
+    }
+
+    try {
+      await prisma.category.delete({ where: { id: existing.id } });
+    } catch (relErr) {
+      await prisma.category.update({
+        where: { id: existing.id },
+        data: { isActive: false }
+      });
+    }
     res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete('/api/categories', async (req, res) => {
+  try {
+    try {
+      await prisma.category.deleteMany({});
+    } catch (relErr) {
+      await prisma.category.updateMany({
+        data: { isActive: false }
+      });
+    }
+    res.json({ success: true, message: 'All categories cleared' });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -191,8 +223,18 @@ app.patch('/api/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
+    const existing = await prisma.product.findFirst({
+      where: {
+        OR: [{ id: id }, { sku: id }, { name: id }]
+      }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
     const product = await prisma.product.update({
-      where: { id },
+      where: { id: existing.id },
       data,
       include: { images: true, inventory: true }
     });
@@ -205,12 +247,45 @@ app.patch('/api/products/:id', async (req, res) => {
 app.delete('/api/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    // Soft delete recommended, but hard delete for now based on REST logic
-    await prisma.product.update({
-      where: { id },
-      data: { status: 'ARCHIVED' }
+    const existing = await prisma.product.findFirst({
+      where: {
+        OR: [{ id: id }, { sku: id }, { name: id }]
+      }
     });
+
+    if (!existing) {
+      return res.json({ success: true, message: 'Product already deleted or not found' });
+    }
+
+    try {
+      await prisma.product.delete({
+        where: { id: existing.id }
+      });
+    } catch (delErr) {
+      await prisma.product.update({
+        where: { id: existing.id },
+        data: { status: 'ARCHIVED' }
+      });
+    }
+
     res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete('/api/products', async (req, res) => {
+  try {
+    try {
+      await prisma.productImage.deleteMany({});
+      await prisma.inventory.deleteMany({});
+      await prisma.product.deleteMany({});
+    } catch (delErr) {
+      await prisma.product.updateMany({
+        data: { status: 'ARCHIVED' }
+      });
+    }
+    res.json({ success: true, message: 'All products cleared' });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

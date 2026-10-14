@@ -100,7 +100,7 @@ export function DesignByCustomerView() {
   const fileInputRef = useRef(null);
 
   // Set default product (active product from database, or null)
-  const activeProducts = (products || []).filter(p => p.status !== 'inactive');
+  const activeProducts = (products || []).filter(p => p.status !== 'inactive' && p.status !== 'ARCHIVED');
   const activeProduct = customizerProduct || (activeProducts.length > 0 ? activeProducts[0] : null);
 
   // Available print areas for this product based on size and physical calibration

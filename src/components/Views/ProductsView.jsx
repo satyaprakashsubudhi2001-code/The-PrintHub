@@ -49,7 +49,7 @@ export function ProductsView() {
   const categoryOptions = useMemo(() => {
     return [
       { id: 'all', label: 'All Categories' },
-      ...categories.filter(c => c.status !== 'inactive').map((c) => ({
+      ...categories.filter(c => c.isActive !== false && c.status !== 'inactive').map((c) => ({
         id: c.name,
         slug: c.slug,
         label: c.name,
@@ -60,15 +60,15 @@ export function ProductsView() {
 
   // Combine customizable blanks and ready-to-order catalog
   const allCustomProducts = (products || [])
-    .filter((p) => p.isCustomizable !== false && p.status !== 'inactive')
+    .filter((p) => p.isCustomizable !== false && p.status !== 'ARCHIVED' && p.status !== 'inactive')
     .map((p) => ({
       ...p,
       isCustomizable: true,
     }));
 
   const allReadyProducts = [
-    ...(products || []).filter((p) => p.isReadyToBuy && p.status !== 'inactive'),
-    ...(readyToBuyProducts || []).filter((p) => p.status !== 'inactive'),
+    ...(products || []).filter((p) => p.isReadyToBuy && p.status !== 'ARCHIVED' && p.status !== 'inactive'),
+    ...(readyToBuyProducts || []).filter((p) => p.status !== 'ARCHIVED' && p.status !== 'inactive'),
   ].map((p) => ({
     ...p,
     isCustomizable: false,
