@@ -1,8 +1,10 @@
 import prisma from '../_lib/prisma.js';
+import { verifyAdmin } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
+      res.setHeader('Cache-Control', 'no-store');
       const products = await prisma.product.findMany({
         where: { status: 'ACTIVE' },
         include: { category: true, images: { orderBy: { sortOrder: 'asc' } }, inventory: true },
@@ -14,6 +16,7 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
+      verifyAdmin(req);
       const data = req.body;
       const { images, inventory, ...productData } = data;
       

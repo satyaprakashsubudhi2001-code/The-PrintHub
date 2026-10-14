@@ -1,4 +1,5 @@
 import prisma from '../_lib/prisma.js';
+import { verifyAdmin } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -13,6 +14,7 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
+      verifyAdmin(req);
       const { name, audience, description, icon, image } = req.body;
       const category = await prisma.category.create({
         data: { name, audience, description, icon, image }

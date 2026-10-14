@@ -4,8 +4,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "prisma generate && prisma db push --accept-data-loss && vite build",
+    "dev:app": "cd app && vite",
+    "dev:admin": "cd admin && vite",
+    "dev:server": "node server/index.js",
+    "build:app": "cd app && vite build",
+    "build:admin": "cd admin && vite build",
+    "dev": "vite --config app/vite.config.js app",
+    "build": "cd app && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -14,6 +19,8 @@
     "@react-three/fiber": "^8.18.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
+    "cookie": "^2.0.1",
+    "jsonwebtoken": "^9.0.3",
     "jszip": "^3.10.1",
     "lucide-react": "^0.300.0",
     "react": "^18.3.1",

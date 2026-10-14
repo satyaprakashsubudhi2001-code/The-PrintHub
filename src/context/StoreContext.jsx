@@ -177,15 +177,33 @@ export function StoreProvider({ children }) {
 
     const hashRoute = clean(window.location.hash);
     const pathRoute = clean(window.location.pathname);
+    const hostname = window.location.hostname.toLowerCase();
 
-    // If pathname is a specific known route (e.g. /admin, /admin-login, /products), prioritize it
+    // Force Admin routes on admin subdomain
+    if (hostname.startsWith('admin.')) {
+      if (pathRoute === 'login' || hashRoute === 'login') return 'admin-login';
+      return 'admin';
+    }
+
+    // If pathname is a specific known route (e.g. /products), prioritize it
     const isSpecificPath = pathRoute && pathRoute !== 'index.html' && pathRoute !== 'index';
     const isSpecificHash = hashRoute && hashRoute !== 'home';
 
     const route = isSpecificPath ? pathRoute : (isSpecificHash ? hashRoute : (pathRoute || hashRoute || 'home'));
 
-    if (route === 'admin' || route === 'admin/dashboard') return 'admin';
-    if (route === 'admin/login' || route === 'admin-login') return 'admin-login';
+    // Prevent access to admin via path on main storefront in production
+    // TEMPORARY BYPASS: We allow 'localhost' and temporarily allow production path access 
+    // so you don't get locked out before the DNS is ready!
+    if (route === 'admin' || route === 'admin/dashboard' || route === 'admin/login' || route === 'admin-login') {
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('admin.')) {
+        // Uncomment this line ONLY AFTER the 'admin.' domain is fully live and working!
+        // return 'home'; 
+      }
+      
+      if (route === 'admin/login' || route === 'admin-login') return 'admin-login';
+      return 'admin';
+    }
+
     if (route === 'studio' || route === 'customizer' || route === 'custom-printing') return 'design-by-customer';
     if (route === 'contact') return 'help';
     if (route === 'about') return 'about-us';
@@ -292,7 +310,7 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           setProducts(data);
@@ -668,48 +686,38 @@ export function StoreProvider({ children }) {
 
   const isAdminAuthenticated = Boolean(adminUser);
 
-  const loginAdmin = useCallback((credentials) => {
-    const rawEmail = (credentials?.email || '').trim().toLowerCase();
-    const rawPass = (credentials?.password || '').trim();
-
-    const validEmails = [
-      'theprinthub.in@gmail.com',
-      'admin@theprinthub.com',
-      'admin@theprinthub.in',
-      'admin',
-    ];
-    const validPasswords = [
-      'Theprinthub@123',
-      'theprinthub@123',
-      'ThePrintHub@123',
-      'admin123',
-      'printhub123',
-    ];
-
-    const isValidUser = (validEmails.includes(rawEmail) || rawEmail.includes('theprinthub') || rawEmail.includes('admin')) && rawEmail.length > 0;
-    const isValidPass = (validPasswords.includes(rawPass) || rawPass.toLowerCase() === 'theprinthub@123') && rawPass.length > 0;
-
-    if (isValidUser && isValidPass) {
-      const userObj = {
-        name: 'The PrintHub Admin',
-        email: rawEmail || 'theprinthub.in@gmail.com',
-        role: 'admin',
-        loginAt: new Date().toISOString(),
-      };
-      setAdminUser(userObj);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('printhub_admin_session', JSON.stringify(userObj));
+  const loginAdmin = useCallback(async (credentials) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setAdminUser(data.user);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('printhub_admin_session', JSON.stringify(data.user));
+        }
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Access Denied: Invalid credentials.' };
       }
-      return { success: true };
+    } catch (err) {
+      return { success: false, message: 'Server error. Please try again later.' };
     }
-    return { success: false, message: 'Access Denied: Invalid administrator credentials.' };
   }, []);
 
-  const logoutAdmin = useCallback(() => {
+  const logoutAdmin = useCallback(async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+    
     setAdminUser(null);
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('printhub_admin_session');
-      localStorage.removeItem('printhub_admin_session'); // clear legacy storage just in case
+      localStorage.removeItem('printhub_admin_session');
     }
   }, []);
 

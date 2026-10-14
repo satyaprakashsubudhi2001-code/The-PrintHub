@@ -225,6 +225,17 @@ export function AdminProductsTab({ onNavigateToCategories }) {
   const [customSizesInput, setCustomSizesInput] = useState('S, M, L, XL, 2XL');
   const [formError, setFormError] = useState('');
 
+  // Prevent background scrolling when any modal is open
+  React.useEffect(() => {
+    if (isAddModalOpen || showClearConfirm || cropQueue.length > 0) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isAddModalOpen, showClearConfirm, cropQueue.length]);
+
   // Auto-fill category when categories load if empty
   const defaultCategory = categories.length > 0 ? categories[0].name : '';
 

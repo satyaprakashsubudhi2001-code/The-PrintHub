@@ -1,0 +1,191 @@
+// server/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("ADMIN") // SUPER_ADMIN, ADMIN, STAFF
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  audience    String    // MAN, WOMAN, BOYS, GIRLS
+  description String?
+  icon        String?
+  image       String?
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([name, audience])
+}
+
+model Product {
+  id               String          @id @default(uuid())
+  sku              String          @unique
+  name             String
+  categoryId       String
+  category         Category        @relation(fields: [categoryId], references: [id])
+  audience         String          // Redundant but helpful for fast queries
+  description      String?
+  basePrice        Float
+  salePrice        Float?
+  costPrice        Float           @default(0)
+  status           String          @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
+  isCustomizable   Boolean         @default(true)
+  defaultColor     String?
+  defaultSize      String?
+  features         String?         // Stored as JSON string
+  sizes            String?         // Stored as JSON string
+  colors           String?         // Stored as JSON string
+  images           ProductImage[]
+  inventory        Inventory?
+  designRequests   DesignRequest[]
+  orderItems       OrderItem[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  key       String?  // For cloud storage deletion
+  alt       String?
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id             String          @id @default(uuid())
+  name           String
+  email          String?         
+  phone          String          @unique
+  company        String?
+  totalSpent     Float           @default(0)
+  ordersCount    Int             @default(0)
+  designRequests DesignRequest[]
+  orders         Order[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model DesignRequest {
+  id             String   @id @default(uuid()) // Unique PH-YYYY-XXXXX
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id])
+  status         String   @default("NEW") // NEW, REVIEWING, QUOTED, APPROVED, IN_PRODUCTION, COMPLETED, CANCELLED
+  customization  String?  // JSON string
+  artworkUrls    String?  // JSON string of arrays
+  mockupUrls     String?  // JSON string
+  notes          String?
+  adminNotes     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Order {
+  id            String      @id @default(uuid()) // ORD-YYYY-XXXXX
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  status        String      @default("PENDING") // PENDING, PROCESSING, COMPLETED, CANCELLED
+  paymentStatus String      @default("UNPAID")
+  totalAmount   Float
+  discount      Float       @default(0)
+  tax           Float       @default(0)
+  shipping      Float       @default(0)
+  netAmount     Float
+  notes         String?
+  source        String      @default("ONLINE") // ONLINE, MANUAL, WHATSAPP
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Float
+  unitCost   Float    @default(0)
+  totalPrice Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Inventory {
+  id           String                 @id @default(uuid())
+  productId    String                 @unique
+  product      Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku          String                 @unique
+  quantity     Int                    @default(0)
+  minLevel     Int                    @default(10)
+  supplier     String?
+  transactions InventoryTransaction[]
+  updatedAt    DateTime               @updatedAt
+}
+
+model InventoryTransaction {
+  id          String    @id @default(uuid())
+  inventoryId String
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  type        String    // PURCHASE, ORDER_DEDUCT, ADJUSTMENT, RETURN, DAMAGE
+  quantity    Int       // Positive or negative
+  reason      String?
+  unitCost    Float     @default(0)
+  createdAt   DateTime  @default(now())
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  category    String   // Marketing, Software, Utilities, Materials, Logistics
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+  loggedBy    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  text      String
+  highlight String?
+  badge     String?
+  route     String?
+  priority  Int      @default(0)
+  isActive  Boolean  @default(true)
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HomepageContent {
+  id        String   @id @default(uuid())
+  key       String   @unique // hero, featuredProducts, etc.
+  content   String   // JSON string
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,15 +1,17 @@
 import prisma from '../_lib/prisma.js';
+import { verifyAdmin } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
+      verifyAdmin(req);
       const orders = await prisma.order.findMany({
         include: { customer: true, items: { include: { product: true } } },
         orderBy: { createdAt: 'desc' }
       });
       res.status(200).json(orders);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      res.status(401).json({ error: err.message });
     }
   } else if (req.method === 'POST') {
     try {

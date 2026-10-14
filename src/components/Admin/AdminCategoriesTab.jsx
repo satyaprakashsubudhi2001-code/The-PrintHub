@@ -95,6 +95,17 @@ export function AdminCategoriesTab() {
   const [formError, setFormError] = useState('');
   const [cropImageSrc, setCropImageSrc] = useState(null);
 
+  // Prevent background scrolling when any modal is open
+  React.useEffect(() => {
+    if (isModalOpen || showClearConfirm) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isModalOpen, showClearConfirm]);
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',

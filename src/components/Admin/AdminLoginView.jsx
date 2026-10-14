@@ -19,14 +19,14 @@ export function AdminLoginView() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const executeLogin = (emailVal, passVal) => {
+  const executeLogin = async (emailVal, passVal) => {
     setErrorMessage('');
     setIsLoading(true);
 
     const emailToUse = (emailVal !== undefined ? emailVal : identifier).trim();
     const passToUse = (passVal !== undefined ? passVal : passcode).trim();
 
-    const res = loginAdmin({ email: emailToUse, password: passToUse });
+    const res = await loginAdmin({ email: emailToUse, password: passToUse });
     setIsLoading(false);
 
     if (res && res.success) {
