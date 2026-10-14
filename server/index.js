@@ -26,7 +26,13 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON payload' });
+  }
+  next(err);
+});
 
 function parseCookies(req) {
   const list = {};
@@ -168,6 +174,29 @@ app.delete('/api/categories/:id', async (req, res) => {
 
 app.delete('/api/categories', async (req, res) => {
   try {
+    const targetId = req.query.id || req.body?.id;
+    if (targetId) {
+      const existing = await prisma.category.findFirst({
+        where: {
+          OR: [{ id: targetId }, { name: targetId }]
+        }
+      });
+
+      if (!existing) {
+        return res.json({ success: true, message: 'Category already deleted or not found' });
+      }
+
+      try {
+        await prisma.category.delete({ where: { id: existing.id } });
+      } catch (relErr) {
+        await prisma.category.update({
+          where: { id: existing.id },
+          data: { isActive: false }
+        });
+      }
+      return res.json({ success: true, message: 'Category deleted successfully' });
+    }
+
     try {
       await prisma.category.deleteMany({});
     } catch (relErr) {
@@ -201,17 +230,76 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', async (req, res) => {
   try {
     const data = req.body;
-    
-    // Extract related data for separate creation if needed, or use Prisma nested writes
     const { images, inventory, ...productData } = data;
-    
+
+    // Auto-resolve or create categoryId if only category name is provided
+    let categoryId = productData.categoryId;
+    if (!categoryId && productData.category) {
+      const catName = productData.category.trim();
+      let cat = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { name: { equals: catName, mode: 'insensitive' } },
+            { id: catName }
+          ]
+        }
+      });
+
+      if (!cat) {
+        cat = await prisma.category.create({
+          data: {
+            name: catName,
+            audience: productData.audience || 'UNISEX',
+            icon: '🏷️'
+          }
+        });
+      }
+      categoryId = cat.id;
+    }
+
+    const sku = productData.sku || `SKU-${Date.now().toString(36).toUpperCase()}`;
+    const audience = productData.audience || 'UNISEX';
+
+    let imageCreate = undefined;
+    if (Array.isArray(images) && images.length > 0) {
+      imageCreate = {
+        create: images.map((img, idx) => ({
+          url: typeof img === 'string' ? img : (img.url || ''),
+          sortOrder: idx,
+          isPrimary: idx === 0
+        }))
+      };
+    }
+
+    const inventoryCreate = inventory ? {
+      create: {
+        sku: inventory.sku || `${sku}-INV`,
+        quantity: Number(inventory.quantity ?? inventory.currentStock ?? inventory.stock ?? 50),
+        minLevel: Number(inventory.minLevel ?? inventory.minStockLevel ?? 10)
+      }
+    } : undefined;
+
     const product = await prisma.product.create({
       data: {
-        ...productData,
-        images: images ? { create: images } : undefined,
-        inventory: inventory ? { create: inventory } : undefined
+        name: productData.name || 'Untitled Product',
+        sku,
+        audience,
+        categoryId: categoryId || (await prisma.category.findFirst())?.id,
+        description: productData.description || '',
+        basePrice: Number(productData.basePrice || productData.price) || 0,
+        salePrice: productData.compareAtPrice ? Number(productData.compareAtPrice) : null,
+        costPrice: Number(productData.costPrice) || 0,
+        status: 'ACTIVE',
+        isCustomizable: productData.isCustomizable !== false,
+        defaultColor: productData.defaultColor || '#18181b',
+        defaultSize: productData.defaultSize || 'L',
+        sizes: Array.isArray(productData.sizes) ? JSON.stringify(productData.sizes) : (productData.sizes || '["S","M","L","XL"]'),
+        colors: Array.isArray(productData.colors) ? JSON.stringify(productData.colors) : (productData.colors || '[]'),
+        features: productData.features ? JSON.stringify(productData.features) : null,
+        images: imageCreate,
+        inventory: inventoryCreate
       },
-      include: { images: true, inventory: true }
+      include: { images: true, inventory: true, category: true }
     });
     res.status(201).json(product);
   } catch (err) {
@@ -226,6 +314,35 @@ app.patch('/api/products/:id', async (req, res) => {
     const existing = await prisma.product.findFirst({
       where: {
         OR: [{ id: id }, { sku: id }, { name: id }]
+      }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const product = await prisma.product.update({
+      where: { id: existing.id },
+      data,
+      include: { images: true, inventory: true }
+    });
+    res.json(product);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.patch('/api/products', async (req, res) => {
+  try {
+    const targetId = req.query.id || req.body?.id;
+    if (!targetId) {
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
+
+    const data = req.body;
+    const existing = await prisma.product.findFirst({
+      where: {
+        OR: [{ id: targetId }, { sku: targetId }, { name: targetId }]
       }
     });
 
@@ -276,6 +393,32 @@ app.delete('/api/products/:id', async (req, res) => {
 
 app.delete('/api/products', async (req, res) => {
   try {
+    const targetId = req.query.id || req.body?.id;
+    if (targetId) {
+      const existing = await prisma.product.findFirst({
+        where: {
+          OR: [{ id: targetId }, { sku: targetId }, { name: targetId }]
+        }
+      });
+
+      if (!existing) {
+        return res.json({ success: true, message: 'Product already deleted or not found' });
+      }
+
+      try {
+        await prisma.product.delete({
+          where: { id: existing.id }
+        });
+      } catch (delErr) {
+        await prisma.product.update({
+          where: { id: existing.id },
+          data: { status: 'ARCHIVED' }
+        });
+      }
+
+      return res.json({ success: true, message: 'Product deleted successfully' });
+    }
+
     try {
       await prisma.productImage.deleteMany({});
       await prisma.inventory.deleteMany({});
@@ -509,6 +652,11 @@ app.post('/api/expenses', async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+  res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 
 const PORT = process.env.PORT || 5000;
