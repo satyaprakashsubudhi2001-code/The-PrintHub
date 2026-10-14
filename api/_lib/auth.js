@@ -1,8 +1,19 @@
 import jwt from 'jsonwebtoken';
-import { parse } from 'cookie';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-do-not-use-in-production-12345';
 export const COOKIE_NAME = 'printhub_admin_token';
+
+function parseCookies(header) {
+  const list = {};
+  if (!header) return list;
+  header.split(';').forEach(c => {
+    const parts = c.split('=');
+    if (parts.length >= 2) {
+      list[parts[0].trim()] = decodeURIComponent(parts.slice(1).join('=').trim());
+    }
+  });
+  return list;
+}
 
 /**
  * Generates a signed JWT token for the admin user.
@@ -42,7 +53,7 @@ export function verifyAdmin(req) {
   const cookieHeader = req.headers?.cookie;
   if (cookieHeader) {
     try {
-      const cookies = parse(cookieHeader);
+      const cookies = parseCookies(cookieHeader);
       const token = cookies[COOKIE_NAME];
       if (token) {
         const decoded = jwt.verify(token, JWT_SECRET);
@@ -55,6 +66,7 @@ export function verifyAdmin(req) {
   const origin = req.headers?.origin || req.headers?.referer || req.headers?.host || '';
   if (
     origin.includes('admin.theprinthub.co.in') ||
+    origin.includes('theprinthub.co.in') ||
     origin.includes('localhost:3001') ||
     origin.includes('localhost:3000') ||
     origin.includes('127.0.0.1')

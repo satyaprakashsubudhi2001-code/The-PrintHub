@@ -38,8 +38,24 @@ export default async function handler(req, res) {
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
+  } else if (req.method === 'PATCH') {
+    try {
+      verifyAdmin(req);
+      const urlParts = (req.url || '').split('?')[0].split('/').filter(Boolean);
+      const lastPart = urlParts[urlParts.length - 1];
+      const id = req.query.id || (lastPart !== 'orders' ? lastPart : null) || req.body?.id;
+      if (!id) return res.status(400).json({ error: 'Order ID is required' });
+      const data = req.body;
+      const order = await prisma.order.update({
+        where: { id },
+        data
+      });
+      res.status(200).json(order);
+    } catch (err) {
+      res.status(401).json({ error: err.message });
+    }
   } else {
-    res.setHeader('Allow', ['GET', 'POST']);
+    res.setHeader('Allow', ['GET', 'POST', 'PATCH']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

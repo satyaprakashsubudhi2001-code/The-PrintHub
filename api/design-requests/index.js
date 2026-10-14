@@ -60,8 +60,24 @@ export default async function handler(req, res) {
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
+  } else if (req.method === 'PATCH') {
+    try {
+      const urlParts = (req.url || '').split('?')[0].split('/').filter(Boolean);
+      const lastPart = urlParts[urlParts.length - 1];
+      const id = req.query.id || (lastPart !== 'design-requests' ? lastPart : null) || req.body?.id;
+      if (!id) return res.status(400).json({ error: 'Design Request ID is required' });
+      const data = req.body;
+      const request = await prisma.designRequest.update({
+        where: { id },
+        data,
+        include: { customer: true, product: true }
+      });
+      res.status(200).json(request);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
   } else {
-    res.setHeader('Allow', ['GET', 'POST']);
+    res.setHeader('Allow', ['GET', 'POST', 'PATCH']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

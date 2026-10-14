@@ -3,8 +3,8 @@
   "rewrites": [
     { "source": "/api/categories/:id", "destination": "/api/categories/index.js?id=:id" },
     { "source": "/api/products/:id", "destination": "/api/products/index.js?id=:id" },
-    { "source": "/api/orders/:id", "destination": "/api/orders/[id].js?id=:id" },
-    { "source": "/api/design-requests/:id", "destination": "/api/design-requests/[id].js?id=:id" },
+    { "source": "/api/orders/:id", "destination": "/api/orders/index.js?id=:id" },
+    { "source": "/api/design-requests/:id", "destination": "/api/design-requests/index.js?id=:id" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!api/|_nuxt/|assets/).*)", "destination": "/index.html" }
   ]
