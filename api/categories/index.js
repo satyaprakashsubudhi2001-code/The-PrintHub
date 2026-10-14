@@ -26,9 +26,67 @@ export default async function handler(req, res) {
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
+  } else if (req.method === 'PATCH') {
+    try {
+      verifyAdmin(req);
+      const urlParts = (req.url || '').split('?')[0].split('/').filter(Boolean);
+      const lastPart = urlParts[urlParts.length - 1];
+      const targetId = req.query.id || (lastPart !== 'categories' ? lastPart : null) || req.body?.id;
+
+      if (!targetId) {
+        return res.status(400).json({ error: 'Category ID is required' });
+      }
+
+      const existing = await prisma.category.findFirst({
+        where: {
+          OR: [{ id: targetId }, { name: targetId }]
+        }
+      });
+
+      if (!existing) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+
+      const { id, ...data } = req.body;
+      const category = await prisma.category.update({
+        where: { id: existing.id },
+        data
+      });
+      res.status(200).json(category);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
   } else if (req.method === 'DELETE') {
     try {
       verifyAdmin(req);
+      const urlParts = (req.url || '').split('?')[0].split('/').filter(Boolean);
+      const lastPart = urlParts[urlParts.length - 1];
+      const targetId = req.query.id || (lastPart !== 'categories' ? lastPart : null) || req.body?.id;
+
+      if (targetId) {
+        // Delete single category
+        const existing = await prisma.category.findFirst({
+          where: {
+            OR: [{ id: targetId }, { name: targetId }]
+          }
+        });
+
+        if (!existing) {
+          return res.status(200).json({ success: true, message: 'Category already deleted or not found' });
+        }
+
+        try {
+          await prisma.category.delete({ where: { id: existing.id } });
+        } catch (relErr) {
+          await prisma.category.update({
+            where: { id: existing.id },
+            data: { isActive: false }
+          });
+        }
+        return res.status(200).json({ success: true, message: 'Category deleted successfully' });
+      }
+
+      // Bulk clear all categories
       try {
         await prisma.category.deleteMany({});
       } catch (relErr) {
@@ -41,7 +99,7 @@ export default async function handler(req, res) {
       res.status(400).json({ error: err.message });
     }
   } else {
-    res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
+    res.setHeader('Allow', ['GET', 'POST', 'PATCH', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

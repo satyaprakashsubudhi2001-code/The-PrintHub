@@ -98,9 +98,71 @@ export default async function handler(req, res) {
       console.error('Failed to create product in DB:', err);
       res.status(400).json({ error: err.message });
     }
+  } else if (req.method === 'PATCH') {
+    try {
+      verifyAdmin(req);
+      const urlParts = (req.url || '').split('?')[0].split('/').filter(Boolean);
+      const lastPart = urlParts[urlParts.length - 1];
+      const targetId = req.query.id || (lastPart !== 'products' ? lastPart : null) || req.body?.id;
+
+      if (!targetId) {
+        return res.status(400).json({ error: 'Product ID is required' });
+      }
+
+      const existing = await prisma.product.findFirst({
+        where: {
+          OR: [{ id: targetId }, { sku: targetId }, { name: targetId }]
+        }
+      });
+
+      if (!existing) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      const { images, inventory, id, ...productData } = req.body;
+      const product = await prisma.product.update({
+        where: { id: existing.id },
+        data: productData,
+        include: { images: true, inventory: true }
+      });
+      res.status(200).json(product);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
   } else if (req.method === 'DELETE') {
     try {
       verifyAdmin(req);
+      const urlParts = (req.url || '').split('?')[0].split('/').filter(Boolean);
+      const lastPart = urlParts[urlParts.length - 1];
+      const targetId = req.query.id || (lastPart !== 'products' ? lastPart : null) || req.body?.id;
+
+      if (targetId) {
+        // Delete single product
+        const existing = await prisma.product.findFirst({
+          where: {
+            OR: [{ id: targetId }, { sku: targetId }, { name: targetId }]
+          }
+        });
+
+        if (!existing) {
+          return res.status(200).json({ success: true, message: 'Product already deleted or not found' });
+        }
+
+        try {
+          await prisma.product.delete({
+            where: { id: existing.id }
+          });
+        } catch (delErr) {
+          await prisma.product.update({
+            where: { id: existing.id },
+            data: { status: 'ARCHIVED' }
+          });
+        }
+
+        return res.status(200).json({ success: true, message: 'Product deleted successfully' });
+      }
+
+      // Bulk clear all products
       try {
         await prisma.productImage.deleteMany({});
         await prisma.inventory.deleteMany({});
@@ -115,7 +177,7 @@ export default async function handler(req, res) {
       res.status(400).json({ error: err.message });
     }
   } else {
-    res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
+    res.setHeader('Allow', ['GET', 'POST', 'PATCH', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

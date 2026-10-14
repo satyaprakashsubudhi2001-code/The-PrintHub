@@ -396,17 +396,25 @@ export function StoreProvider({ children }) {
 
   const updateCategory = useCallback(async (id, updatedData) => {
     try {
-      const response = await fetch(`/api/categories/${id}`, {
+      let response = await fetch(`/api/categories/${encodeURIComponent(id)}?id=${encodeURIComponent(id)}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
         body: JSON.stringify(updatedData)
       });
+
+      if (response.status === 405 || !response.ok) {
+        response = await fetch(`/api/categories?id=${encodeURIComponent(id)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+          body: JSON.stringify(updatedData)
+        });
+      }
 
       if (response.ok) {
         const updatedCat = await response.json();
         
         setCategories((prev) => prev.map((cat) => {
-          if (cat.id !== id) return cat;
+          if (cat.id !== id && cat.name !== id) return cat;
           const slug = updatedData.slug
             ? updatedData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
             : updatedData.name
@@ -420,19 +428,30 @@ export function StoreProvider({ children }) {
             badge: updatedData.badge !== undefined ? updatedData.badge.trim() : cat.badge,
           };
         }));
+        return true;
       } else {
         console.error('Failed to update category:', await response.text());
+        return false;
       }
     } catch (err) {
       console.error('Error updating category:', err);
+      return false;
     }
   }, []);
 
   const deleteCategory = useCallback(async (id) => {
     try {
-      const response = await fetch(`/api/categories/${encodeURIComponent(id)}`, {
-        method: 'DELETE'
+      let response = await fetch(`/api/categories/${encodeURIComponent(id)}?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: { 'Cache-Control': 'no-cache' }
       });
+
+      if (response.status === 405 || !response.ok) {
+        response = await fetch(`/api/categories?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: { 'Cache-Control': 'no-cache' }
+        });
+      }
 
       if (response.ok) {
         setCategories((prev) => prev.filter((cat) => cat.id !== id && cat.name !== id));
@@ -450,22 +469,31 @@ export function StoreProvider({ children }) {
 
   const clearAllCategories = useCallback(async () => {
     try {
-      const response = await fetch('/api/categories', { method: 'DELETE' });
+      let response = await fetch('/api/categories', {
+        method: 'DELETE',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       if (response.ok) {
         setCategories([]);
         return true;
       } else {
-        // Fallback to deleting items individually
+        // Fallback to deleting items individually via query param
         const results = await Promise.all(categories.map(cat => 
-          fetch(`/api/categories/${encodeURIComponent(cat.id || cat.name)}`, { method: 'DELETE' })
+          fetch(`/api/categories?id=${encodeURIComponent(cat.id || cat.name)}`, {
+            method: 'DELETE',
+            headers: { 'Cache-Control': 'no-cache' }
+          })
         ));
         if (results.some(r => r.ok)) {
           const fresh = await fetch('/api/categories', { cache: 'no-store' });
           if (fresh.ok) setCategories(await fresh.json());
+          return true;
         }
+        return false;
       }
     } catch (err) {
       console.error('Error clearing all categories:', err);
+      return false;
     }
   }, [categories]);
 
@@ -534,23 +562,44 @@ export function StoreProvider({ children }) {
 
   const updateProduct = useCallback(async (productId, updatedFields) => {
     try {
-      const response = await fetch(`/api/products/${productId}`, {
+      let response = await fetch(`/api/products/${encodeURIComponent(productId)}?id=${encodeURIComponent(productId)}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
         body: JSON.stringify(updatedFields)
       });
+      if (response.status === 405 || !response.ok) {
+        response = await fetch(`/api/products?id=${encodeURIComponent(productId)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+          body: JSON.stringify(updatedFields)
+        });
+      }
       if (response.ok) {
         const updatedProduct = await response.json();
-        setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, ...updatedProduct } : p)));
+        setProducts((prev) => prev.map((p) => (p.id === productId || p.sku === productId || p.name === productId ? { ...p, ...updatedProduct } : p)));
+        return true;
       }
+      return false;
     } catch (err) {
       console.error('Failed to update product:', err);
+      return false;
     }
   }, []);
 
   const deleteProduct = useCallback(async (productId) => {
     try {
-      const response = await fetch(`/api/products/${encodeURIComponent(productId)}`, { method: 'DELETE' });
+      let response = await fetch(`/api/products/${encodeURIComponent(productId)}?id=${encodeURIComponent(productId)}`, {
+        method: 'DELETE',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+
+      if (response.status === 405 || !response.ok) {
+        response = await fetch(`/api/products?id=${encodeURIComponent(productId)}`, {
+          method: 'DELETE',
+          headers: { 'Cache-Control': 'no-cache' }
+        });
+      }
+
       if (response.ok) {
         setProducts((prev) => prev.filter((p) => p.id !== productId && p.sku !== productId && p.name !== productId));
         return true;
@@ -567,22 +616,32 @@ export function StoreProvider({ children }) {
 
   const clearAllProducts = useCallback(async () => {
     try {
-      const response = await fetch('/api/products', { method: 'DELETE' });
+      let response = await fetch('/api/products', {
+        method: 'DELETE',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       if (response.ok) {
         setProducts([]);
         setReadyToBuyProducts([]);
         return true;
       } else {
         const results = await Promise.all(products.map(p => 
-          fetch(`/api/products/${encodeURIComponent(p.id)}`, { method: 'DELETE' })
+          fetch(`/api/products?id=${encodeURIComponent(p.id || p.sku || p.name)}`, {
+            method: 'DELETE',
+            headers: { 'Cache-Control': 'no-cache' }
+          })
         ));
         if (results.some(r => r.ok)) {
           const fresh = await fetch('/api/products', { cache: 'no-store' });
           if (fresh.ok) setProducts(await fresh.json());
+          setReadyToBuyProducts([]);
+          return true;
         }
+        return false;
       }
     } catch (err) {
       console.error('Error clearing products:', err);
+      return false;
     }
   }, [products]);
 
