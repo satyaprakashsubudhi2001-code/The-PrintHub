@@ -8,6 +8,7 @@ import { DesignByCustomerView } from './components/Views/DesignByCustomerView';
 import { ProductDetailView } from './components/Products/ProductDetailView';
 import { ScreenshotModal } from './components/UI/ScreenshotModal';
 import { WhatsAppButton } from './components/Navigation/WhatsAppButton';
+import { CartDrawer } from './components/UI/CartDrawer';
 
 const BulkOrdersView = lazy(() =>
   import('./components/Views/BulkOrdersView').then((m) => ({ default: m.BulkOrdersView }))
@@ -219,6 +220,9 @@ function MainAppShell() {
 
       {/* Snapshot Preview Modal */}
       {!isAdminSurface && <ScreenshotModal />}
+
+      {/* Universal 3D Customizer Cart Drawer */}
+      {!isAdminSurface && <CartDrawer />}
     </div>
   );
 }

@@ -35,6 +35,8 @@ export function Navbar() {
     setSearchQuery,
     setSelectedCategory,
     setIsShopMenuOpen,
+    cartItems = [],
+    setIsCartOpen,
   } = useStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -275,6 +277,21 @@ export function Navbar() {
               <WhatsAppIcon className="w-4 h-4 drop-shadow-xs" size={16} />
               <span className="whitespace-nowrap font-bold">WhatsApp</span>
             </a>
+
+            {/* Custom Cart Button with Badge */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2 rounded-full border border-[#B8A98F]/60 text-[#E5DAC9] hover:text-[#E5C690] hover:border-[#E5C690] hover:bg-[#E5DAC9]/10 transition-all cursor-pointer shadow-xs flex items-center justify-center"
+              title="View Custom Cart"
+              aria-label="View Custom Cart"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              {cartItems?.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#E5C690] text-[#183630] font-black text-[9px] flex items-center justify-center border border-[#183630]">
+                  {cartItems.length}
+                </span>
+              )}
+            </button>
 
             {/* Mobile Menu Hamburger Toggle */}
             <button
