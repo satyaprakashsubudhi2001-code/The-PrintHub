@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { INITIAL_PRODUCTS, DEFAULT_PRESET_PRODUCTS, COLOR_PALETTE, PRINTING_METHODS } from '../constants/products';
+import { STUDIO_ENVIRONMENTS } from '../constants/presets';
 import { READY_TO_BUY_PRODUCTS } from '../constants/readyToBuyProducts';
 import { STORE_CONFIG } from '../constants/config';
 import {
@@ -159,6 +160,92 @@ export const DEFAULT_8_CATEGORIES = [
   },
 ];
 
+export function formatModelForCustomizer(model) {
+  if (!model) return null;
+  const colors = Array.isArray(model.colors)
+    ? model.colors
+    : (typeof model.colors === 'string' ? JSON.parse(model.colors || '["#18181b"]') : ['#18181b', '#ffffff']);
+  const sizes = Array.isArray(model.sizes)
+    ? model.sizes
+    : (typeof model.sizes === 'string' ? JSON.parse(model.sizes || '["S","M","L","XL"]') : ['S', 'M', 'L', 'XL']);
+
+  const printAreas = (model.printableAreas || []).map((pa) => {
+    const defaultPos = typeof pa.defaultPosition === 'string' ? JSON.parse(pa.defaultPosition || '[0,0]') : (pa.defaultPosition || [0, 0]);
+    const bounds = typeof pa.bounds === 'string' ? JSON.parse(pa.bounds || '{"x":0.2,"y":0.2,"w":0.6,"h":0.6}') : (pa.bounds || { x: 0.2, y: 0.2, w: 0.6, h: 0.6 });
+    const surface = pa.name.toLowerCase().includes('back')
+      ? 'back'
+      : (pa.name.toLowerCase().includes('sleeve') ? 'sleeve' : (pa.name.toLowerCase().includes('wrap') ? 'wrap' : 'front'));
+
+    return {
+      id: pa.id,
+      name: pa.name,
+      surface,
+      meshName: pa.meshName,
+      maxWidthInches: pa.width || 12,
+      maxHeightInches: pa.height || 14,
+      widthInches: pa.width || 12,
+      heightInches: pa.height || 14,
+      minScale: pa.minScale || 0.2,
+      maxScale: pa.maxScale || 2.5,
+      defaultScale: pa.defaultScale || 1.0,
+      defaultPosition: defaultPos,
+      defaultRotation: pa.defaultRotation || 0,
+      bounds,
+      priceExtra: pa.priceExtra || 0,
+      isEnabled: pa.isEnabled !== false,
+    };
+  });
+
+  const isMug = (model.productType || '').toLowerCase().includes('mug');
+  const isPad = (model.productType || '').toLowerCase().includes('pad') || (model.productType || '').toLowerCase().includes('mouse');
+
+  const defaultCam = isMug
+    ? { position: [0, 0, 2.5], target: [0, 0, 0], fov: 45 }
+    : (isPad
+      ? { position: [0, 2.8, 1.2], target: [0, 0, 0], fov: 45 }
+      : { position: [0, 0, 2.9], target: [0, -0.05, 0], fov: 45 });
+
+  return {
+    id: model.id,
+    sku: model.product?.sku || `MOD3D-${model.id.slice(-6).toUpperCase()}`,
+    name: model.name,
+    productType: model.productType,
+    category: model.productType,
+    categoryKey: model.productType.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    basePrice: model.basePrice,
+    productId: model.productId || model.id,
+    image: model.previewImage || (isMug ? 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80' : isPad ? 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=600&q=80' : 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80'),
+    modelUrl: model.modelUrl,
+    modelPath: model.modelUrl,
+    colors,
+    defaultColor: colors[0] || '#18181b',
+    sizes,
+    defaultSize: sizes[0] || 'L',
+    printAreas: printAreas.length > 0 ? printAreas : [{
+      id: 'default_front',
+      name: isMug ? 'Full Mug Wrap' : isPad ? 'Top Printable Surface' : 'Front Chest',
+      surface: isMug ? 'wrap' : 'front',
+      maxWidthInches: 12,
+      maxHeightInches: 14,
+      widthInches: 12,
+      heightInches: 14,
+      bounds: { x: 0.2, y: 0.2, w: 0.6, h: 0.6 }
+    }],
+    defaultPrintArea: printAreas[0]?.id || 'default_front',
+    defaultCamera: defaultCam,
+    cameraPresets: {
+      front: [0, 0, 2.9],
+      back: [0, 0, -2.9],
+      left: [-2.9, 0, 0],
+      right: [2.9, 0, 0],
+      top: [0, 2.9, 0.4],
+      reset: defaultCam.position
+    },
+    version: model.version || 1,
+    is3DModel: true,
+  };
+}
+
 const StoreContext = createContext();
 
 export function StoreProvider({ children }) {
@@ -179,10 +266,15 @@ export function StoreProvider({ children }) {
     const pathRoute = clean(window.location.pathname);
     const hostname = window.location.hostname.toLowerCase();
 
-    // Force Admin routes on admin subdomain
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const adminPortalUrl = isLocalhost ? 'http://localhost:3001' : 'https://admin.theprinthub.co.in';
+
+    // If accessed on admin subdomain or admin path, redirect to dedicated admin frontend
     if (hostname.startsWith('admin.')) {
-      if (pathRoute === 'login' || hashRoute === 'login') return 'admin-login';
-      return 'admin';
+      if (!isLocalhost && window.location.origin !== adminPortalUrl) {
+        window.location.href = adminPortalUrl;
+      }
+      return 'home';
     }
 
     // If pathname is a specific known route (e.g. /products), prioritize it
@@ -191,17 +283,9 @@ export function StoreProvider({ children }) {
 
     const route = isSpecificPath ? pathRoute : (isSpecificHash ? hashRoute : (pathRoute || hashRoute || 'home'));
 
-    // Prevent access to admin via path on main storefront in production
-    // TEMPORARY BYPASS: We allow 'localhost' and temporarily allow production path access 
-    // so you don't get locked out before the DNS is ready!
     if (route === 'admin' || route === 'admin/dashboard' || route === 'admin/login' || route === 'admin-login') {
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('admin.')) {
-        // Uncomment this line ONLY AFTER the 'admin.' domain is fully live and working!
-        // return 'home'; 
-      }
-      
-      if (route === 'admin/login' || route === 'admin-login') return 'admin-login';
-      return 'admin';
+      window.location.href = adminPortalUrl;
+      return 'home';
     }
 
     if (route === 'studio' || route === 'customizer' || route === 'custom-printing') return 'design-by-customer';
@@ -321,6 +405,29 @@ export function StoreProvider({ children }) {
     };
     fetchProducts();
   }, []);
+
+  // 3D Models Catalog from Database
+  const [models3D, setModels3D] = useState([]);
+
+  const fetchModels3D = useCallback(async () => {
+    try {
+      const response = await fetch('/api/models?customerOnly=true', { cache: 'no-store' });
+      if (response.ok) {
+        const data = await response.json();
+        setModels3D(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch 3D models:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchModels3D();
+  }, [fetchModels3D]);
+
+  const formatted3DModels = useMemo(() => {
+    return (models3D || []).map(formatModelForCustomizer);
+  }, [models3D]);
 
   // Ready-to-Buy Direct Catalog
   const [readyToBuyProducts, setReadyToBuyProducts] = useState(() => {
@@ -651,21 +758,30 @@ export function StoreProvider({ children }) {
     }
   }, []);
 
-  // Active Customizer Product State (Safe fallback to first product or null)
-  const defaultBlank = products && products.length > 0 ? products[0] : null;
+  // Active Customizer Product State (Safe fallback to first 3D model or product)
+  const defaultBlank = formatted3DModels.length > 0
+    ? formatted3DModels[0]
+    : (products && products.length > 0 ? products[0] : null);
 
   const [customizerProduct, setCustomizerProduct] = useState(defaultBlank);
   const [customizerColor, setCustomizerColor] = useState(defaultBlank?.defaultColor || '#18181b');
   const [selectedSize, setSelectedSize] = useState(defaultBlank?.defaultSize || 'L');
 
-  // Reactively auto-select first product when added if customizer was empty
+  // Reactively auto-select first product or 3D model when added if customizer was empty
   useEffect(() => {
-    if (!customizerProduct && products && products.length > 0) {
-      setCustomizerProduct(products[0]);
-      setCustomizerColor(products[0].defaultColor || '#18181b');
-      setSelectedSize(products[0].defaultSize || products[0].sizes?.[0] || 'L');
+    if (!customizerProduct) {
+      if (formatted3DModels.length > 0) {
+        setCustomizerProduct(formatted3DModels[0]);
+        setCustomizerColor(formatted3DModels[0].defaultColor || '#18181b');
+        setSelectedSize(formatted3DModels[0].defaultSize || formatted3DModels[0].sizes?.[0] || 'L');
+      } else if (products && products.length > 0) {
+        setCustomizerProduct(products[0]);
+        setCustomizerColor(products[0].defaultColor || '#18181b');
+        setSelectedSize(products[0].defaultSize || products[0].sizes?.[0] || 'L');
+      }
     }
-  }, [products, customizerProduct]);
+  }, [products, formatted3DModels, customizerProduct]);
+
   const [activePlacementId, setActivePlacementId] = useState(defaultBlank?.defaultPrintArea || 'center_chest');
 
   // Multi-placement artwork & text layers
@@ -678,6 +794,157 @@ export function StoreProvider({ children }) {
     setSelectedSize(product.defaultSize || product.sizes?.[0] || 'L');
     setActivePlacementId(product.defaultPrintArea || product.printAreas?.[0]?.id || 'center_chest');
   }, []);
+
+  const selectModel3D = useCallback((rawModelOrFormatted) => {
+    if (!rawModelOrFormatted) return;
+    const model = rawModelOrFormatted.is3DModel ? rawModelOrFormatted : formatModelForCustomizer(rawModelOrFormatted);
+    setCustomizerProduct(model);
+    setCustomizerColor(model.defaultColor || '#18181b');
+    setSelectedSize(model.defaultSize || model.sizes?.[0] || 'L');
+    setActivePlacementId(model.defaultPrintArea || model.printAreas?.[0]?.id || 'front');
+  }, []);
+
+  // 3D Studio Environment & Camera State
+  const [cameraPreset, setCameraPreset] = useState('front');
+  const [cameraTrigger, setCameraTrigger] = useState(0);
+  const [isAutoRotate, setIsAutoRotate] = useState(false);
+  const [showWireframe, setShowWireframe] = useState(false);
+  const [showPrintBoundary, setShowPrintBoundary] = useState(true);
+  const [activeEnvironment, setActiveEnvironment] = useState(STUDIO_ENVIRONMENTS[0]);
+  const [is2DFallback, setIs2DFallback] = useState(false);
+  const [isScreenshotOpen, setIsScreenshotOpen] = useState(false);
+  const [snapshotDataUrl, setSnapshotDataUrl] = useState(null);
+
+  const setCameraView = useCallback((viewName) => {
+    setCameraPreset(viewName);
+    setCameraTrigger((prev) => prev + 1);
+  }, []);
+
+  // Cart State (Persisted in localStorage)
+  const [cartItems, setCartItems] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('printhub_cart_v2');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('printhub_cart_v2', JSON.stringify(cartItems));
+    }
+  }, [cartItems]);
+
+  const addToCart = useCallback((customItem) => {
+    const unitPrice = Number(customItem.unitPrice || customItem.basePrice || customItem.price || 499);
+    const quantity = Math.max(1, parseInt(customItem.quantity, 10) || 1);
+
+    const newItem = {
+      id: `cart_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      productId: customItem.productId || customItem.id,
+      productName: customItem.productName || customItem.name || 'Custom 3D Product',
+      color: customItem.color || customItem.defaultColor || '#18181b',
+      colorName: customItem.colorName || customItem.color || 'Selected Color',
+      size: customItem.size || 'L',
+      quantity,
+      unitPrice,
+      totalPrice: unitPrice * quantity,
+      printingMethod: customItem.printingMethod || 'DTF',
+      printingMethodName: customItem.printingMethodName || 'High-Definition DTF',
+      previewImage: customItem.previewImage || (typeof customItem.image === 'string' ? customItem.image : null),
+      modelId: customItem.modelId || customItem.id,
+      modelVersion: customItem.modelVersion || 1,
+      modelUrl: customItem.modelUrl,
+      customization: customItem.customization || {
+        modelId: customItem.modelId || customItem.id,
+        modelVersion: customItem.modelVersion || 1,
+        modelUrl: customItem.modelUrl,
+        color: customItem.color,
+        size: customItem.size,
+        placements: customItem.placements || {},
+        placementDesigns: customItem.placementDesigns || {},
+        customText: customItem.customText || null,
+        previewImage: customItem.previewImage || null,
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    setCartItems((prev) => [newItem, ...prev]);
+    setIsCartOpen(true);
+    return newItem;
+  }, []);
+
+  const removeFromCart = useCallback((itemId) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
+  }, []);
+
+  const updateCartQuantity = useCallback((itemId, newQty) => {
+    if (newQty < 1) return;
+    setCartItems((prev) =>
+      prev.map((item) => {
+        if (item.id === itemId) {
+          return {
+            ...item,
+            quantity: newQty,
+            totalPrice: item.unitPrice * newQty,
+          };
+        }
+        return item;
+      })
+    );
+  }, []);
+
+  const clearCart = useCallback(() => {
+    setCartItems([]);
+  }, []);
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('printhub_customer_user');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return { name: 'Customer', phone: '9876543210', walletBalance: 250 };
+  });
+
+  const deductWalletMoney = useCallback((amount, reason) => {
+    setCurrentUser((prev) => {
+      const updated = {
+        ...prev,
+        walletBalance: Math.max(0, (prev?.walletBalance || 0) - amount)
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('printhub_customer_user', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
+  const placeOrder = useCallback(async (orderPayload) => {
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload)
+      });
+      if (response.ok) {
+        const createdOrder = await response.json();
+        clearCart();
+        return { success: true, order: createdOrder };
+      } else {
+        const err = await response.json();
+        return { success: false, error: err.error || 'Failed to place order' };
+      }
+    } catch (e) {
+      console.error('Order placement failed:', e);
+      return { success: false, error: e.message };
+    }
+  }, [clearCart]);
 
   // Design Requests System (Pure Design Submission & Quotation Model)
   const [designRequests, setDesignRequests] = useState([]);
@@ -1472,6 +1739,10 @@ export function StoreProvider({ children }) {
         customizerProduct,
         setCustomizerProduct,
         selectProduct,
+        selectModel3D,
+        models3D,
+        formatted3DModels,
+        fetchModels3D,
         customizerColor,
         setCustomizerColor,
         selectedSize,
@@ -1480,6 +1751,37 @@ export function StoreProvider({ children }) {
         setActivePlacementId,
         placementDesigns,
         setPlacementDesigns,
+
+        // 3D Studio & Camera Controls
+        cameraPreset,
+        setCameraPreset,
+        setCameraView,
+        isAutoRotate,
+        setIsAutoRotate,
+        showWireframe,
+        setShowWireframe,
+        showPrintBoundary,
+        setShowPrintBoundary,
+        activeEnvironment,
+        setActiveEnvironment,
+        is2DFallback,
+        setIs2DFallback,
+        snapshotDataUrl,
+        setSnapshotDataUrl,
+        isScreenshotOpen,
+        setIsScreenshotOpen,
+
+        // Cart & Checkout
+        cartItems,
+        isCartOpen,
+        setIsCartOpen,
+        addToCart,
+        removeFromCart,
+        updateCartQuantity,
+        clearCart,
+        currentUser,
+        deductWalletMoney,
+        placeOrder,
 
         // Categories Catalog & Admin Actions
         categories,

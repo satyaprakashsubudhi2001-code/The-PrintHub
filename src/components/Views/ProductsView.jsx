@@ -436,12 +436,12 @@ export function ProductsView() {
                 : "We couldn't find any products matching your current filters. Try resetting the filters or searching for another keyword."}
             </p>
             {products.length === 0 && adminUser ? (
-              <button
-                onClick={() => navigateTo('admin')}
-                className="px-6 py-2.5 rounded-xl text-xs font-mono font-black transition-all cursor-pointer bg-[#183630] text-[#E5C690] border border-[#B8A98F] shadow-md"
+              <a
+                href="https://admin.theprinthub.co.in"
+                className="px-6 py-2.5 rounded-xl text-xs font-mono font-black transition-all cursor-pointer bg-[#183630] text-[#E5C690] border border-[#B8A98F] shadow-md inline-block"
               >
                 + Add Product in Admin
-              </button>
+              </a>
             ) : hasActiveFilters ? (
               <button
                 onClick={resetFilters}

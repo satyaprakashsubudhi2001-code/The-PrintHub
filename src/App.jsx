@@ -12,15 +12,6 @@ import { WhatsAppButton } from './components/Navigation/WhatsAppButton';
 const BulkOrdersView = lazy(() =>
   import('./components/Views/BulkOrdersView').then((m) => ({ default: m.BulkOrdersView }))
 );
-const AdminView = lazy(() =>
-  import('./components/Views/AdminView').then((m) => ({ default: m.AdminView }))
-);
-const AdminLoginView = lazy(() =>
-  import('./components/Admin/AdminLoginView').then((m) => ({ default: m.AdminLoginView }))
-);
-const ProtectedAdminRoute = lazy(() =>
-  import('./components/Admin/ProtectedAdminRoute').then((m) => ({ default: m.ProtectedAdminRoute }))
-);
 const AboutUsView = lazy(() =>
   import('./components/Views/AboutUsView').then((m) => ({ default: m.AboutUsView }))
 );
@@ -107,20 +98,10 @@ function MainAppShell() {
         );
       case 'admin':
       case 'admin/dashboard':
-        return (
-          <Suspense fallback={<ViewLoadingFallback />}>
-            <ProtectedAdminRoute>
-              <AdminView />
-            </ProtectedAdminRoute>
-          </Suspense>
-        );
       case 'admin-login':
       case 'admin/login':
-        return (
-          <Suspense fallback={<ViewLoadingFallback />}>
-            <AdminLoginView />
-          </Suspense>
-        );
+        window.location.href = 'https://admin.theprinthub.co.in';
+        return <ViewLoadingFallback />;
       case 'account':
       case 'customer-account':
       case 'profile':
@@ -135,17 +116,8 @@ function MainAppShell() {
   };
 
   const isCustomizer = currentPage === 'design-by-customer' || currentPage === 'custom-printing';
-  const isAdminSurface = [
-    'admin',
-    'admin/dashboard',
-    'admin-login',
-    'admin/login',
-  ].includes(currentPage);
+  const isAdminSurface = false;
   const isStandaloneSurface = [
-    'admin',
-    'admin/dashboard',
-    'admin-login',
-    'admin/login',
     'account',
     'customer-account',
     'profile',

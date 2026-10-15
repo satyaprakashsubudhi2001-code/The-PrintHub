@@ -33,6 +33,8 @@ import {
   RefreshCw,
   Box,
   ChevronDown,
+  Rotate3d,
+  ShoppingBag,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { SAMPLE_ARTWORKS } from '../../constants/presets';
@@ -40,6 +42,7 @@ import { InteractiveMockupStage } from '../MockupStudio/InteractiveMockupStage';
 import { PlacementDiagram } from '../MockupStudio/PlacementDiagram';
 import { PlacementHelpModal } from '../MockupStudio/PlacementHelpModal';
 import { OnDemand360Viewer } from '../MockupStudio/OnDemand360Viewer';
+import { Product3DViewer } from '../3D/Product3DViewer';
 import { getProductPrintAreas, getCalibratedPrintArea } from '../../constants/printCalibration';
 import { generateRequestId } from '../../constants/requests';
 import { WhatsAppIcon } from '../UI/WhatsAppIcon';
@@ -52,12 +55,20 @@ import { WhatsAppIcon } from '../UI/WhatsAppIcon';
 export function DesignByCustomerView() {
   const {
     products,
+    models3D,
+    formatted3DModels,
+    selectModel3D,
     customizerProduct,
     selectProduct,
     customizerColor,
     setCustomizerColor,
     selectedSize,
     setSelectedSize,
+    placementDesigns: storePlacementDesigns,
+    setPlacementDesigns: setStorePlacementDesigns,
+    addToCart,
+    isCartOpen,
+    setIsCartOpen,
     navigateTo,
     storeSettings,
     addDesignRequest,
@@ -71,6 +82,7 @@ export function DesignByCustomerView() {
 
   // Wizard Step: 1 (Product) | 2 (Color) | 3 (Size) | 4 (Placement) | 5 (Upload & Design) | 6 (Realistic Preview) | 7 (Submit Request)
   const [currentStep, setCurrentStep] = useState(1);
+  const [previewMode, setPreviewMode] = useState('3d'); // '3d' | '2d'
   const [isPlacementHelpOpen, setIsPlacementHelpOpen] = useState(false);
   const [is360Active, setIs360Active] = useState(false);
   const [activePlacementSide, setActivePlacementSide] = useState('front');
@@ -99,15 +111,27 @@ export function DesignByCustomerView() {
 
   const fileInputRef = useRef(null);
 
-  // Set default product (active product from database, or null)
-  const activeProducts = (products || []).filter(p => p.status !== 'inactive' && p.status !== 'ARCHIVED');
-  const activeProduct = customizerProduct || (activeProducts.length > 0 ? activeProducts[0] : null);
+  // Combined list of customizable items: 3D models from database take premier position
+  const activeProducts = (products || []).filter((p) => p.status !== 'inactive' && p.status !== 'ARCHIVED');
+  const allCustomizableItems = useMemo(() => {
+    const models = formatted3DModels || [];
+    // Include catalog products that aren't already represented by a 3D model
+    const nonModelProducts = activeProducts.filter(
+      (p) => !models.some((m) => m.id === p.id || m.productId === p.id || m.sku === p.sku)
+    );
+    return [...models, ...nonModelProducts];
+  }, [formatted3DModels, activeProducts]);
+
+  const activeProduct = customizerProduct || (allCustomizableItems.length > 0 ? allCustomizableItems[0] : null);
 
   // Available print areas for this product based on size and physical calibration
   const availablePrintAreas = useMemo(() => {
     if (!activeProduct?.id) return [];
+    if (activeProduct.is3DModel && activeProduct.printAreas && activeProduct.printAreas.length > 0) {
+      return activeProduct.printAreas;
+    }
     return getProductPrintAreas(activeProduct.id, selectedSize || 'L');
-  }, [activeProduct?.id, selectedSize]);
+  }, [activeProduct, selectedSize]);
 
   // Selected Placements Array (e.g. ['center_chest', 'full_back'])
   const [selectedPlacementIds, setSelectedPlacementIds] = useState([]);
@@ -116,11 +140,26 @@ export function DesignByCustomerView() {
   // Per-placement Design State: { [placementId]: { dataUrl, fileName, fileType, fileSize, widthInches, heightInches, xInches, yInches, rotation, aspect, maxAreaW, maxAreaH, surface, text, font, textColor } }
   const [placementDesigns, setPlacementDesigns] = useState({});
 
+  // Synchronize local placementDesigns with StoreContext placementDesigns so 3D Viewport renders them
+  useEffect(() => {
+    if (typeof setStorePlacementDesigns === 'function') {
+      setStorePlacementDesigns(placementDesigns);
+    }
+  }, [placementDesigns, setStorePlacementDesigns]);
+
   // Additional uploaded files repository (PDFs, reference artwork, multiple attachments)
   const [uploadedFilesList, setUploadedFilesList] = useState([]);
 
   // Available Colors for active product
   const availableColors = useMemo(() => {
+    if (activeProduct?.colors && activeProduct.colors.length > 0) {
+      return activeProduct.colors.map((c) => {
+        if (typeof c === 'string') {
+          return { name: c, hex: c };
+        }
+        return c;
+      });
+    }
     return [
       { name: 'Pitch Black', hex: '#18181b' },
       { name: 'Pure White', hex: '#f8fafc' },
@@ -131,10 +170,15 @@ export function DesignByCustomerView() {
       { name: 'Forest Green', hex: '#15803d' },
       { name: 'Amber Gold', hex: '#eab308' },
     ];
-  }, []);
+  }, [activeProduct?.colors]);
 
   // Standard sizes for active product
-  const sizesList = activeProduct?.sizes || ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+  const sizesList = useMemo(() => {
+    if (activeProduct?.sizes && activeProduct.sizes.length > 0) {
+      return activeProduct.sizes;
+    }
+    return ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+  }, [activeProduct?.sizes]);
 
   // Initialize placements when product loads
   useEffect(() => {
@@ -204,7 +248,11 @@ export function DesignByCustomerView() {
 
   // Handle Product Selection at Step 1
   const handleSelectProduct = (prod) => {
-    selectProduct(prod);
+    if (prod.is3DModel) {
+      selectModel3D(prod);
+    } else {
+      selectProduct(prod);
+    }
     setCustomizerColor(prod.defaultColor || '#18181b');
     setSelectedSize(prod.defaultSize || prod.sizes?.[0] || 'L');
     const defaultArea = prod.printAreas?.[0] || { id: 'center_chest', surface: 'front' };
@@ -213,6 +261,44 @@ export function DesignByCustomerView() {
     setActivePlacementSide(defaultArea.surface || 'front');
     setCurrentStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle Add to Cart with complete customization snapshot
+  const handleAddToCart = () => {
+    const previewImg = currentPlacementDesign?.dataUrl || activeProduct?.image;
+    const basePrice = Number(activeProduct?.basePrice || 499);
+    const extraAreas = Math.max(0, selectedPlacementIds.length - 1) * 100;
+    const finalPrice = basePrice + extraAreas;
+
+    addToCart({
+      productId: activeProduct?.productId || activeProduct?.id,
+      productName: activeProduct?.name,
+      color: customizerColor,
+      colorName: availableColors.find((c) => c.hex.toLowerCase() === customizerColor?.toLowerCase())?.name || 'Selected Color',
+      size: selectedSize,
+      quantity: 1,
+      unitPrice: finalPrice,
+      totalPrice: finalPrice,
+      previewImage: previewImg,
+      modelId: activeProduct?.id,
+      modelVersion: activeProduct?.version || 1,
+      modelUrl: activeProduct?.modelUrl,
+      customization: {
+        modelId: activeProduct?.id,
+        modelVersion: activeProduct?.version || 1,
+        modelUrl: activeProduct?.modelUrl,
+        productName: activeProduct?.name,
+        color: customizerColor,
+        size: selectedSize,
+        placements: selectedPlacementIds,
+        placementDesigns,
+        customText,
+        selectedFont,
+        textColor,
+        previewImage: previewImg,
+        unitPrice: finalPrice,
+      },
+    });
   };
 
   // Toggle Placement Checkbox at Step 4
@@ -952,12 +1038,12 @@ I would like to discuss this design with The PrintHub team.`;
             >
               Return to Storefront
             </button>
-            <button
-              onClick={() => navigateTo('admin')}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#E5C690] hover:bg-[#d9b87c] text-[#183630] text-xs font-mono font-black shadow-md transition-all cursor-pointer"
+            <a
+              href="https://admin.theprinthub.co.in"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#E5C690] hover:bg-[#d9b87c] text-[#183630] text-xs font-mono font-black shadow-md transition-all cursor-pointer text-center"
             >
               + Add Product in Admin
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -1037,48 +1123,86 @@ I would like to discuss this design with The PrintHub team.`;
           </div>
 
           {/* Products Grid / Empty State */}
-          {activeProducts.length > 0 ? (
+          {allCustomizableItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {activeProducts.map((prod) => (
-                <div
-                  key={prod.id}
-                  className="group relative rounded-2xl bg-[#E5DAC9] border border-[#B8A98F]/50 hover:border-[#183630] shadow-sm hover:shadow-md p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1"
-                >
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black font-mono bg-[#183630] border border-[#B8A98F]/40 text-[#E5DAC9]">
-                      {prod.badge || 'POPULAR'}
-                    </span>
-                    <span className="text-xs font-mono font-bold text-[#183630]">
-                      Starting from ₹{prod.basePrice}
-                    </span>
-                  </div>
+              {allCustomizableItems.map((prod) => {
+                const prodColors = Array.isArray(prod.colors)
+                  ? prod.colors
+                  : (typeof prod.colors === 'string' ? JSON.parse(prod.colors || '[]') : []);
 
-                  <div className="w-full aspect-square rounded-xl bg-[#183630]/5 border border-[#B8A98F]/30 p-4 mb-4 flex items-center justify-center overflow-hidden">
-                    <img
-                      src={prod.image}
-                      alt={prod.name}
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  <div className="space-y-1 mb-4">
-                    <h3 className="font-display text-sm font-bold text-[#183630] transition-colors">
-                      {prod.name}
-                    </h3>
-                    <p className="text-[11px] text-[#183630]/75 line-clamp-2">{prod.subtitle}</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectProduct(prod)}
-                    className="w-full py-2.5 rounded-xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] hover:text-[#E5C690] border border-[#B8A98F] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all font-display shadow-sm cursor-pointer"
+                return (
+                  <div
+                    key={prod.id}
+                    className="group relative rounded-2xl bg-[#E5DAC9] border border-[#B8A98F]/50 hover:border-[#183630] shadow-sm hover:shadow-md p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1"
                   >
-                    <span>CUSTOMIZE THIS BLANK</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
+                    <div className="flex justify-between items-center mb-3">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black font-mono border ${
+                        prod.is3DModel
+                          ? 'bg-[#183630] text-[#E5C690] border-[#E5C690]/40'
+                          : 'bg-[#183630] border-[#B8A98F]/40 text-[#E5DAC9]'
+                      }`}>
+                        {prod.is3DModel ? '✨ 3D STUDIO' : (prod.badge || 'POPULAR')}
+                      </span>
+                      <span className="text-xs font-mono font-bold text-[#183630]">
+                        Starting from ₹{prod.basePrice}
+                      </span>
+                    </div>
+
+                    <div className="w-full aspect-square rounded-xl bg-[#183630]/5 border border-[#B8A98F]/30 p-4 mb-4 flex items-center justify-center overflow-hidden relative">
+                      <img
+                        src={prod.image}
+                        alt={prod.name}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      {prod.is3DModel && (
+                        <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-[#183630]/80 text-[#E5C690] text-[9px] font-mono font-bold backdrop-blur-sm border border-[#B8A98F]/40 flex items-center gap-1">
+                          <Rotate3d className="w-3 h-3 text-[#E5C690]" />
+                          <span>360° GLB</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1 mb-4">
+                      <h3 className="font-display text-sm font-bold text-[#183630] transition-colors">
+                        {prod.name}
+                      </h3>
+                      <p className="text-[11px] text-[#183630]/75 line-clamp-2">
+                        {prod.subtitle || `${prod.productType || 'Merchandise'} with precision multi-placement printing.`}
+                      </p>
+
+                      {/* Color swatches preview */}
+                      {prodColors.length > 0 && (
+                        <div className="flex items-center gap-1 pt-1.5">
+                          {prodColors.slice(0, 6).map((c, i) => {
+                            const hex = typeof c === 'string' ? c : c.hex;
+                            return (
+                              <span
+                                key={i}
+                                className="w-3.5 h-3.5 rounded-full border border-[#B8A98F]/60 inline-block shadow-inner"
+                                style={{ backgroundColor: hex }}
+                                title={hex}
+                              />
+                            );
+                          })}
+                          {prodColors.length > 6 && (
+                            <span className="text-[9px] text-[#183630]/60 font-mono">+{prodColors.length - 6}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSelectProduct(prod)}
+                      className="w-full py-2.5 rounded-xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] hover:text-[#E5C690] border border-[#B8A98F] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all font-display shadow-sm cursor-pointer"
+                    >
+                      <span>CUSTOMIZE IN 3D STUDIO</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="p-12 text-center rounded-3xl border border-[#B8A98F]/40 bg-[#E5DAC9] shadow-sm space-y-4">
@@ -1092,13 +1216,12 @@ I would like to discuss this design with The PrintHub team.`;
                 </p>
               </div>
               <div className="flex items-center justify-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => navigateTo('admin')}
-                  className="px-6 py-2.5 rounded-full bg-[#183630] hover:bg-[#183630]/90 border border-[#B8A98F] text-[#E5DAC9] font-bold text-xs uppercase tracking-wider font-display transition-all shadow-md"
+                <a
+                  href="https://admin.theprinthub.co.in"
+                  className="px-6 py-2.5 rounded-full bg-[#183630] hover:bg-[#183630]/90 border border-[#B8A98F] text-[#E5DAC9] font-bold text-xs uppercase tracking-wider font-display transition-all shadow-md inline-block"
                 >
                   Manage Products in Admin
-                </button>
+                </a>
                 <button
                   type="button"
                   onClick={() => handleSelectProduct(DEFAULT_PRESET_PRODUCTS[0])}
@@ -1676,52 +1799,102 @@ I would like to discuss this design with The PrintHub team.`;
         </div>
       )}
 
-      {/* STEP 6: REALISTIC PREVIEW */}
+      {/* STEP 6: REALISTIC PREVIEW (3D ORBIT & 2D MOCKUP) */}
       {currentStep === 6 && (
-        <div className="max-w-4xl mx-auto px-4 pt-8 space-y-8 animate-in fade-in">
-          <div className="border-b border-[#B8A98F]/30 pb-4 text-center sm:text-left">
-            <span className="text-xs font-mono font-bold text-[#183630]/75 uppercase tracking-wider block">
-              STEP 6 OF 7
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#183630] font-display uppercase mt-1">
-              REALISTIC PRODUCT PREVIEW
-            </h1>
-            <p className="text-xs text-[#183630]/80 mt-1">
-              Verify your design layout before submitting your custom request.
-            </p>
-          </div>
+        <div className="max-w-4xl mx-auto px-4 pt-8 space-y-6 animate-in fade-in">
+          <div className="border-b border-[#B8A98F]/30 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-xs font-mono font-bold text-[#183630]/75 uppercase tracking-wider block">
+                STEP 6 OF 7
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#183630] font-display uppercase mt-1">
+                REALISTIC 3D PRODUCT PREVIEW
+              </h1>
+              <p className="text-xs text-[#183630]/80 mt-1">
+                Inspect your 3D customization, rotate 360°, verify artwork placement, and add to cart.
+              </p>
+            </div>
 
-          <div className="p-6 rounded-3xl bg-[#183630]/5 border border-[#B8A98F]/40 shadow-md flex flex-col items-center justify-center">
-            <div className="w-full max-w-md aspect-square relative flex items-center justify-center">
-              <InteractiveMockupStage
-                product={activeProduct}
-                color={customizerColor}
-                size={selectedSize}
-                activeSide={activePlacementSide}
-                activePlacementId={activePlacementId}
-                designData={currentPlacementDesign}
-                isInteractive={false}
-                onSideChange={handleSideSwitch}
-              />
+            {/* Mode Switcher: 3D Orbit vs 2D Mockup */}
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#183630]/10 border border-[#B8A98F]/40 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setPreviewMode('3d')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  previewMode === '3d'
+                    ? 'bg-[#183630] text-[#E5C690] shadow-md border border-[#B8A98F]'
+                    : 'text-[#183630]/75 hover:text-[#183630]'
+                }`}
+              >
+                <Rotate3d className="w-3.5 h-3.5" />
+                <span>3D Orbit</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewMode('2d')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  previewMode === '2d'
+                    ? 'bg-[#183630] text-[#E5C690] shadow-md border border-[#B8A98F]'
+                    : 'text-[#183630]/75 hover:text-[#183630]'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>2D Layout</span>
+              </button>
             </div>
           </div>
 
-          <div className="flex justify-between pt-6 border-t border-[#B8A98F]/30">
+          {/* Interactive Viewer Container */}
+          <div className="p-4 sm:p-6 rounded-3xl bg-[#183630]/5 border border-[#B8A98F]/40 shadow-xl flex flex-col items-center justify-center min-h-[480px]">
+            {previewMode === '3d' ? (
+              <div className="w-full h-[500px] sm:h-[540px] rounded-2xl overflow-hidden relative shadow-inner border border-[#B8A98F]/50 bg-studio-900">
+                <Product3DViewer isFullscreen={false} />
+              </div>
+            ) : (
+              <div className="w-full max-w-md aspect-square relative flex items-center justify-center">
+                <InteractiveMockupStage
+                  product={activeProduct}
+                  color={customizerColor}
+                  size={selectedSize}
+                  activeSide={activePlacementSide}
+                  activePlacementId={activePlacementId}
+                  designData={currentPlacementDesign}
+                  isInteractive={false}
+                  onSideChange={handleSideSwitch}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Action Row: Edit, Add to Cart, or Submit Direct Request */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#B8A98F]/30">
             <button
               type="button"
               onClick={() => setCurrentStep(5)}
-              className="px-6 py-3 rounded-xl bg-[#E5DAC9] border border-[#B8A98F]/60 text-[#183630] hover:bg-[#183630]/10 text-xs font-bold transition-colors"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#E5DAC9] border border-[#B8A98F]/60 text-[#183630] hover:bg-[#183630]/10 text-xs font-bold transition-colors cursor-pointer"
             >
-              ← Edit Design
+              ← Edit Artwork & Dimensions
             </button>
-            <button
-              type="button"
-              onClick={() => setCurrentStep(7)}
-              className="px-8 py-3 rounded-xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] hover:text-[#E5C690] border border-[#B8A98F] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md cursor-pointer"
-            >
-              <span>Next: Enter Contact & Submit</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-[#E5C690] hover:bg-[#d9b87c] text-[#183630] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg font-display cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <ShoppingBag className="w-4 h-4 text-[#183630]" />
+                <span>ADD TO CART (₹{Number(activeProduct?.basePrice || 499) + Math.max(0, selectedPlacementIds.length - 1) * 100})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCurrentStep(7)}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] hover:text-[#E5C690] border border-[#B8A98F] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all font-display shadow-md cursor-pointer"
+              >
+                <span>Or Submit Custom Request</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       )}

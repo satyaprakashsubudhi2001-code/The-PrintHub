@@ -10,7 +10,7 @@
     "build:app": "cd app && vite build",
     "build:admin": "cd admin && vite build",
     "dev": "vite --config app/vite.config.js app",
-    "build": "cd app && vite build",
+    "build": "vite build && cd app && vite build",
     "preview": "vite preview",
     "postinstall": "prisma generate"
   },
