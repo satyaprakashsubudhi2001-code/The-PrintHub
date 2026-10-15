@@ -7,6 +7,6 @@
     { "source": "/api/models/:id", "destination": "/api/models/index.js?id=:id" },
     { "source": "/api/design-requests/:id", "destination": "/api/design-requests/index.js?id=:id" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/((?!api/|_nuxt/|assets/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|_nuxt/|assets/|models/|.*\\.(?:glb|gltf|png|jpg|jpeg|svg|webp|ico)).*)", "destination": "/index.html" }
   ]
 }

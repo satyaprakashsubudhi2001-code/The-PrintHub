@@ -6,7 +6,7 @@
       "destination": "https://www.theprinthub.co.in/api/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!models/|assets/|.*\\.(?:glb|gltf|png|jpg|jpeg|svg|webp|ico)).*)",
       "destination": "/index.html"
     }
   ],
