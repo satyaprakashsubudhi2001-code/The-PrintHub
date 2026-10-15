@@ -11,12 +11,14 @@ import {
   Plus,
   Trash2,
   Save,
+  Box,
 } from 'lucide-react';
 import { AdminCalibrationTab } from './AdminCalibrationTab';
+import { AdminModelManagementTab } from './AdminModelManagementTab';
 import { useStore } from '../../context/StoreContext';
 
 export function Admin3DStudioConfigTab() {
-  const [subView, setSubView] = useState('calibrator'); // 'calibrator' | 'pricing' | 'presets'
+  const [subView, setSubView] = useState('models'); // 'models' | 'calibrator' | 'pricing'
   const { logAdminActivity } = useStore();
 
   const [printFeeConfig, setPrintFeeConfig] = useState({
@@ -48,19 +50,31 @@ export function Admin3DStudioConfigTab() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-[#183630] uppercase font-display tracking-tight">
-              3D Customizer Studio & Print Area Calibrator
+              3D Studio / Model Management
             </h2>
             <span className="px-2.5 py-0.5 rounded-full bg-[#183630] text-[#E5DAC9] text-[10px] font-bold">
-              [ FACTORY SPECIFICATION ]
+              [ 3D STUDIO COMMAND ]
             </span>
           </div>
           <p className="text-[#183630]/75 text-xs font-sans mt-1">
-            Configure customizer printable product dimensions, print placement coordinates (chest, back, sleeves), DPI rendering limits, and extra placement printing fees.
+            Manage interactive 3D product models, calibrate physical printable coordinates, upload GLB/GLTF assets, and define printing fees.
           </p>
         </div>
 
         {/* Sub-view switcher buttons with [ Bracket ] treatment */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSubView('models')}
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              subView === 'models'
+                ? 'bracket-selected font-black text-[#183630]'
+                : 'bg-[#E5DAC9] border border-[#B8A98F] text-[#183630]/80 hover:border-[#183630]'
+            }`}
+          >
+            {subView === 'models' ? '[ 3D MODELS DIRECTORY ]' : '3D MODELS DIRECTORY'}
+          </button>
+
           <button
             type="button"
             onClick={() => setSubView('calibrator')}
@@ -94,7 +108,14 @@ export function Admin3DStudioConfigTab() {
         </div>
       )}
 
-      {/* SUB-VIEW 1: INTERACTIVE 3D VISUAL CALIBRATOR */}
+      {/* SUB-VIEW 1: 3D MODELS DIRECTORY */}
+      {subView === 'models' && (
+        <div className="animate-in fade-in">
+          <AdminModelManagementTab />
+        </div>
+      )}
+
+      {/* SUB-VIEW 2: INTERACTIVE 3D VISUAL CALIBRATOR */}
       {subView === 'calibrator' && (
         <div className="animate-in fade-in">
           <AdminCalibrationTab />

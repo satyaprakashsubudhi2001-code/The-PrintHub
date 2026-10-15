@@ -55,6 +55,7 @@ model Product {
   inventory        Inventory?
   designRequests   DesignRequest[]
   orderItems       OrderItem[]
+  models3D         CustomModel3D[]
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 }
@@ -129,9 +130,10 @@ model OrderItem {
   quantity   Int
   unitPrice  Float
   unitCost   Float    @default(0)
-  totalPrice Float
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  totalPrice    Float
+  customization String?  // JSON snapshot of 3D customization, modelId, modelVersion, artworkUrls, placements, previewImage, printFees
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Inventory {
@@ -189,3 +191,61 @@ model HomepageContent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model CustomModel3D {
+  id             String            @id @default(uuid())
+  name           String
+  productType    String            // T Shirt, Shirt, Mug, Mouse Pad, etc.
+  productId      String?
+  product        Product?          @relation(fields: [productId], references: [id], onDelete: SetNull)
+  modelUrl       String            // URL, static path (/models/tshirt.glb), or data URL
+  modelFormat    String            @default("glb") // glb, gltf, procedural
+  previewImage   String?
+  colors         String?           // JSON array of colors e.g. ["#18181b", "#ffffff"]
+  sizes          String?           // JSON array of sizes e.g. ["S", "M", "L", "XL"]
+  basePrice      Float             @default(0)
+  unit           String            @default("inches") // inches or cm
+  status         String            @default("ACTIVE") // ACTIVE, DRAFT, INACTIVE, ARCHIVED
+  version        Int               @default(1)
+  description    String?
+  cameraSettings String?           // JSON string { position, target, fov }
+  materialProps  String?           // JSON string { roughness, metalness }
+  printableAreas PrintableArea3D[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model PrintableArea3D {
+  id              String        @id @default(uuid())
+  modelId         String
+  model           CustomModel3D @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  name            String        // Front, Back, Sleeve, Mug Wrap, Mouse Pad Surface
+  meshName        String?       // Associated mesh name in 3D model
+  width           Float         // in inches or cm
+  height          Float         // in inches or cm
+  minScale        Float         @default(0.1)
+  maxScale        Float         @default(3.0)
+  defaultPosition String?       // JSON { x, y }
+  defaultRotation Float         @default(0)
+  defaultScale    Float         @default(1.0)
+  bounds          String?       // JSON { x, y, width, height } in UV coordinates
+  priceExtra      Float         @default(0)
+  allowedColors   String?       // JSON array
+  allowedSizes    String?       // JSON array
+  isEnabled       Boolean       @default(true)
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model ProductType3D {
+  id          String   @id @default(uuid())
+  name        String   @unique // T Shirt, Shirt, Mug, Mouse Pad
+  category    String?
+  icon        String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

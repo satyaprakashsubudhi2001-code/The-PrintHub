@@ -11,7 +11,8 @@
     "build:admin": "cd admin && vite build",
     "dev": "vite --config app/vite.config.js app",
     "build": "cd app && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.4.0",

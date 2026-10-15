@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   LayoutDashboard, FileText, Bell, Image as ImageIcon, ShoppingBag, Grid, Layers, Package,
   PlusCircle, DollarSign, Receipt, BarChart3, Sliders, Users, PhoneCall, ShieldCheck, Activity,
-  LogOut, ExternalLink, Menu, X
+  LogOut, ExternalLink, Menu, X, Box
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { AdminDashboardTab } from './AdminDashboardTab';
@@ -29,6 +29,7 @@ export function AdminView() {
     adminUser, logoutAdmin, navigateTo, storeSettings, products = [], categories = [],
     adminOrders = [], inventory = [], designRequests = [], customers = [],
     announcements = [], homepageContent = {}, publishAllHomepageDrafts, adminRole,
+    models3D = [],
   } = useStore();
 
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -97,7 +98,7 @@ export function AdminView() {
     {
       group: 'SYSTEM',
       items: [
-        { id: 'studio3d', label: '3D Studio Config', icon: Sliders },
+        { id: 'studio3d', label: '3D Studio / Model Management', icon: Box, badge: models3D.length > 0 ? `${models3D.length}` : null },
         { id: 'contact', label: 'Contact & Social', icon: PhoneCall },
         { id: 'audit', label: 'Audit Log', icon: Activity },
         { id: 'roles', label: 'Roles & RBAC', icon: ShieldCheck, badge: adminRole?.badge || 'FULL ACCESS' }

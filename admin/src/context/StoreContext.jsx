@@ -962,6 +962,120 @@ export function StoreProvider({ children }) {
       }
     };
     fetchAdminData();
+    fetchModels3D();
+  }, []);
+
+  // 3D Studio & Model Management State
+  const [models3D, setModels3D] = useState([]);
+  const [productTypes3D, setProductTypes3D] = useState([
+    { id: 't-shirt', name: 'T Shirt', icon: '👕', category: 'Apparel' },
+    { id: 'shirt', name: 'Shirt', icon: '👔', category: 'Apparel' },
+    { id: 'mug', name: 'Mug', icon: '☕', category: 'Drinkware' },
+    { id: 'mouse-pad', name: 'Mouse Pad', icon: '🖱️', category: 'Accessories' }
+  ]);
+
+  const fetchModels3D = useCallback(async () => {
+    try {
+      const [modelsRes, typesRes] = await Promise.all([
+        fetch('/api/models'),
+        fetch('/api/models?productTypes=true')
+      ]);
+      if (modelsRes.ok) {
+        const data = await modelsRes.json();
+        setModels3D(data);
+      }
+      if (typesRes.ok) {
+        const typesData = await typesRes.json();
+        if (Array.isArray(typesData) && typesData.length > 0) {
+          setProductTypes3D(typesData);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch 3D models:', err);
+    }
+  }, []);
+
+  const createModel3D = useCallback(async (modelData) => {
+    try {
+      const response = await fetch('/api/models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(modelData)
+      });
+      if (response.ok) {
+        const created = await response.json();
+        setModels3D((prev) => [created, ...prev]);
+        return created;
+      } else {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to create 3D model');
+      }
+    } catch (err) {
+      console.error('Error creating 3D model:', err);
+      throw err;
+    }
+  }, []);
+
+  const updateModel3D = useCallback(async (id, updateData) => {
+    try {
+      const response = await fetch(`/api/models?id=${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        setModels3D((prev) => prev.map((m) => (m.id === id ? updated : m)));
+        return updated;
+      } else {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to update 3D model');
+      }
+    } catch (err) {
+      console.error('Error updating 3D model:', err);
+      throw err;
+    }
+  }, []);
+
+  const deleteModel3D = useCallback(async (id) => {
+    try {
+      const response = await fetch(`/api/models?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        const resData = await response.json();
+        if (resData.archived) {
+          setModels3D((prev) => prev.map((m) => (m.id === id ? { ...m, status: 'ARCHIVED' } : m)));
+        } else {
+          setModels3D((prev) => prev.filter((m) => m.id !== id));
+        }
+        return resData;
+      } else {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to delete 3D model');
+      }
+    } catch (err) {
+      console.error('Error deleting 3D model:', err);
+      throw err;
+    }
+  }, []);
+
+  const createProductType3D = useCallback(async (typeData) => {
+    try {
+      const response = await fetch('/api/models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'product-type', ...typeData })
+      });
+      if (response.ok) {
+        const created = await response.json();
+        setProductTypes3D((prev) => [...prev.filter((t) => t.name !== created.name), created]);
+        return created;
+      }
+    } catch (err) {
+      console.error('Error creating product type:', err);
+    }
+    return null;
   }, []);
 
 
@@ -1640,6 +1754,17 @@ export function StoreProvider({ children }) {
         ADMIN_ROLES,
         computeFinancialOverview,
         cleanAllDemoData,
+
+        // 3D Studio & Model Management
+        models3D,
+        setModels3D,
+        productTypes3D,
+        setProductTypes3D,
+        fetchModels3D,
+        createModel3D,
+        updateModel3D,
+        deleteModel3D,
+        createProductType3D,
       }}
     >
       {children}

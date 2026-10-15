@@ -287,9 +287,36 @@ export function AdminOrderDetailModal({ order, onClose }) {
 
             <div className="space-y-4">
               {order.items.map((item) => {
-                const isCustom = item.isCustomizable !== false && item.productType !== 'ready_to_buy';
-                const frontDesign = item.surfaceDesigns?.front?.dataUrl || item.originalDesignUrl || item.mockupImage;
-                const backDesign = item.surfaceDesigns?.back?.dataUrl;
+                let customData = {};
+                if (typeof item.customization === 'string') {
+                  try {
+                    customData = JSON.parse(item.customization);
+                  } catch (e) {}
+                } else if (typeof item.customization === 'object' && item.customization !== null) {
+                  customData = item.customization;
+                }
+
+                const productName = item.productName || item.product?.name || customData.productName || 'Custom Product';
+                const colorVal = item.colorName || item.color || customData.color || 'Default';
+                const sizeVal = item.size || customData.size || 'L';
+                const unitPrice = item.price || item.unitPrice || 499;
+                const isCustom = Boolean(item.customization || (item.isCustomizable !== false && item.productType !== 'ready_to_buy'));
+                const previewImg = item.mockupImage || item.previewImage || customData.previewImage || item.product?.image;
+
+                let derivedPlacements = item.designSpecs?.placements || [];
+                if ((!derivedPlacements || derivedPlacements.length === 0) && customData.placementDesigns) {
+                  derivedPlacements = Object.entries(customData.placementDesigns).map(([pId, pData]) => ({
+                    placementId: pId,
+                    placementName: pData.placementName || pId,
+                    surface: pData.surface || 'front',
+                    widthInches: pData.widthInches,
+                    heightInches: pData.heightInches,
+                    designUrl: pData.dataUrl,
+                  }));
+                }
+
+                const frontDesign = derivedPlacements[0]?.designUrl || item.surfaceDesigns?.front?.dataUrl || item.originalDesignUrl || previewImg;
+                const backDesign = derivedPlacements.find(p => p.surface === 'back')?.designUrl || item.surfaceDesigns?.back?.dataUrl;
                 const activeDesignUrl = frontDesign || backDesign;
 
                 return (
@@ -301,22 +328,22 @@ export function AdminOrderDetailModal({ order, onClose }) {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-white">{item.productName}</h4>
+                          <h4 className="text-sm font-bold text-white">{productName}</h4>
                           <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase font-mono ${isCustom ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'}`}>
-                            {isCustom ? '🎨 CUSTOM DTF' : '🛍 READY-TO-BUY'}
+                            {customData.modelUrl ? '✨ 3D CUSTOM DTF' : (isCustom ? '🎨 CUSTOM DTF' : '🛍 READY-TO-BUY')}
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 font-mono mt-0.5">
-                          Colour: <strong className="text-white">{item.colorName || 'Default'}</strong> • Size: <strong className="text-cyan-400">{item.size || 'L'}</strong> • Qty: x{item.quantity} • Method: <strong className="text-indigo-300">{item.printingMethodName || 'DTF'}</strong>
+                          Colour: <strong className="text-white">{colorVal}</strong> • Size: <strong className="text-cyan-400">{sizeVal}</strong> • Qty: x{item.quantity} • Method: <strong className="text-indigo-300">{item.printingMethodName || 'DTF'}</strong>
                         </p>
                       </div>
 
                       <div className="text-right">
                         <span className="text-base font-black text-white font-mono">
-                          ₹{(item.unitPrice * item.quantity).toLocaleString()}
+                          ₹{(unitPrice * item.quantity).toLocaleString()}
                         </span>
                         <span className="text-[10px] text-slate-500 block font-mono">
-                          (₹{item.unitPrice}/unit)
+                          (₹{unitPrice}/unit)
                         </span>
                       </div>
                     </div>
@@ -360,9 +387,9 @@ export function AdminOrderDetailModal({ order, onClose }) {
                             </div>
 
                             {/* List of placement designs */}
-                            {item.designSpecs?.placements?.length ? (
+                            {(derivedPlacements.length > 0 || item.designSpecs?.placements?.length > 0) ? (
                               <div className="space-y-3">
-                                {item.designSpecs.placements.map((plc, pIdx) => {
+                                {(derivedPlacements.length > 0 ? derivedPlacements : item.designSpecs?.placements || []).map((plc, pIdx) => {
                                   const plcUrl = plc.designUrl || item.placementDesigns?.[plc.placementId]?.dataUrl || activeDesignUrl;
                                   return (
                                     <div key={pIdx} className="p-3 rounded-xl bg-black/80 border border-slate-800 space-y-2">

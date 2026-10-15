@@ -654,6 +654,155 @@ app.post('/api/expenses', async (req, res) => {
   }
 });
 
+// ==========================================
+// 3D MODELS & PRINTABLE AREAS
+// ==========================================
+app.get(['/api/models', '/api/models/:id'], async (req, res) => {
+  try {
+    const modelId = req.params.id || req.query.id;
+    if (req.query.productTypes === 'true' || req.query.types === 'true') {
+      const types = await prisma.productType3D.findMany({ orderBy: { name: 'asc' } });
+      return res.json(types);
+    }
+    if (modelId) {
+      const model = await prisma.customModel3D.findUnique({
+        where: { id: modelId },
+        include: { printableAreas: { orderBy: { sortOrder: 'asc' } }, product: true }
+      });
+      if (!model) return res.status(404).json({ error: '3D Model not found' });
+      return res.json(model);
+    }
+    const whereCondition = req.query.customerOnly === 'true' ? { status: 'ACTIVE' } : {};
+    if (req.query.productType) whereCondition.productType = req.query.productType;
+    const models = await prisma.customModel3D.findMany({
+      where: whereCondition,
+      include: { printableAreas: { orderBy: { sortOrder: 'asc' } }, product: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(models);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/models', async (req, res) => {
+  try {
+    const data = req.body || {};
+    if (data.action === 'product-type') {
+      const newType = await prisma.productType3D.upsert({
+        where: { name: (data.name || '').trim() },
+        update: { category: data.category || 'General', icon: data.icon || '📦', description: data.description || '', isActive: true },
+        create: { name: (data.name || '').trim(), category: data.category || 'General', icon: data.icon || '📦', description: data.description || '', isActive: true }
+      });
+      return res.status(201).json(newType);
+    }
+    if (data.action === 'upload') {
+      return res.json({ success: true, url: data.fileData, fileName: data.fileName, format: 'glb' });
+    }
+    const { name, productType, productId, modelUrl, modelFormat, previewImage, colors, sizes, basePrice, unit, status, description, cameraSettings, materialProps, printableAreas } = data;
+    const newModel = await prisma.customModel3D.create({
+      data: {
+        name: (name || '').trim(),
+        productType: (productType || '').trim(),
+        productId: productId || null,
+        modelUrl: modelUrl || '/models/tshirt.glb',
+        modelFormat: modelFormat || 'glb',
+        previewImage: previewImage || null,
+        colors: Array.isArray(colors) ? JSON.stringify(colors) : (colors || '[]'),
+        sizes: Array.isArray(sizes) ? JSON.stringify(sizes) : (sizes || '[]'),
+        basePrice: Number(basePrice) || 0,
+        unit: unit || 'inches',
+        status: status || 'ACTIVE',
+        version: 1,
+        description: description || null,
+        cameraSettings: typeof cameraSettings === 'object' ? JSON.stringify(cameraSettings) : (cameraSettings || null),
+        materialProps: typeof materialProps === 'object' ? JSON.stringify(materialProps) : (materialProps || null),
+        printableAreas: Array.isArray(printableAreas) && printableAreas.length > 0 ? {
+          create: printableAreas.map((pa, idx) => ({
+            name: pa.name || `Area ${idx + 1}`,
+            meshName: pa.meshName || null,
+            width: Number(pa.width) || 10,
+            height: Number(pa.height) || 12,
+            minScale: Number(pa.minScale) || 0.2,
+            maxScale: Number(pa.maxScale) || 2.5,
+            defaultPosition: typeof pa.defaultPosition === 'object' ? JSON.stringify(pa.defaultPosition) : (pa.defaultPosition || null),
+            defaultRotation: Number(pa.defaultRotation) || 0,
+            defaultScale: Number(pa.defaultScale) || 1.0,
+            bounds: typeof pa.bounds === 'object' ? JSON.stringify(pa.bounds) : (pa.bounds || null),
+            priceExtra: Number(pa.priceExtra) || 0,
+            allowedColors: Array.isArray(pa.allowedColors) ? JSON.stringify(pa.allowedColors) : (pa.allowedColors || null),
+            allowedSizes: Array.isArray(pa.allowedSizes) ? JSON.stringify(pa.allowedSizes) : (pa.allowedSizes || null),
+            isEnabled: pa.isEnabled !== false,
+            sortOrder: idx
+          }))
+        } : undefined
+      },
+      include: { printableAreas: true, product: true }
+    });
+    res.status(201).json(newModel);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.patch(['/api/models', '/api/models/:id'], async (req, res) => {
+  try {
+    const targetId = req.params.id || req.query.id || req.body?.id;
+    if (!targetId) return res.status(400).json({ error: 'Model ID is required' });
+    const { printableAreas, id, product, ...updateFields } = req.body;
+    if (updateFields.colors && Array.isArray(updateFields.colors)) updateFields.colors = JSON.stringify(updateFields.colors);
+    if (updateFields.sizes && Array.isArray(updateFields.sizes)) updateFields.sizes = JSON.stringify(updateFields.sizes);
+    const updated = await prisma.customModel3D.update({
+      where: { id: targetId },
+      data: updateFields,
+      include: { printableAreas: true, product: true }
+    });
+    if (Array.isArray(printableAreas)) {
+      await prisma.printableArea3D.deleteMany({ where: { modelId: targetId } });
+      for (let idx = 0; idx < printableAreas.length; idx++) {
+        const pa = printableAreas[idx];
+        await prisma.printableArea3D.create({
+          data: {
+            modelId: targetId,
+            name: pa.name || `Area ${idx + 1}`,
+            meshName: pa.meshName || null,
+            width: Number(pa.width) || 10,
+            height: Number(pa.height) || 12,
+            minScale: Number(pa.minScale) || 0.2,
+            maxScale: Number(pa.maxScale) || 2.5,
+            defaultPosition: typeof pa.defaultPosition === 'object' ? JSON.stringify(pa.defaultPosition) : (pa.defaultPosition || null),
+            defaultRotation: Number(pa.defaultRotation) || 0,
+            defaultScale: Number(pa.defaultScale) || 1.0,
+            bounds: typeof pa.bounds === 'object' ? JSON.stringify(pa.bounds) : (pa.bounds || null),
+            priceExtra: Number(pa.priceExtra) || 0,
+            isEnabled: pa.isEnabled !== false,
+            sortOrder: idx
+          }
+        });
+      }
+    }
+    const finalModel = await prisma.customModel3D.findUnique({
+      where: { id: targetId },
+      include: { printableAreas: true, product: true }
+    });
+    res.json(finalModel);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete(['/api/models', '/api/models/:id'], async (req, res) => {
+  try {
+    const targetId = req.params.id || req.query.id || req.body?.id;
+    if (!targetId) return res.status(400).json({ error: 'Model ID is required' });
+    await prisma.printableArea3D.deleteMany({ where: { modelId: targetId } });
+    await prisma.customModel3D.delete({ where: { id: targetId } });
+    res.json({ success: true, message: '3D Model deleted successfully' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err);
   res.status(500).json({ error: err.message || 'Internal Server Error' });
