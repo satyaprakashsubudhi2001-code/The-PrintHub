@@ -397,7 +397,11 @@ export function StoreProvider({ children }) {
         const response = await fetch('/api/products', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
-          setProducts(data);
+          const cleanProducts = (Array.isArray(data) ? data : []).map((p) => ({
+            ...p,
+            category: typeof p.category === 'object' && p.category !== null ? p.category.name : (p.category || 'Apparel'),
+          }));
+          setProducts(cleanProducts);
         }
       } catch (err) {
         console.error('Failed to fetch products:', err);
@@ -739,7 +743,13 @@ export function StoreProvider({ children }) {
         ));
         if (results.some(r => r.ok)) {
           const fresh = await fetch('/api/products', { cache: 'no-store' });
-          if (fresh.ok) setProducts(await fresh.json());
+          if (fresh.ok) {
+            const fData = await fresh.json();
+            setProducts((Array.isArray(fData) ? fData : []).map((p) => ({
+              ...p,
+              category: typeof p.category === 'object' && p.category !== null ? p.category.name : (p.category || 'Apparel'),
+            })));
+          }
           setReadyToBuyProducts([]);
           return true;
         }

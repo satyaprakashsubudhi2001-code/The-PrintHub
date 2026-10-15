@@ -118,7 +118,7 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
           </button>
 
           <div className="flex items-center gap-3 text-xs text-[#183630]/60">
-            <span>{product.category || 'Merchandise'}</span>
+            <span>{(typeof product.category === 'object' && product.category !== null ? product.category.name : product.category) || 'Merchandise'}</span>
             <span>/</span>
             <span className="text-[#183630] font-bold">{product.name}</span>
           </div>

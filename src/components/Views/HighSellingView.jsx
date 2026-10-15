@@ -181,7 +181,7 @@ export function HighSellingView() {
                       {prod.name}
                     </h4>
                     <div className="flex items-center gap-3 text-[11px] text-[#183630]/70 mt-0.5">
-                      <span>Category: {prod.category}</span>
+                      <span>Category: {(typeof prod.category === 'object' && prod.category !== null ? prod.category.name : prod.category) || 'Apparel'}</span>
                       <span>•</span>
                       <div className="flex items-center gap-1 text-[#183630] font-bold">
                         <Star className="w-3 h-3 fill-[#E5C690] text-[#183630]" />

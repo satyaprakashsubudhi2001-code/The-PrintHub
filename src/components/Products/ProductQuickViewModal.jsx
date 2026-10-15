@@ -96,7 +96,7 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-[#183630] uppercase tracking-wider font-mono">
-                {product.category} • {product.printMethod}
+                {(typeof product.category === 'object' && product.category !== null ? product.category.name : product.category) || 'Apparel'} • {product.printMethod || 'Custom Print'}
               </span>
               <button
                 type="button"

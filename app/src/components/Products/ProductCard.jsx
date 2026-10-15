@@ -152,7 +152,7 @@ export function ProductCard({ product }) {
           {/* Category & Rating Row */}
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold uppercase tracking-wider text-[11px] text-[#183630]/75">
-              {product.category || 'Apparel'}
+              {(typeof product.category === 'object' && product.category !== null ? product.category.name : product.category) || 'Apparel'}
             </span>
 
             <div className="flex items-center gap-1 text-[11px] font-medium text-[#183630]/75">

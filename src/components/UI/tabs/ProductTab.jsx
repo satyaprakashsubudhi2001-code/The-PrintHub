@@ -75,7 +75,7 @@ export function ProductTab() {
 
                 <div className="flex items-center gap-2 mt-2">
                   <span className="px-2 py-0.5 rounded-md bg-slate-900/80 text-[10px] font-semibold text-slate-300 border border-slate-700/60">
-                    {product.category}
+                    {(typeof product.category === 'object' && product.category !== null ? product.category.name : product.category) || 'Apparel'}
                   </span>
                   <div className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold">
                     <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
