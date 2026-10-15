@@ -47,7 +47,8 @@ export function HighSellingView() {
     .filter((p) => {
       if (highSellingCategory === 'all') return true;
       const catLower = highSellingCategory.toLowerCase();
-      const pCat = (p.category || '').toLowerCase();
+      const rawCat = typeof p.category === 'object' && p.category !== null ? p.category.name : p.category;
+      const pCat = (rawCat || '').toLowerCase();
       const pCatKey = (p.categoryKey || '').toLowerCase();
       return pCat === catLower || pCatKey === catLower || pCat.includes(catLower);
     })

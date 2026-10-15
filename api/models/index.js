@@ -1,5 +1,6 @@
 import prisma from '../_lib/prisma.js';
 import { verifyAdmin } from '../_lib/auth.js';
+import { safeParseColors, safeParseSizes } from '../_lib/normalize.js';
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -33,7 +34,11 @@ export default async function handler(req, res) {
         if (!model) {
           return res.status(404).json({ error: '3D Model not found' });
         }
-        return res.status(200).json(model);
+        return res.status(200).json({
+          ...model,
+          colors: safeParseColors(model.colors),
+          sizes: safeParseSizes(model.sizes)
+        });
       }
 
       // Check if caller is admin
@@ -64,7 +69,13 @@ export default async function handler(req, res) {
         orderBy: { createdAt: 'desc' }
       });
 
-      return res.status(200).json(models);
+      const normalizedModels = models.map((m) => ({
+        ...m,
+        colors: safeParseColors(m.colors),
+        sizes: safeParseSizes(m.sizes)
+      }));
+
+      return res.status(200).json(normalizedModels);
     } catch (err) {
       console.error('Error fetching 3D models:', err);
       return res.status(500).json({ error: err.message });
@@ -251,8 +262,8 @@ export default async function handler(req, res) {
           modelUrl,
           modelFormat: modelFormat || 'glb',
           previewImage: previewImage || null,
-          colors: Array.isArray(colors) ? JSON.stringify(colors) : (colors || JSON.stringify(['#18181b', '#ffffff'])),
-          sizes: Array.isArray(sizes) ? JSON.stringify(sizes) : (sizes || JSON.stringify(['S', 'M', 'L', 'XL'])),
+          colors: JSON.stringify(safeParseColors(colors)),
+          sizes: JSON.stringify(safeParseSizes(sizes)),
           basePrice: Number(basePrice) || 0,
           unit: unit || 'inches',
           status: status || 'ACTIVE',
@@ -268,7 +279,11 @@ export default async function handler(req, res) {
         }
       });
 
-      return res.status(201).json(newModel);
+      return res.status(201).json({
+        ...newModel,
+        colors: safeParseColors(newModel.colors),
+        sizes: safeParseSizes(newModel.sizes)
+      });
     } catch (err) {
       console.error('Failed to create 3D model:', err);
       return res.status(400).json({ error: err.message });
@@ -308,11 +323,11 @@ export default async function handler(req, res) {
       } = req.body;
 
       // Handle JSON serialization for arrays/objects
-      if (updateFields.colors && Array.isArray(updateFields.colors)) {
-        updateFields.colors = JSON.stringify(updateFields.colors);
+      if (updateFields.colors !== undefined) {
+        updateFields.colors = JSON.stringify(safeParseColors(updateFields.colors));
       }
-      if (updateFields.sizes && Array.isArray(updateFields.sizes)) {
-        updateFields.sizes = JSON.stringify(updateFields.sizes);
+      if (updateFields.sizes !== undefined) {
+        updateFields.sizes = JSON.stringify(safeParseSizes(updateFields.sizes));
       }
       if (updateFields.cameraSettings && typeof updateFields.cameraSettings === 'object') {
         updateFields.cameraSettings = JSON.stringify(updateFields.cameraSettings);
@@ -379,7 +394,11 @@ export default async function handler(req, res) {
         }
       });
 
-      return res.status(200).json(finalModel);
+      return res.status(200).json({
+        ...finalModel,
+        colors: safeParseColors(finalModel.colors),
+        sizes: safeParseSizes(finalModel.sizes)
+      });
     } catch (err) {
       console.error('Failed to update 3D model:', err);
       return res.status(400).json({ error: err.message });

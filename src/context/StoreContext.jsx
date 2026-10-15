@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { INITIAL_PRODUCTS, DEFAULT_PRESET_PRODUCTS, COLOR_PALETTE, PRINTING_METHODS } from '../constants/products';
+import { normalizeProduct, safeParseColors, safeParseSizes } from '../utils/normalize';
 import { STUDIO_ENVIRONMENTS } from '../constants/presets';
 import { READY_TO_BUY_PRODUCTS } from '../constants/readyToBuyProducts';
 import { STORE_CONFIG } from '../constants/config';
@@ -162,12 +163,8 @@ export const DEFAULT_8_CATEGORIES = [
 
 export function formatModelForCustomizer(model) {
   if (!model) return null;
-  const colors = Array.isArray(model.colors)
-    ? model.colors
-    : (typeof model.colors === 'string' ? JSON.parse(model.colors || '["#18181b"]') : ['#18181b', '#ffffff']);
-  const sizes = Array.isArray(model.sizes)
-    ? model.sizes
-    : (typeof model.sizes === 'string' ? JSON.parse(model.sizes || '["S","M","L","XL"]') : ['S', 'M', 'L', 'XL']);
+  const colors = safeParseColors(model.colors);
+  const sizes = safeParseSizes(model.sizes);
 
   const printAreas = (model.printableAreas || []).map((pa) => {
     const defaultPos = typeof pa.defaultPosition === 'string' ? JSON.parse(pa.defaultPosition || '[0,0]') : (pa.defaultPosition || [0, 0]);
@@ -397,10 +394,7 @@ export function StoreProvider({ children }) {
         const response = await fetch('/api/products', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
-          const cleanProducts = (Array.isArray(data) ? data : []).map((p) => ({
-            ...p,
-            category: typeof p.category === 'object' && p.category !== null ? p.category.name : (p.category || 'Apparel'),
-          }));
+          const cleanProducts = (Array.isArray(data) ? data : []).map(normalizeProduct);
           setProducts(cleanProducts);
         }
       } catch (err) {
@@ -662,7 +656,7 @@ export function StoreProvider({ children }) {
       });
       if (response.ok) {
         const created = await response.json();
-        setProducts((prev) => [created, ...prev]);
+        setProducts((prev) => [normalizeProduct(created), ...prev]);
         return created;
       }
     } catch (err) {
@@ -686,7 +680,7 @@ export function StoreProvider({ children }) {
       }
       if (response.ok) {
         const updatedProduct = await response.json();
-        setProducts((prev) => prev.map((p) => (p.id === productId || p.sku === productId || p.name === productId ? { ...p, ...updatedProduct } : p)));
+        setProducts((prev) => prev.map((p) => (p.id === productId || p.sku === productId || p.name === productId ? normalizeProduct({ ...p, ...updatedProduct }) : p)));
         return true;
       }
       return false;
@@ -745,10 +739,7 @@ export function StoreProvider({ children }) {
           const fresh = await fetch('/api/products', { cache: 'no-store' });
           if (fresh.ok) {
             const fData = await fresh.json();
-            setProducts((Array.isArray(fData) ? fData : []).map((p) => ({
-              ...p,
-              category: typeof p.category === 'object' && p.category !== null ? p.category.name : (p.category || 'Apparel'),
-            })));
+            setProducts((Array.isArray(fData) ? fData : []).map(normalizeProduct));
           }
           setReadyToBuyProducts([]);
           return true;
@@ -762,7 +753,7 @@ export function StoreProvider({ children }) {
   }, [products]);
 
   const restorePresetProducts = useCallback(() => {
-    setProducts(DEFAULT_PRESET_PRODUCTS);
+    setProducts(DEFAULT_PRESET_PRODUCTS.map(normalizeProduct));
     if (typeof window !== 'undefined') {
       localStorage.setItem('printhub_custom_products_v2', JSON.stringify(DEFAULT_PRESET_PRODUCTS));
     }

@@ -125,10 +125,11 @@ export function AdminCategoriesTab() {
   const categoryProductCounts = useMemo(() => {
     const counts = {};
     allCatalogProducts.forEach((prod) => {
-      const catName = (prod.category || '').toLowerCase();
+      const rawCat = typeof prod.category === 'object' && prod.category !== null ? prod.category.name : prod.category;
+      const catName = (rawCat || '').toLowerCase();
       const catKey = (prod.categoryKey || '').toLowerCase();
       categories.forEach((cat) => {
-        const targetName = cat.name.toLowerCase();
+        const targetName = (cat.name || '').toLowerCase();
         const targetSlug = (cat.slug || '').toLowerCase();
         if (catName === targetName || catKey === targetSlug || catName === targetSlug) {
           counts[cat.id] = (counts[cat.id] || 0) + 1;

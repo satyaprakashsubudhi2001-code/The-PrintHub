@@ -46,6 +46,7 @@ import { Product3DViewer } from '../3D/Product3DViewer';
 import { getProductPrintAreas, getCalibratedPrintArea } from '../../constants/printCalibration';
 import { generateRequestId } from '../../constants/requests';
 import { WhatsAppIcon } from '../UI/WhatsAppIcon';
+import { safeParseColors, safeParseSizes } from '../../utils/normalize';
 
 /**
  * The PrintHub — Custom Merchandise Exploration & Design Studio
@@ -152,12 +153,13 @@ export function DesignByCustomerView() {
 
   // Available Colors for active product
   const availableColors = useMemo(() => {
-    if (activeProduct?.colors && activeProduct.colors.length > 0) {
-      return activeProduct.colors.map((c) => {
+    const raw = safeParseColors(activeProduct?.colors);
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw.map((c) => {
         if (typeof c === 'string') {
           return { name: c, hex: c };
         }
-        return c;
+        return { name: c?.name || c?.hex || 'Color', hex: c?.hex || '#18181b' };
       });
     }
     return [
@@ -174,8 +176,9 @@ export function DesignByCustomerView() {
 
   // Standard sizes for active product
   const sizesList = useMemo(() => {
-    if (activeProduct?.sizes && activeProduct.sizes.length > 0) {
-      return activeProduct.sizes;
+    const parsed = safeParseSizes(activeProduct?.sizes);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
     }
     return ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
   }, [activeProduct?.sizes]);
@@ -1126,9 +1129,7 @@ I would like to discuss this design with The PrintHub team.`;
           {allCustomizableItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {allCustomizableItems.map((prod) => {
-                const prodColors = Array.isArray(prod.colors)
-                  ? prod.colors
-                  : (typeof prod.colors === 'string' ? JSON.parse(prod.colors || '[]') : []);
+                const prodColors = safeParseColors(prod.colors);
 
                 return (
                   <div
@@ -1172,10 +1173,10 @@ I would like to discuss this design with The PrintHub team.`;
                       </p>
 
                       {/* Color swatches preview */}
-                      {prodColors.length > 0 && (
+                      {Array.isArray(prodColors) && prodColors.length > 0 && (
                         <div className="flex items-center gap-1 pt-1.5">
                           {prodColors.slice(0, 6).map((c, i) => {
-                            const hex = typeof c === 'string' ? c : c.hex;
+                            const hex = typeof c === 'string' ? c : (c?.hex || '#18181b');
                             return (
                               <span
                                 key={i}

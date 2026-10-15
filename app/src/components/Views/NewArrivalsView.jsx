@@ -14,7 +14,8 @@ export function NewArrivalsView() {
     .filter((p) => {
       if (selectedCat === 'all') return true;
       const catLower = selectedCat.toLowerCase();
-      return (p.category || '').toLowerCase() === catLower || (p.categoryKey || '').toLowerCase() === catLower;
+      const rawCat = typeof p.category === 'object' && p.category !== null ? p.category.name : p.category;
+      return (rawCat || '').toLowerCase() === catLower || (p.categoryKey || '').toLowerCase() === catLower;
     })
     .sort((a, b) => {
       if (sortBy === 'price-asc') return (a.basePrice || 0) - (b.basePrice || 0);
@@ -115,7 +116,7 @@ export function NewArrivalsView() {
                       </div>
                       <div className="p-5 sm:p-6 flex flex-col justify-between flex-1 space-y-4">
                         <div>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-[#183630]/70">{prod.category || 'Merchandise'}</span>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-[#183630]/70">{(typeof prod.category === 'object' && prod.category !== null ? prod.category.name : prod.category) || 'Merchandise'}</span>
                           <h3 className="text-lg font-black text-[#183630] mt-1 line-clamp-1">{prod.name}</h3>
                           <p className="text-xs text-[#183630]/70 mt-1 line-clamp-2">{prod.subtitle || prod.description}</p>
                         </div>
@@ -146,7 +147,7 @@ export function NewArrivalsView() {
                       </div>
                       <div className="p-3.5 flex flex-col flex-1 justify-between gap-3">
                         <div>
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-[#183630]/70">{prod.category || 'Merchandise'}</span>
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-[#183630]/70">{(typeof prod.category === 'object' && prod.category !== null ? prod.category.name : prod.category) || 'Merchandise'}</span>
                           <h3 className="text-xs font-bold text-[#183630] mt-0.5 line-clamp-2 leading-snug">{prod.name}</h3>
                           <p className="text-[11px] font-black text-[#183630] mt-1.5">&#8377;{prod.basePrice}</p>
                         </div>

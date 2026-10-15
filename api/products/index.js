@@ -1,5 +1,6 @@
 import prisma from '../_lib/prisma.js';
 import { verifyAdmin } from '../_lib/auth.js';
+import { safeParseColors, safeParseSizes, normalizeCategory } from '../_lib/normalize.js';
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -11,7 +12,18 @@ export default async function handler(req, res) {
         include: { category: true, images: { orderBy: { sortOrder: 'asc' } }, inventory: true },
         orderBy: { createdAt: 'desc' }
       });
-      res.status(200).json(products);
+      const normalizedProducts = products.map((p) => {
+        const catName = normalizeCategory(p.category);
+        return {
+          ...p,
+          category: catName,
+          categoryName: catName,
+          categoryObj: typeof p.category === 'object' ? p.category : null,
+          colors: safeParseColors(p.colors),
+          sizes: safeParseSizes(p.sizes)
+        };
+      });
+      res.status(200).json(normalizedProducts);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -84,8 +96,8 @@ export default async function handler(req, res) {
           isCustomizable: productData.isCustomizable !== false,
           defaultColor: productData.defaultColor || '#18181b',
           defaultSize: productData.defaultSize || 'L',
-          sizes: Array.isArray(productData.sizes) ? JSON.stringify(productData.sizes) : (productData.sizes || '["S","M","L","XL"]'),
-          colors: Array.isArray(productData.colors) ? JSON.stringify(productData.colors) : (productData.colors || '[]'),
+          sizes: JSON.stringify(safeParseSizes(productData.sizes)),
+          colors: JSON.stringify(safeParseColors(productData.colors)),
           features: productData.features ? JSON.stringify(productData.features) : null,
           images: imageCreate,
           inventory: inventoryCreate
@@ -93,7 +105,15 @@ export default async function handler(req, res) {
         include: { images: true, inventory: true, category: true }
       });
 
-      res.status(201).json(product);
+      const catName = normalizeCategory(product.category);
+      res.status(201).json({
+        ...product,
+        category: catName,
+        categoryName: catName,
+        categoryObj: typeof product.category === 'object' ? product.category : null,
+        colors: safeParseColors(product.colors),
+        sizes: safeParseSizes(product.sizes)
+      });
     } catch (err) {
       console.error('Failed to create product in DB:', err);
       res.status(400).json({ error: err.message });
@@ -120,12 +140,27 @@ export default async function handler(req, res) {
       }
 
       const { images, inventory, id, ...productData } = req.body;
+      if (productData.colors !== undefined) {
+        productData.colors = JSON.stringify(safeParseColors(productData.colors));
+      }
+      if (productData.sizes !== undefined) {
+        productData.sizes = JSON.stringify(safeParseSizes(productData.sizes));
+      }
+
       const product = await prisma.product.update({
         where: { id: existing.id },
         data: productData,
-        include: { images: true, inventory: true }
+        include: { images: true, inventory: true, category: true }
       });
-      res.status(200).json(product);
+      const catName = normalizeCategory(product.category);
+      res.status(200).json({
+        ...product,
+        category: catName,
+        categoryName: catName,
+        categoryObj: typeof product.category === 'object' ? product.category : null,
+        colors: safeParseColors(product.colors),
+        sizes: safeParseSizes(product.sizes)
+      });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }

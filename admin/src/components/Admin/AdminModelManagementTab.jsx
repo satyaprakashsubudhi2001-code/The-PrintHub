@@ -26,6 +26,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+import { safeParseColors } from '../../utils/normalize';
 import { AdminModelViewerModal } from './AdminModelViewerModal';
 
 export function AdminModelManagementTab() {
@@ -496,11 +497,7 @@ export function AdminModelManagementTab() {
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in">
           {filteredModels.map((model) => {
-            let parsedColors = [];
-            try {
-              if (Array.isArray(model.colors)) parsedColors = model.colors;
-              else if (model.colors) parsedColors = JSON.parse(model.colors);
-            } catch (e) {}
+            const parsedColors = safeParseColors(model.colors);
 
             return (
               <div
@@ -575,16 +572,19 @@ export function AdminModelManagementTab() {
                       </span>
                     </div>
 
-                    {parsedColors.length > 0 && (
+                    {Array.isArray(parsedColors) && parsedColors.length > 0 && (
                       <div className="flex items-center gap-1.5 pt-1">
-                        {parsedColors.slice(0, 7).map((c, i) => (
-                          <span
-                            key={i}
-                            className="w-4 h-4 rounded-full border border-[#B8A98F]/80 shadow-xs"
-                            style={{ backgroundColor: c }}
-                            title={c}
-                          />
-                        ))}
+                        {parsedColors.slice(0, 7).map((c, i) => {
+                          const hex = typeof c === 'string' ? c : (c?.hex || '#18181b');
+                          return (
+                            <span
+                              key={i}
+                              className="w-4 h-4 rounded-full border border-[#B8A98F]/80 shadow-xs"
+                              style={{ backgroundColor: hex }}
+                              title={hex}
+                            />
+                          );
+                        })}
                         {parsedColors.length > 7 && (
                           <span className="text-[9px] text-[#183630]/60 font-bold">
                             +{parsedColors.length - 7}

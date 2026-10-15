@@ -14,7 +14,8 @@ export function NewArrivalsView() {
     .filter((p) => {
       if (selectedCat === 'all') return true;
       const catLower = selectedCat.toLowerCase();
-      return (p.category || '').toLowerCase() === catLower || (p.categoryKey || '').toLowerCase() === catLower;
+      const rawCat = typeof p.category === 'object' && p.category !== null ? p.category.name : p.category;
+      return (rawCat || '').toLowerCase() === catLower || (p.categoryKey || '').toLowerCase() === catLower;
     })
     .sort((a, b) => {
       if (sortBy === 'price-asc') return (a.basePrice || 0) - (b.basePrice || 0);

@@ -24,6 +24,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+import { safeParseColors, normalizeCategory } from '../../utils/normalize';
 import { MASTER_CALIBRATIONS } from '../../constants/printCalibration';
 import ImageCropperModal from '../UI/ImageCropperModal';
 
@@ -439,7 +440,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       if (p.status === 'ARCHIVED' || p.status === 'inactive') return false;
       if (selectedCategory !== 'ALL') {
         const catLower = selectedCategory.toLowerCase();
-        const pCat = (p.category || '').toLowerCase();
+        const pCat = (normalizeCategory(p.category)).toLowerCase();
         const pKey = (p.categoryKey || '').toLowerCase();
         if (pCat !== catLower && pKey !== catLower) return false;
       }
@@ -689,7 +690,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                 <div className="p-4 space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-400 uppercase font-bold">
-                      {prod.category || 'General'}
+                      {normalizeCategory(prod.category)}
                     </span>
                     <span className="text-[10px] font-mono text-slate-500">
                       Stock: {prod.stock ?? 50}
@@ -707,23 +708,31 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                   )}
 
                   {/* Available Colors preview */}
-                  {prod.colors && prod.colors.length > 0 && (
-                    <div className="flex items-center gap-1.5 pt-1">
-                      {prod.colors.slice(0, 5).map((col, idx) => (
-                        <span
-                          key={idx}
-                          title={col.name}
-                          className="w-3.5 h-3.5 rounded-full border border-slate-700 shadow-xs"
-                          style={{ backgroundColor: col.hex }}
-                        />
-                      ))}
-                      {prod.colors.length > 5 && (
-                        <span className="text-[9px] font-mono text-slate-500">
-                          +{prod.colors.length - 5}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  {(() => {
+                    const colorsList = safeParseColors(prod.colors);
+                    if (!Array.isArray(colorsList) || colorsList.length === 0) return null;
+                    return (
+                      <div className="flex items-center gap-1.5 pt-1">
+                        {colorsList.slice(0, 5).map((col, idx) => {
+                          const hex = typeof col === 'string' ? col : (col?.hex || '#18181b');
+                          const name = typeof col === 'string' ? col : (col?.name || hex);
+                          return (
+                            <span
+                              key={idx}
+                              title={name}
+                              className="w-3.5 h-3.5 rounded-full border border-slate-700 shadow-xs"
+                              style={{ backgroundColor: hex }}
+                            />
+                          );
+                        })}
+                        {colorsList.length > 5 && (
+                          <span className="text-[9px] font-mono text-slate-500">
+                            +{colorsList.length - 5}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 

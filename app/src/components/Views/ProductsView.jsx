@@ -103,7 +103,8 @@ export function ProductsView() {
       const slugLower = (targetCat?.slug || '').toLowerCase();
 
       pool = pool.filter((product) => {
-        const pCat = (product.category || '').toLowerCase();
+        const rawCat = typeof product.category === 'object' && product.category !== null ? product.category.name : product.category;
+        const pCat = (rawCat || '').toLowerCase();
         const pCatKey = (product.categoryKey || '').toLowerCase();
         const pSub = (product.subtitle || '').toLowerCase();
         const pName = (product.name || '').toLowerCase();
@@ -123,10 +124,11 @@ export function ProductsView() {
     if (searchQuery && searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       pool = pool.filter((product) => {
+        const rawCat = typeof product.category === 'object' && product.category !== null ? product.category.name : product.category;
         const matchName = product.name?.toLowerCase().includes(q);
         const matchSubtitle = product.subtitle?.toLowerCase().includes(q);
         const matchDescription = product.description?.toLowerCase().includes(q);
-        const matchCategory = product.category?.toLowerCase().includes(q);
+        const matchCategory = rawCat?.toLowerCase().includes(q);
         const matchBadge = product.badge?.toLowerCase().includes(q);
         return matchName || matchSubtitle || matchDescription || matchCategory || matchBadge;
       });

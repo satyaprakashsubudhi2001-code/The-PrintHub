@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { INITIAL_PRODUCTS, DEFAULT_PRESET_PRODUCTS, COLOR_PALETTE, PRINTING_METHODS } from '../constants/products';
+import { normalizeProduct } from '../utils/normalize';
 import { READY_TO_BUY_PRODUCTS } from '../constants/readyToBuyProducts';
 import { STORE_CONFIG } from '../constants/config';
 import {
@@ -313,7 +314,7 @@ export function StoreProvider({ children }) {
         const response = await fetch('/api/products', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
-          setProducts(data);
+          setProducts((Array.isArray(data) ? data : []).map(normalizeProduct));
         }
       } catch (err) {
         console.error('Failed to fetch products:', err);
@@ -552,7 +553,7 @@ export function StoreProvider({ children }) {
       });
       if (response.ok) {
         const created = await response.json();
-        setProducts((prev) => [created, ...prev]);
+        setProducts((prev) => [normalizeProduct(created), ...prev]);
         return created;
       }
     } catch (err) {
@@ -576,7 +577,7 @@ export function StoreProvider({ children }) {
       }
       if (response.ok) {
         const updatedProduct = await response.json();
-        setProducts((prev) => prev.map((p) => (p.id === productId || p.sku === productId || p.name === productId ? { ...p, ...updatedProduct } : p)));
+        setProducts((prev) => prev.map((p) => (p.id === productId || p.sku === productId || p.name === productId ? normalizeProduct({ ...p, ...updatedProduct }) : p)));
         return true;
       }
       return false;
@@ -633,7 +634,10 @@ export function StoreProvider({ children }) {
         ));
         if (results.some(r => r.ok)) {
           const fresh = await fetch('/api/products', { cache: 'no-store' });
-          if (fresh.ok) setProducts(await fresh.json());
+          if (fresh.ok) {
+            const freshData = await fresh.json();
+            setProducts((Array.isArray(freshData) ? freshData : []).map(normalizeProduct));
+          }
           setReadyToBuyProducts([]);
           return true;
         }
@@ -646,7 +650,7 @@ export function StoreProvider({ children }) {
   }, [products]);
 
   const restorePresetProducts = useCallback(() => {
-    setProducts(DEFAULT_PRESET_PRODUCTS);
+    setProducts(DEFAULT_PRESET_PRODUCTS.map(normalizeProduct));
     if (typeof window !== 'undefined') {
       localStorage.setItem('printhub_custom_products_v2', JSON.stringify(DEFAULT_PRESET_PRODUCTS));
     }
