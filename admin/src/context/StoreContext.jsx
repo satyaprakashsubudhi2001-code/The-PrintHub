@@ -807,6 +807,10 @@ export function StoreProvider({ children }) {
           if (typeof window !== 'undefined') {
             sessionStorage.setItem('printhub_admin_session', JSON.stringify(data.user));
             localStorage.setItem('printhub_admin_session', JSON.stringify(data.user));
+            if (data.token) {
+              sessionStorage.setItem('printhub_admin_token', data.token);
+              localStorage.setItem('printhub_admin_token', data.token);
+            }
           }
           return { success: true };
         } else {
@@ -995,11 +999,23 @@ export function StoreProvider({ children }) {
     }
   }, []);
 
+  const getAdminAuthHeaders = useCallback(() => {
+    const headers = { 'Content-Type': 'application/json' };
+    if (typeof window !== 'undefined') {
+      const token = sessionStorage.getItem('printhub_admin_token') || localStorage.getItem('printhub_admin_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['x-admin-token'] = token;
+      }
+    }
+    return headers;
+  }, []);
+
   const createModel3D = useCallback(async (modelData) => {
     try {
       const response = await fetch('/api/models', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify(modelData)
       });
       if (response.ok) {
@@ -1014,13 +1030,13 @@ export function StoreProvider({ children }) {
       console.error('Error creating 3D model:', err);
       throw err;
     }
-  }, []);
+  }, [getAdminAuthHeaders]);
 
   const updateModel3D = useCallback(async (id, updateData) => {
     try {
       const response = await fetch(`/api/models?id=${encodeURIComponent(id)}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify(updateData)
       });
       if (response.ok) {
@@ -1035,12 +1051,13 @@ export function StoreProvider({ children }) {
       console.error('Error updating 3D model:', err);
       throw err;
     }
-  }, []);
+  }, [getAdminAuthHeaders]);
 
   const deleteModel3D = useCallback(async (id) => {
     try {
       const response = await fetch(`/api/models?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAdminAuthHeaders()
       });
       if (response.ok) {
         const resData = await response.json();
@@ -1058,13 +1075,13 @@ export function StoreProvider({ children }) {
       console.error('Error deleting 3D model:', err);
       throw err;
     }
-  }, []);
+  }, [getAdminAuthHeaders]);
 
   const createProductType3D = useCallback(async (typeData) => {
     try {
       const response = await fetch('/api/models', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ action: 'product-type', ...typeData })
       });
       if (response.ok) {
@@ -1076,7 +1093,7 @@ export function StoreProvider({ children }) {
       console.error('Error creating product type:', err);
     }
     return null;
-  }, []);
+  }, [getAdminAuthHeaders]);
 
 
   // 1. Audit Logging Action

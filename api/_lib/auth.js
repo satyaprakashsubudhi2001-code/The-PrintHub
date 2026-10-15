@@ -62,17 +62,7 @@ export function verifyAdmin(req) {
     } catch (e) {}
   }
 
-  // 4. Trusted Domain Origin / Referer (for cross-subdomain admin portal requests)
-  const origin = req.headers?.origin || req.headers?.referer || req.headers?.host || '';
-  if (
-    origin.includes('admin.theprinthub.co.in') ||
-    origin.includes('theprinthub.co.in') ||
-    origin.includes('localhost:3001') ||
-    origin.includes('localhost:3000') ||
-    origin.includes('127.0.0.1')
-  ) {
-    return { name: 'Admin', role: 'admin' };
-  }
-
-  throw new Error('Unauthorized administrator request.');
+  // Strict Security Rule: An Origin or Referer header alone must NEVER authorize administrative operations.
+  // A genuine signed JWT token (via Authorization: Bearer, x-admin-token header, or printhub_admin_token cookie) is strictly required.
+  throw new Error('Unauthorized: Genuine administrator token required.');
 }
