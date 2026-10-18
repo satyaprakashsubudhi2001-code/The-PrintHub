@@ -13,6 +13,7 @@ import { AdminProductsTab } from '../Admin/AdminProductsTab';
 import { AdminCategoriesTab } from '../Admin/AdminCategoriesTab';
 import { AdminStockTab } from '../Admin/AdminStockTab';
 import { AdminOrdersTab } from '../Admin/AdminOrdersTab';
+import { AdminInvoicesTab } from '../Admin/AdminInvoicesTab';
 import { AdminManualOrderTab } from '../Admin/AdminManualOrderTab';
 import { AdminFinanceTab } from '../Admin/AdminFinanceTab';
 import { AdminExpensesTab } from '../Admin/AdminExpensesTab';
@@ -68,6 +69,7 @@ export function AdminView() {
       group: 'ORDERS',
       items: [
         { id: 'orders', label: 'Orders Fulfillment', icon: Package, badge: pendingOrdersCount > 0 ? `${pendingOrdersCount} ACTIVE` : null },
+        { id: 'invoices', label: 'Invoices & Billing', icon: Receipt },
         { id: 'manual-order', label: 'Manual Order / POS', icon: PlusCircle }
       ]
     },
@@ -108,11 +110,15 @@ export function AdminView() {
   const selectTab = (tabId) => {
     setActiveTab(tabId);
     setIsSidebarOpen(false); // Close drawer on mobile
+    const mainArea = document.getElementById('admin-main-content');
+    if (mainArea) {
+      mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen bg-[#F4EBDD] text-[#18302B] select-none font-sans flex flex-col md:flex-row overflow-x-hidden">
+    <div className="min-h-screen md:h-screen md:overflow-hidden bg-[#F4EBDD] text-[#18302B] select-none font-sans flex flex-col md:flex-row">
       {/* MOBILE HEADER */}
       <div className="md:hidden sticky top-0 z-40 bg-[#183630] border-b border-[#B8A98F]/30 px-4 py-3 flex items-center justify-between text-[#E5DAC9]">
         <div className="flex items-center gap-3">
@@ -134,7 +140,7 @@ export function AdminView() {
       )}
 
       {/* SIDEBAR NAVIGATION */}
-      <aside className={`fixed md:sticky top-0 left-0 h-screen z-50 bg-[#183630] text-[#E5DAC9] border-r border-[#B8A98F]/20 flex flex-col transition-transform duration-300 ease-in-out w-[260px] shrink-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <aside className={`fixed md:static top-0 left-0 h-screen z-40 bg-[#183630] text-[#E5DAC9] border-r border-[#B8A98F]/20 flex flex-col transition-transform duration-300 ease-in-out w-[260px] shrink-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-4 flex items-center justify-between border-b border-[#B8A98F]/20 shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-[#183630] border border-[#B8A98F]/40 flex items-center justify-center p-1 shadow-md shrink-0">
@@ -201,7 +207,7 @@ export function AdminView() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div id="admin-main-content" className="flex-1 flex flex-col min-w-0 md:h-screen md:overflow-y-auto">
         {/* Unpublished Drafts Banner */}
         {hasDrafts && !publishBannerDismissed && (
           <div className="bg-[#E7C47F] px-4 sm:px-8 py-2.5 text-[#18302B] font-mono text-xs flex flex-col sm:flex-row items-center justify-between gap-2 shadow-sm z-30 relative">
@@ -216,7 +222,7 @@ export function AdminView() {
           </div>
         )}
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {activeTab === 'dashboard' && <AdminDashboardTab onNavigate={(tabKey) => setActiveTab(tabKey)} />}
           {activeTab === 'cms' && <AdminHomepageCmsTab onNavigateToImages={() => setActiveTab('images')} />}
           {activeTab === 'announcements' && <AdminAnnouncementTab />}
@@ -225,6 +231,7 @@ export function AdminView() {
           {activeTab === 'categories' && <AdminCategoriesTab />}
           {activeTab === 'stock' && <AdminStockTab />}
           {activeTab === 'orders' && <AdminOrdersTab onNavigateToManualOrder={() => setActiveTab('manual-order')} />}
+          {activeTab === 'invoices' && <AdminInvoicesTab />}
           {activeTab === 'manual-order' && <AdminManualOrderTab onOrderCreated={() => setActiveTab('orders')} />}
           {activeTab === 'finance' && <AdminFinanceTab />}
           {activeTab === 'expenses' && <AdminExpensesTab />}

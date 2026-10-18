@@ -22,6 +22,10 @@ import {
   RotateCcw,
   PackagePlus,
   ExternalLink,
+  ArrowLeft,
+  ArrowRight,
+  Crop,
+  Power,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { safeParseColors, normalizeCategory } from '../../utils/normalize';
@@ -176,6 +180,54 @@ const BADGE_OPTIONS = [
   'Top Rated',
 ];
 
+// Helper to compress uploaded image using HTML5 Canvas (max 1200x1200px, 82% WebP/JPEG)
+async function compressImageFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    throw new Error(`File ${file?.name || 'unknown'} is not a supported image.`);
+  }
+  if (file.size > 15 * 1024 * 1024) {
+    throw new Error(`File ${file.name} exceeds 15MB limit.`);
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read image file.'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Failed to decode image.'));
+      img.onload = () => {
+        const MAX_DIM = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          } else {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let dataUrl = canvas.toDataURL('image/webp', 0.82);
+        if (!dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        }
+        resolve(dataUrl);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export function AdminProductsTab({ onNavigateToCategories }) {
   const {
     products = [],
@@ -183,6 +235,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
     addProduct,
     updateProduct,
     deleteProduct,
+    toggleProductStatus,
     clearAllProducts,
     selectProduct,
     navigateTo,
@@ -190,12 +243,21 @@ export function AdminProductsTab({ onNavigateToCategories }) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'ACTIVE' | 'INACTIVE'
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [cropQueue, setCropQueue] = useState([]);
+  const [confirmDeactivateProduct, setConfirmDeactivateProduct] = useState(null);
+  
+  // Crop Modal state for individual image adjustments
+  const [cropTargetIndex, setCropTargetIndex] = useState(null);
 
-  // Form State with Comprehensive Options
+  // Async submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+
+  // Form State with Comprehensive Options & Active Status
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -206,6 +268,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
     basePrice: 499,
     compareAtPrice: 799,
     badge: 'New Arrival',
+    isActive: true,
     image: PRODUCT_PRESETS[0].image,
     images: [PRODUCT_PRESETS[0].image],
     modelPath: PRODUCT_PRESETS[0].modelPath,
@@ -228,14 +291,14 @@ export function AdminProductsTab({ onNavigateToCategories }) {
 
   // Prevent background scrolling when any modal is open
   React.useEffect(() => {
-    if (isAddModalOpen || showClearConfirm || cropQueue.length > 0) {
+    if (isAddModalOpen || showClearConfirm || confirmDeactivateProduct || cropTargetIndex !== null) {
       const originalStyle = window.getComputedStyle(document.body).overflow;
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = originalStyle;
       };
     }
-  }, [isAddModalOpen, showClearConfirm, cropQueue.length]);
+  }, [isAddModalOpen, showClearConfirm, confirmDeactivateProduct, cropTargetIndex]);
 
   // Auto-fill category when categories load if empty
   const defaultCategory = categories.length > 0 ? categories[0].name : '';
@@ -262,6 +325,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       basePrice: preset ? preset.basePrice : 499,
       compareAtPrice: preset ? preset.compareAtPrice : 799,
       badge: 'New Arrival',
+      isActive: true,
       image: preset ? preset.image : PRODUCT_PRESETS[0].image,
       images: preset ? [preset.image] : [PRODUCT_PRESETS[0].image],
       modelPath: preset ? preset.modelPath : PRODUCT_PRESETS[0].modelPath,
@@ -280,12 +344,29 @@ export function AdminProductsTab({ onNavigateToCategories }) {
     });
     setCustomSizesInput(preset ? preset.sizes.join(', ') : 'S, M, L, XL, 2XL');
     setFormError('');
+    setImageUrlInput('');
     setIsAddModalOpen(true);
   };
 
   // Open Modal for Edit
   const handleOpenEditModal = (prod) => {
     setEditingProduct(prod);
+
+    // Cleanly normalize images array from strings or ProductImage objects
+    let loadedImages = [];
+    if (Array.isArray(prod.images) && prod.images.length > 0) {
+      loadedImages = prod.images
+        .map((img) => (typeof img === 'string' ? img : img?.url))
+        .filter(Boolean);
+    }
+    if (loadedImages.length === 0 && prod.image) {
+      const single = typeof prod.image === 'string' ? prod.image : prod.image?.url;
+      if (single) loadedImages = [single];
+    }
+    if (loadedImages.length === 0) {
+      loadedImages = [PRODUCT_PRESETS[0].image];
+    }
+
     setFormData({
       id: prod.id,
       name: prod.name || '',
@@ -296,8 +377,9 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       basePrice: prod.basePrice || prod.price || 0,
       compareAtPrice: prod.compareAtPrice || 0,
       badge: prod.badge || 'None',
-      image: prod.image || prod.images?.[0] || '',
-      images: prod.images && prod.images.length > 0 ? prod.images : [prod.image || ''],
+      isActive: prod.isActive !== false && prod.status !== 'INACTIVE',
+      image: loadedImages[0],
+      images: loadedImages,
       modelPath: prod.modelPath || '/models/round-neck-tshirt.glb',
       defaultColor: prod.defaultColor || '#18181b',
       colors: prod.colors && prod.colors.length > 0 ? prod.colors : [{ name: 'Default', hex: prod.defaultColor || '#18181b' }],
@@ -311,6 +393,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
     });
     setCustomSizesInput((prod.sizes || ['S', 'M', 'L', 'XL', '2XL']).join(', '));
     setFormError('');
+    setImageUrlInput('');
     setIsAddModalOpen(true);
   };
 
@@ -359,8 +442,106 @@ export function AdminProductsTab({ onNavigateToCategories }) {
     });
   };
 
-  // Handle Form Submit (Create or Update)
-  const handleFormSubmit = (e) => {
+  // Handle Multi-file Upload with Client-Side Canvas Compression
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setIsUploadingImages(true);
+    setFormError('');
+
+    try {
+      const compressedImages = [];
+      for (const file of files) {
+        try {
+          const compressed = await compressImageFile(file);
+          compressedImages.push(compressed);
+        } catch (err) {
+          console.warn('Failed to compress file:', file.name, err);
+        }
+      }
+
+      if (compressedImages.length === 0) {
+        throw new Error('Could not process any of the selected image files.');
+      }
+
+      setFormData((prev) => {
+        const existing = Array.isArray(prev.images) ? prev.images : (prev.image ? [prev.image] : []);
+        const next = [...existing, ...compressedImages];
+        return {
+          ...prev,
+          images: next,
+          image: next[0] || '',
+        };
+      });
+    } catch (err) {
+      setFormError(err.message || 'Error uploading product images.');
+    } finally {
+      setIsUploadingImages(false);
+      e.target.value = '';
+    }
+  };
+
+  // Add Direct Image URL
+  const handleAddImageUrl = () => {
+    const url = imageUrlInput.trim();
+    if (!url) return;
+    setFormData((prev) => {
+      const existing = Array.isArray(prev.images) ? prev.images : (prev.image ? [prev.image] : []);
+      const next = [...existing, url];
+      return {
+        ...prev,
+        images: next,
+        image: next[0] || '',
+      };
+    });
+    setImageUrlInput('');
+  };
+
+  // Set Primary Image (Moves selected index to position 0)
+  const handleSetPrimaryImage = (index) => {
+    setFormData((prev) => {
+      const imgs = [...prev.images];
+      const selected = imgs.splice(index, 1)[0];
+      imgs.unshift(selected);
+      return {
+        ...prev,
+        images: imgs,
+        image: imgs[0] || '',
+      };
+    });
+  };
+
+  // Re-order Images (Move Left / Move Right)
+  const handleMoveImage = (index, direction) => {
+    setFormData((prev) => {
+      const imgs = [...prev.images];
+      const targetIdx = index + direction;
+      if (targetIdx < 0 || targetIdx >= imgs.length) return prev;
+      const temp = imgs[index];
+      imgs[index] = imgs[targetIdx];
+      imgs[targetIdx] = temp;
+      return {
+        ...prev,
+        images: imgs,
+        image: imgs[0] || '',
+      };
+    });
+  };
+
+  // Remove Single Image
+  const handleRemoveImage = (index) => {
+    setFormData((prev) => {
+      const imgs = prev.images.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        images: imgs,
+        image: imgs[0] || '',
+      };
+    });
+  };
+
+  // Handle Form Submit (Create or Update with Persistence & Validation)
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       setFormError('Product Title is required.');
@@ -378,6 +559,9 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       setFormError('Please add at least one product image.');
       return;
     }
+
+    setIsSubmitting(true);
+    setFormError('');
 
     const parsedSizes = customSizesInput
       .split(',')
@@ -408,6 +592,8 @@ export function AdminProductsTab({ onNavigateToCategories }) {
 
     const payload = {
       ...formData,
+      isActive: formData.isActive !== false,
+      status: formData.isActive !== false ? 'ACTIVE' : 'INACTIVE',
       sizes: parsedSizes.length > 0 ? parsedSizes : ['Standard'],
       basePrice: Number(formData.basePrice) || 0,
       price: Number(formData.basePrice) || 0,
@@ -422,22 +608,33 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       defaultPrintArea: printAreas?.[0]?.id || 'center_chest',
       tags: parsedTags,
       images: formData.images,
-      image: formData.images[0], // primary is always the first index by design
+      image: formData.images[0], // primary is always index 0
     };
 
-    if (editingProduct) {
-      updateProduct(editingProduct.id, payload);
-    } else {
-      addProduct(payload);
+    try {
+      if (editingProduct) {
+        const ok = await updateProduct(editingProduct.id, payload);
+        if (!ok) throw new Error('Database rejected product update. Please try again.');
+      } else {
+        const ok = await addProduct(payload);
+        if (!ok) throw new Error('Database rejected product creation. Please check fields.');
+      }
+      setIsAddModalOpen(false);
+    } catch (err) {
+      console.error('Error saving product:', err);
+      setFormError(err.message || 'Failed to save product to database.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsAddModalOpen(false);
   };
 
-  // Filter products list
+  // Filter products list with Active / Inactive controls
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      if (p.status === 'ARCHIVED' || p.status === 'inactive') return false;
+      const isProdActive = p.isActive !== false && p.status !== 'INACTIVE';
+      if (statusFilter === 'ACTIVE' && !isProdActive) return false;
+      if (statusFilter === 'INACTIVE' && isProdActive) return false;
+
       if (selectedCategory !== 'ALL') {
         const catLower = selectedCategory.toLowerCase();
         const pCat = (normalizeCategory(p.category)).toLowerCase();
@@ -453,7 +650,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
       }
       return true;
     });
-  }, [products, selectedCategory, searchQuery]);
+  }, [products, selectedCategory, searchQuery, statusFilter]);
 
   return (
     <div className="space-y-8 animate-in fade-in select-none">
@@ -542,36 +739,60 @@ export function AdminProductsTab({ onNavigateToCategories }) {
          ========================================================================= */}
       {products.length > 0 && (
         <div className="p-4 rounded-2xl bg-[#0c101d] border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Category Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto no-scrollbar">
-            {['ALL', ...categories.map((c) => c.name)].map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold tracking-wider shrink-0 transition-all cursor-pointer ${
-                  selectedCategory === cat
-                    ? 'bg-lime-400 text-slate-950 font-black shadow-sm'
-                    : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                {cat.toUpperCase()}
-              </button>
-            ))}
-            {categories.length === 0 && (
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[11px] font-mono text-slate-500 italic">No categories created yet</span>
-                {onNavigateToCategories && (
-                  <button
-                    type="button"
-                    onClick={onNavigateToCategories}
-                    className="px-2.5 py-1 rounded-lg bg-lime-400/10 border border-lime-400/30 text-lime-400 hover:bg-lime-400/20 text-[10px] font-mono font-bold transition-colors"
-                  >
-                    + Create Category
-                  </button>
-                )}
-              </div>
-            )}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
+            {/* Status Filter Pills (ALL / ACTIVE / INACTIVE) */}
+            <div className="flex items-center gap-1 p-1 bg-slate-950 border border-slate-800 rounded-xl shrink-0">
+              {['ALL', 'ACTIVE', 'INACTIVE'].map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold tracking-wider transition-all cursor-pointer ${
+                    statusFilter === st
+                      ? (st === 'ACTIVE'
+                          ? 'bg-emerald-500 text-slate-950 font-black shadow-sm'
+                          : st === 'INACTIVE'
+                          ? 'bg-rose-500 text-white font-black shadow-sm'
+                          : 'bg-cyan-500 text-slate-950 font-black shadow-sm')
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+
+            {/* Category Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto no-scrollbar">
+              {['ALL', ...categories.map((c) => c.name)].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold tracking-wider shrink-0 transition-all cursor-pointer ${
+                    selectedCategory === cat
+                      ? 'bg-lime-400 text-slate-950 font-black shadow-sm'
+                      : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {cat.toUpperCase()}
+                </button>
+              ))}
+              {categories.length === 0 && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[11px] font-mono text-slate-500 italic">No categories created yet</span>
+                  {onNavigateToCategories && (
+                    <button
+                      type="button"
+                      onClick={onNavigateToCategories}
+                      className="px-2.5 py-1 rounded-lg bg-lime-400/10 border border-lime-400/30 text-lime-400 hover:bg-lime-400/20 text-[10px] font-mono font-bold transition-colors"
+                    >
+                      + Create Category
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Search Input */}
@@ -644,140 +865,218 @@ export function AdminProductsTab({ onNavigateToCategories }) {
          ========================================================================= */}
       {products.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredProducts.map((prod) => (
-            <div
-              key={prod.id}
-              className="group rounded-2xl bg-[#0c101d] border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-cyan-500/5"
-            >
-              <div>
-                {/* Product Cover Image */}
-                <div className="relative h-48 bg-slate-950 overflow-hidden flex items-center justify-center">
-                  <img
-                    src={prod.image || prod.images?.[0]}
-                    alt={prod.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c101d] via-transparent to-black/30" />
+          {filteredProducts.map((prod) => {
+            const isProdActive = prod.isActive !== false && prod.status !== 'INACTIVE';
+            return (
+              <div
+                key={prod.id}
+                className="group rounded-2xl bg-[#0c101d] border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-cyan-500/5"
+              >
+                <div>
+                  {/* Product Cover Image */}
+                  <div className="relative h-48 bg-slate-950 overflow-hidden flex items-center justify-center">
+                    <img
+                      src={prod.image || prod.images?.[0] || '/logo-mark-symbol.png'}
+                      alt={prod.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => { e.target.src = '/logo-mark-symbol.png'; }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c101d] via-transparent to-black/30" />
 
-                  {/* Badge */}
-                  {prod.badge && (
-                    <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-lime-400 text-slate-950 font-mono font-black text-[10px] uppercase shadow">
-                      {prod.badge}
-                    </span>
-                  )}
-
-                  {/* 3D Rig Badge */}
-                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md border border-slate-700/80 text-cyan-300 font-mono text-[9px] font-bold flex items-center gap-1">
-                    <Box className="w-3 h-3 text-cyan-400" />
-                    <span>3D RIG</span>
-                  </span>
-
-                  {/* Pricing tag */}
-                  <div className="absolute bottom-2 left-3 flex items-baseline gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-800">
-                    <span className="text-white font-black text-sm font-mono">
-                      ₹{prod.basePrice || prod.price || 0}
-                    </span>
-                    {prod.compareAtPrice > (prod.basePrice || prod.price) && (
-                      <span className="text-slate-500 text-[10px] line-through font-mono">
-                        ₹{prod.compareAtPrice}
+                    {/* Badge */}
+                    {prod.badge && (
+                      <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-lime-400 text-slate-950 font-mono font-black text-[10px] uppercase shadow">
+                        {prod.badge}
                       </span>
                     )}
+
+                    {/* Status & 3D Rig Badges */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                      <span
+                        className={`px-2 py-0.5 rounded-md font-mono text-[9px] font-bold border backdrop-blur-md ${
+                          isProdActive
+                            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                            : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+                        }`}
+                      >
+                        {isProdActive ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
+
+                      <span className="px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md border border-slate-700/80 text-cyan-300 font-mono text-[9px] font-bold flex items-center gap-1">
+                        <Box className="w-3 h-3 text-cyan-400" />
+                        <span>3D RIG</span>
+                      </span>
+                    </div>
+
+                    {/* Pricing tag */}
+                    <div className="absolute bottom-2 left-3 flex items-baseline gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-800">
+                      <span className="text-white font-black text-sm font-mono">
+                        ₹{prod.basePrice || prod.price || 0}
+                      </span>
+                      {prod.compareAtPrice > (prod.basePrice || prod.price) && (
+                        <span className="text-slate-500 text-[10px] line-through font-mono">
+                          ₹{prod.compareAtPrice}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Body Details */}
+                  <div className="p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-400 uppercase font-bold">
+                        {normalizeCategory(prod.category)}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-500">
+                        Stock: {prod.stock ?? 50}
+                      </span>
+                    </div>
+
+                    <h3 className="font-display font-black text-white text-sm uppercase leading-tight line-clamp-1 group-hover:text-cyan-400 transition-colors">
+                      {prod.name}
+                    </h3>
+
+                    {prod.variant && (
+                      <p className="text-[11px] font-mono text-slate-400 line-clamp-1">
+                        {prod.variant}
+                      </p>
+                    )}
+
+                    {/* Available Colors preview */}
+                    {(() => {
+                      const colorsList = safeParseColors(prod.colors);
+                      if (!Array.isArray(colorsList) || colorsList.length === 0) return null;
+                      return (
+                        <div className="flex items-center gap-1.5 pt-1">
+                          {colorsList.slice(0, 5).map((col, idx) => {
+                            const hex = typeof col === 'string' ? col : (col?.hex || '#18181b');
+                            const name = typeof col === 'string' ? col : (col?.name || hex);
+                            return (
+                              <span
+                                key={idx}
+                                title={name}
+                                className="w-3.5 h-3.5 rounded-full border border-slate-700 shadow-xs"
+                                style={{ backgroundColor: hex }}
+                              />
+                            );
+                          })}
+                          {colorsList.length > 5 && (
+                            <span className="text-[9px] font-mono text-slate-500">
+                              +{colorsList.length - 5}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
-                {/* Body Details */}
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-400 uppercase font-bold">
-                      {normalizeCategory(prod.category)}
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-500">
-                      Stock: {prod.stock ?? 50}
-                    </span>
+                {/* Action Buttons */}
+                <div className="p-4 pt-0 border-t border-slate-800/80 flex items-center justify-between gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      selectProduct(prod.id);
+                      navigateTo('design-by-customer');
+                    }}
+                    className="flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 font-bold"
+                    title="Open in 3D Studio"
+                  >
+                    <Eye className="w-3 h-3" />
+                    <span>3D STUDIO</span>
+                  </button>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* Status Toggle (Issue 3) */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isProdActive) {
+                          setConfirmDeactivateProduct(prod);
+                        } else {
+                          toggleProductStatus(prod.id, false);
+                        }
+                      }}
+                      className={`px-2 py-1 rounded-lg border text-[10px] font-mono font-bold transition-all cursor-pointer ${
+                        isProdActive
+                          ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'
+                          : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      }`}
+                      title={isProdActive ? 'Deactivate Product' : 'Activate Product'}
+                    >
+                      {isProdActive ? 'DEACTIVATE' : 'ACTIVATE'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(prod)}
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors cursor-pointer"
+                      title="Edit Product Parameters"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => deleteProduct(prod.id)}
+                      className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors cursor-pointer"
+                      title="Delete Product"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-
-                  <h3 className="font-display font-black text-white text-sm uppercase leading-tight line-clamp-1 group-hover:text-cyan-400 transition-colors">
-                    {prod.name}
-                  </h3>
-
-                  {prod.variant && (
-                    <p className="text-[11px] font-mono text-slate-400 line-clamp-1">
-                      {prod.variant}
-                    </p>
-                  )}
-
-                  {/* Available Colors preview */}
-                  {(() => {
-                    const colorsList = safeParseColors(prod.colors);
-                    if (!Array.isArray(colorsList) || colorsList.length === 0) return null;
-                    return (
-                      <div className="flex items-center gap-1.5 pt-1">
-                        {colorsList.slice(0, 5).map((col, idx) => {
-                          const hex = typeof col === 'string' ? col : (col?.hex || '#18181b');
-                          const name = typeof col === 'string' ? col : (col?.name || hex);
-                          return (
-                            <span
-                              key={idx}
-                              title={name}
-                              className="w-3.5 h-3.5 rounded-full border border-slate-700 shadow-xs"
-                              style={{ backgroundColor: hex }}
-                            />
-                          );
-                        })}
-                        {colorsList.length > 5 && (
-                          <span className="text-[9px] font-mono text-slate-500">
-                            +{colorsList.length - 5}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })()}
                 </div>
               </div>
-
-              {/* Action Buttons */}
-              <div className="p-4 pt-0 border-t border-slate-800/80 flex items-center justify-between gap-2 mt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    selectProduct(prod.id);
-                    navigateTo('design-by-customer');
-                  }}
-                  className="flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 font-bold"
-                  title="Open in 3D Studio"
-                >
-                  <Eye className="w-3 h-3" />
-                  <span>3D STUDIO</span>
-                </button>
-
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditModal(prod)}
-                    className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors cursor-pointer"
-                    title="Edit Product Parameters"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => deleteProduct(prod.id)}
-                    className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors cursor-pointer"
-                    title="Delete Product"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {/* =========================================================================
-         5. ADD / EDIT PRODUCT MODAL (COMPREHENSIVE PARAMETERS)
+         5. DEACTIVATE PRODUCT CONFIRMATION MODAL (Issue 3 Safety)
+         ========================================================================= */}
+      {confirmDeactivateProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#071226]/40 backdrop-blur-[2px] transition-all animate-in fade-in duration-200 ease-out" />
+          <div className="relative w-full max-w-md rounded-[22px] bg-[#0B1020] border border-amber-500/40 p-6 space-y-4 shadow-[0_24px_80px_rgba(0,0,0,0.40)] animate-in slide-in-from-bottom-2 zoom-in-[0.98] duration-200 ease-out">
+            <div className="flex items-center gap-3 text-amber-400">
+              <AlertCircle className="w-6 h-6" />
+              <h3 className="font-display font-black text-lg text-white uppercase">
+                Deactivate Product?
+              </h3>
+            </div>
+            <p className="text-xs text-slate-300 font-sans leading-relaxed">
+              Deactivating <strong className="text-white font-mono">{confirmDeactivateProduct.name}</strong> will immediately hide it from customer-facing product listings, search results, category pages, and recommendations.
+              <br /><br />
+              Its details and images will remain safely saved in the administrative catalog so you can reactivate it at any time.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDeactivateProduct(null)}
+                className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs font-mono font-bold hover:text-white"
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const targetId = confirmDeactivateProduct.id;
+                  setConfirmDeactivateProduct(null);
+                  await toggleProductStatus(targetId, true);
+                }}
+                className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs font-mono hover:bg-amber-400 shadow-md cursor-pointer"
+              >
+                CONFIRM DEACTIVATE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+         6. ADD / EDIT PRODUCT MODAL (COMPREHENSIVE PARAMETERS)
          ========================================================================= */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -841,8 +1140,8 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                 </div>
               </div>
 
-              {/* Row 2: Category, Variant & Badge */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Row 2: Category, Variant, Badge & Visibility Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-slate-400 uppercase font-bold block">
@@ -857,7 +1156,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                         }}
                         className="text-[10px] text-lime-400 hover:text-lime-300 font-mono font-bold underline cursor-pointer"
                       >
-                        + Categories Manager
+                        + Categories
                       </button>
                     )}
                   </div>
@@ -877,9 +1176,6 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                       <div className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-amber-500/40 text-amber-500/80 text-sm">
                         No categories available. Please create a category first.
                       </div>
-                      <span className="text-[10px] text-amber-400/90 block font-mono">
-                        Tip: Add categories in Categories tab.
-                      </span>
                     </div>
                   )}
                 </div>
@@ -909,6 +1205,25 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                     {BADGE_OPTIONS.map((b) => (
                       <option key={b} value={b}>{b}</option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Status Toggle (Issue 3) */}
+                <div>
+                  <label className="text-slate-400 uppercase font-bold block mb-1.5">
+                    Catalog Status *
+                  </label>
+                  <select
+                    value={formData.isActive ? 'ACTIVE' : 'INACTIVE'}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'ACTIVE' })}
+                    className={`w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border text-xs font-mono font-bold focus:outline-none ${
+                      formData.isActive
+                        ? 'border-emerald-500/60 text-emerald-400'
+                        : 'border-rose-500/60 text-rose-400'
+                    }`}
+                  >
+                    <option value="ACTIVE">ACTIVE (Visible)</option>
+                    <option value="INACTIVE">INACTIVE (Hidden)</option>
                   </select>
                 </div>
               </div>
@@ -956,7 +1271,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                 </div>
               </div>
 
-              {/* Row 4: Photo URL & 3D Model Rig with Quick Presets */}
+              {/* Row 4: Multiple Product Photography Images (Issue 5 & Issue 1) */}
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -964,83 +1279,143 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                       Product Photography Images *
                     </label>
                     <div className="space-y-3">
-                      <div className="flex gap-2">
-                        <label className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-cyan-400 cursor-pointer text-center font-bold font-mono text-sm transition-colors border-dashed flex items-center justify-center gap-2">
+                      {/* Upload and URL input */}
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <label className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-400 cursor-pointer text-center font-bold font-mono text-xs transition-colors border-dashed flex items-center justify-center gap-2">
                           <input
                             type="file"
                             multiple
                             accept="image/*"
                             className="hidden"
-                            onChange={(e) => {
-                              const files = Array.from(e.target.files || []);
-                              if (files.length === 0) return;
-                              
-                              const newSources = [];
-                              let loadedCount = 0;
-                              files.forEach(file => {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  if (reader.result) {
-                                    newSources.push(reader.result);
-                                  }
-                                  loadedCount++;
-                                  if (loadedCount === files.length) {
-                                    setCropQueue(prev => [...prev, ...newSources]);
-                                  }
-                                };
-                                reader.readAsDataURL(file);
-                              });
-                              e.target.value = '';
-                            }}
+                            disabled={isUploadingImages}
+                            onChange={handleFileUpload}
                           />
-                          <span>+ Upload Images</span>
+                          {isUploadingImages ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+                              <span>Compressing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3.5 h-3.5 text-lime-400" />
+                              <span>+ Upload Photos</span>
+                            </>
+                          )}
                         </label>
+
+                        <div className="flex gap-1 flex-1">
+                          <input
+                            type="text"
+                            placeholder="Or image URL..."
+                            value={imageUrlInput}
+                            onChange={(e) => setImageUrlInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddImageUrl();
+                              }
+                            }}
+                            className="flex-1 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-600 focus:border-cyan-400 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddImageUrl}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold font-mono cursor-pointer"
+                          >
+                            Add
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Image Gallery Previews */}
+                      {/* Image Gallery Previews Strip */}
                       {formData.images && formData.images.length > 0 && (
-                        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-                          {formData.images.map((img, idx) => (
-                            <div key={idx} className="relative w-24 h-24 shrink-0 rounded-xl bg-slate-950 border border-slate-700 overflow-hidden group">
-                              <img src={img} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" onError={(e) => { e.target.src = '/logo-mark-symbol.png'; }} />
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                                {idx !== 0 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setFormData(prev => {
-                                        const newImages = [...prev.images];
-                                        const temp = newImages[0];
-                                        newImages[0] = newImages[idx];
-                                        newImages[idx] = temp;
-                                        return { ...prev, images: newImages };
-                                      });
-                                    }}
-                                    className="text-[9px] font-bold px-2 py-1 bg-cyan-500 text-slate-900 rounded cursor-pointer"
-                                  >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                            <span>{formData.images.length} {formData.images.length === 1 ? 'photo' : 'photos'} attached (first image is primary cover)</span>
+                          </div>
+                          <div className="flex gap-2.5 overflow-x-auto pb-2 no-scrollbar">
+                            {formData.images.map((img, idx) => (
+                              <div
+                                key={idx}
+                                className={`relative w-24 h-24 shrink-0 rounded-xl bg-slate-950 border overflow-hidden group transition-all ${
+                                  idx === 0 ? 'border-amber-400/90 shadow-md shadow-amber-400/10' : 'border-slate-800'
+                                }`}
+                              >
+                                <img
+                                  src={img}
+                                  alt={`Preview ${idx + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { e.target.src = '/logo-mark-symbol.png'; }}
+                                />
+
+                                {idx === 0 && (
+                                  <div className="absolute top-1 left-1 bg-amber-400 text-slate-950 text-[8px] font-black font-mono px-1.5 py-0.2 rounded shadow">
                                     ★ PRIMARY
-                                  </button>
+                                  </div>
                                 )}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setFormData(prev => ({
-                                      ...prev,
-                                      images: prev.images.filter((_, i) => i !== idx)
-                                    }));
-                                  }}
-                                  className="text-[9px] font-bold px-2 py-1 bg-red-500/80 text-white rounded hover:bg-red-500 cursor-pointer"
-                                >
-                                  Remove ×
-                                </button>
-                              </div>
-                              {idx === 0 && (
-                                <div className="absolute bottom-0 left-0 right-0 bg-cyan-500 text-slate-900 text-[9px] font-bold text-center py-0.5">
-                                  ★ PRIMARY
+
+                                {/* Action Overlay */}
+                                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-between p-1.5">
+                                  <div className="flex items-center justify-between w-full">
+                                    <span className="text-[9px] font-mono text-slate-300 font-bold">#{idx + 1}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveImage(idx)}
+                                      className="p-1 rounded bg-rose-500/80 hover:bg-rose-500 text-white cursor-pointer"
+                                      title="Remove Photo"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+
+                                  <div className="flex items-center gap-1">
+                                    {idx > 0 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMoveImage(idx, -1)}
+                                        className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                                        title="Move Left"
+                                      >
+                                        <ArrowLeft className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => setCropTargetIndex(idx)}
+                                      className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 cursor-pointer"
+                                      title="Crop / Adjust Framing"
+                                    >
+                                      <Crop className="w-3 h-3" />
+                                    </button>
+                                    {idx < formData.images.length - 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMoveImage(idx, 1)}
+                                        className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                                        title="Move Right"
+                                      >
+                                        <ArrowRight className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  {idx !== 0 ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetPrimaryImage(idx)}
+                                      className="w-full py-0.5 rounded bg-amber-400 hover:bg-amber-300 text-slate-950 text-[9px] font-black font-mono cursor-pointer"
+                                    >
+                                      ★ Make Primary
+                                    </button>
+                                  ) : (
+                                    <div className="text-[8px] text-amber-300 font-bold font-mono">
+                                      Cover Photo
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          ))}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1242,27 +1617,46 @@ export function AdminProductsTab({ onNavigateToCategories }) {
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-lime-400 text-slate-950 hover:bg-lime-300 text-xs font-mono font-black shadow-lg shadow-lime-400/20 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-lime-400 text-slate-950 hover:bg-lime-300 text-xs font-mono font-black shadow-lg shadow-lime-400/20 cursor-pointer disabled:opacity-50"
                 >
-                  <Check className="w-4 h-4 stroke-[3]" />
-                  <span>{editingProduct ? 'UPDATE PRODUCT' : 'SAVE PRODUCT'}</span>
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>SAVING...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 stroke-[3]" />
+                      <span>{editingProduct ? 'UPDATE PRODUCT' : 'SAVE PRODUCT'}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-      {/* Image Cropper Modal */}
-      {cropQueue.length > 0 && (
+
+      {/* Individual Photo Cropper Modal */}
+      {cropTargetIndex !== null && formData.images[cropTargetIndex] && (
         <ImageCropperModal
-          imageSrc={cropQueue[0]}
+          imageSrc={formData.images[cropTargetIndex]}
           aspectRatio={4 / 5}
           onCropComplete={(croppedImage) => {
-            setFormData(prev => ({ ...prev, images: [...(prev.images || []), croppedImage] }));
-            setCropQueue(prev => prev.slice(1));
+            setFormData((prev) => {
+              const updated = [...prev.images];
+              updated[cropTargetIndex] = croppedImage;
+              return {
+                ...prev,
+                images: updated,
+                image: updated[0] || '',
+              };
+            });
+            setCropTargetIndex(null);
           }}
           onCancel={() => {
-            setCropQueue(prev => prev.slice(1));
+            setCropTargetIndex(null);
           }}
         />
       )}

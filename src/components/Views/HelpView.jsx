@@ -29,7 +29,7 @@ import { WhatsAppIcon } from '../UI/WhatsAppIcon';
  * - #B8A98F (Highlight Taupe)
  */
 export function HelpView() {
-  const { storeSettings, designRequests = [] } = useStore();
+  const { storeSettings, contactSettings, designRequests = [] } = useStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchedRequest, setSearchedRequest] = useState(null);

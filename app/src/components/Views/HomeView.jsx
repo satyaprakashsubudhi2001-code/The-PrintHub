@@ -337,14 +337,14 @@ export function HomeView() {
                   className="group rounded-3xl border border-[#B8A98F] bg-[#E5DAC9] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-[0_12px_28px_rgba(24,54,48,0.12)] hover:border-[#183630]"
                 >
                   {/* Image Cover */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#183630]">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#183630]/20">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#183630]/80 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#183630]/35 via-transparent to-transparent pointer-events-none" />
                     {item.badge && (
                       <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#183630]/85 backdrop-blur-md text-[#E5C690] border border-[#B8A98F]/40 shadow-xs">
                         {item.badge}

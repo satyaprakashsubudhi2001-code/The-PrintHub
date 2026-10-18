@@ -44,22 +44,46 @@ export function AdminContactSettingsTab() {
     slaGuarantee: contactSettings.slaGuarantee || '48-Hour Rush Production & Dispatch Guarantee',
   });
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    updateAllContactSettings(form);
-    // Also sync to legacy storeSettings for backward compatibility
-    updateStoreSettings({
-      storeName: storeSettings.storeName || 'The PrintHub',
-      whatsapp: form.whatsapp,
-      email: form.email,
-      address: form.address,
-      workingHours: form.hours,
-    });
+  // Sync form when database settings load
+  React.useEffect(() => {
+    if (contactSettings && Object.keys(contactSettings).length > 0) {
+      setForm((prev) => ({
+        ...prev,
+        ...contactSettings,
+        address: contactSettings.address || prev.address,
+        phone: contactSettings.phone || prev.phone,
+        email: contactSettings.email || prev.email,
+        hours: contactSettings.hours || prev.hours,
+      }));
+    }
+  }, [contactSettings]);
 
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3500);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveError('');
+    try {
+      await updateAllContactSettings(form);
+      // Also sync to legacy storeSettings for backward compatibility
+      updateStoreSettings({
+        storeName: storeSettings?.storeName || 'The PrintHub',
+        whatsapp: form.whatsapp,
+        email: form.email,
+        address: form.address,
+        workingHours: form.hours,
+      });
+
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3500);
+    } catch (err) {
+      setSaveError(err.message || 'Failed to save settings to database.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -83,7 +107,13 @@ export function AdminContactSettingsTab() {
         {savedSuccess && (
           <div className="px-3 py-1.5 rounded-xl bg-[#183630] text-[#E5C690] border border-[#B8A98F] flex items-center gap-2 font-bold animate-in fade-in">
             <CheckCircle2 className="w-4 h-4 text-[#E5C690]" />
-            <span>[ CHANGES SYNCED LIVE ]</span>
+            <span>[ CHANGES SYNCED LIVE TO DATABASE ]</span>
+          </div>
+        )}
+
+        {saveError && (
+          <div className="px-3 py-1.5 rounded-xl bg-rose-950 text-rose-300 border border-rose-500/50 flex items-center gap-2 font-bold animate-in fade-in">
+            <span>[ ⚠️ {saveError} ]</span>
           </div>
         )}
       </div>
@@ -344,13 +374,19 @@ export function AdminContactSettingsTab() {
             </div>
 
             {/* Save Button */}
-            <div className="pt-4 border-t border-[#B8A98F]/40">
+            <div className="pt-4 border-t border-[#B8A98F]/40 space-y-2">
+              {saveError && (
+                <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs font-mono font-bold">
+                  ⚠️ Error saving settings: {saveError}
+                </div>
+              )}
               <button
                 type="submit"
-                className="w-full py-3 rounded-2xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5C690] border border-[#B8A98F] font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all hover:shadow-lg"
+                disabled={isSaving}
+                className="w-full py-3 rounded-2xl bg-[#183630] hover:bg-[#183630]/90 text-[#E5C690] border border-[#B8A98F] font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all hover:shadow-lg disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                <span>[ SAVE ALL SOCIAL & CONTACT SETTINGS ]</span>
+                <span>{isSaving ? '[ PERSISTING TO DATABASE... ]' : '[ SAVE ALL SOCIAL & CONTACT SETTINGS ]'}</span>
               </button>
             </div>
           </div>

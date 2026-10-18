@@ -7,8 +7,9 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
+      const includeInactive = req.query.includeInactive === 'true' || req.query.admin === 'true';
       const categories = await prisma.category.findMany({
-        where: { isActive: true },
+        where: includeInactive ? {} : { isActive: true },
         orderBy: { createdAt: 'desc' }
       });
       res.status(200).json(categories);
@@ -18,9 +19,17 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     try {
       verifyAdmin(req);
-      const { name, audience, description, icon, image } = req.body;
+      const { name, audience, description, icon, image, isActive, status } = req.body;
+      const isCatActive = isActive !== undefined ? Boolean(isActive) : (status !== undefined ? (status === 'ACTIVE' || status === true) : true);
       const category = await prisma.category.create({
-        data: { name, audience, description, icon, image }
+        data: {
+          name: (name || '').trim(),
+          audience: audience || 'MAN',
+          description: description || '',
+          icon: icon || '🏷️',
+          image: image || '',
+          isActive: isCatActive
+        }
       });
       res.status(201).json(category);
     } catch (err) {
@@ -47,10 +56,19 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Category not found' });
       }
 
-      const { id, ...data } = req.body;
+      const { name, audience, description, icon, image, isActive, status } = req.body;
+      const updateData = {};
+      if (name !== undefined) updateData.name = name.trim();
+      if (audience !== undefined) updateData.audience = audience;
+      if (description !== undefined) updateData.description = description;
+      if (icon !== undefined) updateData.icon = icon;
+      if (image !== undefined) updateData.image = image;
+      if (isActive !== undefined) updateData.isActive = Boolean(isActive);
+      if (status !== undefined) updateData.isActive = (status === 'ACTIVE' || status === true);
+
       const category = await prisma.category.update({
         where: { id: existing.id },
-        data
+        data: updateData
       });
       res.status(200).json(category);
     } catch (err) {

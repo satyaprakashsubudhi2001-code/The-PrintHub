@@ -1,0 +1,17 @@
+{
+  "issue5": {
+    "adminFormLocated": false,
+    "initialAddress": "",
+    "testAddressSaved": "",
+    "apiResponseOk": false,
+    "databasePersisted": false,
+    "dbContent": null,
+    "customerInitialAddress": "India's bespoke print atelier and personalized merchandise platform. Specializing in heavyweight apparel, corporate collections, drinkware, and custom gifts with master calibration and zero MOQ.Instant WhatsApp ConciergeProduct Catalog👕 Denim Shirts👔 Printed Shirts👕 Oversized T-Shirts👕 Polo T-Shirts👕 Round Neck T-ShirtsStudio & ServicesLaunch 3D Customizer StudioBulk & Corporate InquiriesPrinting Tech & Atelier StandardsArtwork Guidelines (PNG / PDF)Contact & AtelierTest Atelier Studio Plot 999, Nariman Point, Mumbai 400021+91 79928 01158theprinthub.in@gmail.comMon - Sat: 10:00 AM - 8:30 PM (Sun Closed)",
+    "customerUpdatedAddress": "",
+    "customerReloadedAddress": "",
+    "persistedAfterReload": false,
+    "restoredAddress": "",
+    "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3001/\", waiting until \"networkidle\"\u001b[22m\n"
+  },
+  "issues1to4": {}
+}

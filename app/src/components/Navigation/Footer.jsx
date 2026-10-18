@@ -33,7 +33,7 @@ import {
  * - #B8A98F (Highlight Taupe borders)
  */
 export function Footer() {
-  const { storeSettings, navigateTo, setSelectedCategory, categories = [] } = useStore();
+  const { storeSettings, contactSettings, homepageContent, navigateTo, setSelectedCategory, categories = [] } = useStore();
 
   const handleCategoryClick = (category) => {
     if (setSelectedCategory) {
@@ -132,7 +132,7 @@ export function Footer() {
             Product Catalog
           </h4>
           <ul className="space-y-2 text-xs text-[#E5DAC9]/80">
-            {categories.length > 0 ? (
+            {Array.isArray(categories) && categories.length > 0 ? (
               categories.slice(0, 6).map((cat) => (
                 <li key={cat.id}>
                   <button
@@ -225,23 +225,28 @@ export function Footer() {
           <div className="space-y-2.5 text-xs text-[#E5DAC9]/85">
             <div className="flex items-start gap-2.5">
               <MapPin className="w-3.5 h-3.5 text-[#E5C690] shrink-0 mt-0.5" />
-              <span>{storeSettings?.address || 'Industrial Area, Phase 2, New Delhi, India'}</span>
+              <span>
+                {contactSettings?.address ||
+                 homepageContent?.published?.footerContent?.addressText ||
+                 storeSettings?.address ||
+                 'Atelier Plot 42, Print District, Lower Parel, Mumbai, MH 400013'}
+              </span>
             </div>
             <div className="flex items-center gap-2.5">
               <Phone className="w-3.5 h-3.5 text-[#E5C690] shrink-0" />
-              <a href={`tel:${storeSettings?.phone || '+917992801158'}`} className="hover:text-[#E5C690]">
-                {storeSettings?.phone || '+91 79928 01158'}
+              <a href={`tel:${(contactSettings?.phone || storeSettings?.phone || '+917992801158').replace(/\s+/g, '')}`} className="hover:text-[#E5C690]">
+                {contactSettings?.phone || storeSettings?.phone || '+91 79928 01158'}
               </a>
             </div>
             <div className="flex items-center gap-2.5">
               <Mail className="w-3.5 h-3.5 text-[#E5C690] shrink-0" />
-              <a href={`mailto:${storeSettings?.email || 'theprinthub.in@gmail.com'}`} className="hover:text-[#E5C690]">
-                {storeSettings?.email || 'theprinthub.in@gmail.com'}
+              <a href={`mailto:${contactSettings?.email || contactSettings?.gmail || storeSettings?.email || 'theprinthub.in@gmail.com'}`} className="hover:text-[#E5C690]">
+                {contactSettings?.email || contactSettings?.gmail || storeSettings?.email || 'theprinthub.in@gmail.com'}
               </a>
             </div>
             <div className="flex items-center gap-2.5">
               <Clock className="w-3.5 h-3.5 text-[#E5C690] shrink-0" />
-              <span>{storeSettings?.workingHours || 'Mon - Sat: 10:00 AM - 8:00 PM'}</span>
+              <span>{contactSettings?.hours || storeSettings?.workingHours || 'Mon - Sat: 10:00 AM - 8:30 PM (Sun Closed)'}</span>
             </div>
           </div>
         </div>

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import ImageCropperModal from '../UI/ImageCropperModal';
+import { normalizeCategory } from '../../utils/normalize';
 
 // Curated royalty-free visual image presets for 1-click category creation
 const PRESET_CATEGORY_IMAGES = [
@@ -80,6 +81,7 @@ export function AdminCategoriesTab() {
     updateCategory,
     deleteCategory,
     clearAllCategories,
+    toggleCategoryStatus,
     products = [],
     readyToBuyProducts = [],
     navigateTo,
@@ -87,24 +89,27 @@ export function AdminCategoriesTab() {
   } = useStore();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'ACTIVE' | 'INACTIVE'
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [toggleConfirmCategory, setToggleConfirmCategory] = useState(null);
   const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState(null);
 
   // Prevent background scrolling when any modal is open
   React.useEffect(() => {
-    if (isModalOpen || showClearConfirm) {
+    if (isModalOpen || showClearConfirm || toggleConfirmCategory) {
       const originalStyle = window.getComputedStyle(document.body).overflow;
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = originalStyle;
       };
     }
-  }, [isModalOpen, showClearConfirm]);
+  }, [isModalOpen, showClearConfirm, toggleConfirmCategory]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -115,6 +120,7 @@ export function AdminCategoriesTab() {
     badge: '',
     description: '',
     image: PRESET_CATEGORY_IMAGES[0].url,
+    isActive: true,
   });
 
   // Calculate product counts for each category
@@ -125,13 +131,13 @@ export function AdminCategoriesTab() {
   const categoryProductCounts = useMemo(() => {
     const counts = {};
     allCatalogProducts.forEach((prod) => {
-      const rawCat = typeof prod.category === 'object' && prod.category !== null ? prod.category.name : prod.category;
-      const catName = (rawCat || '').toLowerCase();
-      const catKey = (prod.categoryKey || '').toLowerCase();
+      const rawCat = normalizeCategory(prod.category);
+      const catName = String(rawCat || '').toLowerCase();
+      const catKey = String(prod.categoryKey || '').toLowerCase();
       categories.forEach((cat) => {
-        const targetName = (cat.name || '').toLowerCase();
-        const targetSlug = (cat.slug || '').toLowerCase();
-        if (catName === targetName || catKey === targetSlug || catName === targetSlug) {
+        const targetName = String(cat?.name || '').toLowerCase();
+        const targetSlug = String(cat?.slug || '').toLowerCase();
+        if ((catName && (catName === targetName || catName === targetSlug)) || (catKey && catKey === targetSlug)) {
           counts[cat.id] = (counts[cat.id] || 0) + 1;
         }
       });
@@ -141,17 +147,20 @@ export function AdminCategoriesTab() {
 
   // Filtered categories
   const filteredCategories = useMemo(() => {
-    const activeOnly = categories.filter((c) => c.isActive !== false && c.status !== 'inactive');
-    if (!searchQuery.trim()) return activeOnly;
-    const q = searchQuery.toLowerCase().trim();
-    return activeOnly.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
+    return categories.filter((c) => {
+      const isCatActive = c.isActive !== false && c.status !== 'inactive';
+      if (statusFilter === 'ACTIVE' && !isCatActive) return false;
+      if (statusFilter === 'INACTIVE' && isCatActive) return false;
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase().trim();
+      return (
+        (c.name || '').toLowerCase().includes(q) ||
         (c.slug && c.slug.toLowerCase().includes(q)) ||
         (c.description && c.description.toLowerCase().includes(q)) ||
         (c.badge && c.badge.toLowerCase().includes(q))
-    );
-  }, [categories, searchQuery]);
+      );
+    });
+  }, [categories, statusFilter, searchQuery]);
 
   // Open modal to add category
   const handleOpenAddModal = () => {
@@ -164,6 +173,7 @@ export function AdminCategoriesTab() {
       badge: '',
       description: '',
       image: PRESET_CATEGORY_IMAGES[0].url,
+      isActive: true,
     });
     setFormError('');
     setIsModalOpen(true);
@@ -180,6 +190,7 @@ export function AdminCategoriesTab() {
       badge: cat.badge || '',
       description: cat.description || '',
       image: cat.image || PRESET_CATEGORY_IMAGES[0].url,
+      isActive: cat.isActive !== false && cat.status !== 'inactive',
     });
     setFormError('');
     setIsModalOpen(true);
@@ -201,7 +212,7 @@ export function AdminCategoriesTab() {
   };
 
   // Form submit handler
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
 
@@ -223,27 +234,43 @@ export function AdminCategoriesTab() {
       return;
     }
 
-    if (editingCategory) {
-      updateCategory(editingCategory.id, {
-        name: formData.name.trim(),
-        slug: finalSlug,
-        icon: formData.icon,
-        badge: formData.badge === 'None' ? '' : formData.badge,
-        description: formData.description,
-        image: formData.image.trim() || PRESET_CATEGORY_IMAGES[0].url,
-      });
-    } else {
-      addCategory({
-        name: formData.name.trim(),
-        slug: finalSlug,
-        icon: formData.icon,
-        badge: formData.badge === 'None' ? '' : formData.badge,
-        description: formData.description,
-        image: formData.image.trim() || PRESET_CATEGORY_IMAGES[0].url,
-      });
+    setIsSubmitting(true);
+    try {
+      if (editingCategory) {
+        const ok = await updateCategory(editingCategory.id, {
+          name: formData.name.trim(),
+          slug: finalSlug,
+          icon: formData.icon,
+          badge: formData.badge === 'None' ? '' : formData.badge,
+          description: formData.description,
+          image: formData.image.trim() || PRESET_CATEGORY_IMAGES[0].url,
+          isActive: formData.isActive,
+          status: formData.isActive ? 'active' : 'inactive',
+        });
+        if (!ok) {
+          throw new Error('Failed to update category. Please check server logs.');
+        }
+      } else {
+        const newId = await addCategory({
+          name: formData.name.trim(),
+          slug: finalSlug,
+          icon: formData.icon,
+          badge: formData.badge === 'None' ? '' : formData.badge,
+          description: formData.description,
+          image: formData.image.trim() || PRESET_CATEGORY_IMAGES[0].url,
+          isActive: formData.isActive,
+          status: formData.isActive ? 'active' : 'inactive',
+        });
+        if (!newId) {
+          throw new Error('Failed to create category. Please check server logs.');
+        }
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      setFormError(err.message || 'Error saving category');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsModalOpen(false);
   };
 
   // Handle delete category
@@ -360,31 +387,51 @@ export function AdminCategoriesTab() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-xl border text-xs font-mono transition-all ${
-                viewMode === 'grid'
-                  ? 'bg-lime-400/20 text-lime-400 border-lime-400/40'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-              }`}
-              title="Grid View"
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`p-2 rounded-xl border text-xs font-mono transition-all ${
-                viewMode === 'table'
-                  ? 'bg-lime-400/20 text-lime-400 border-lime-400/40'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-              }`}
-              title="Table View"
-            >
-              <List className="w-4 h-4" />
-            </button>
+          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+            {/* Status Filter */}
+            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
+              {['ALL', 'ACTIVE', 'INACTIVE'].map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                    statusFilter === st
+                      ? 'bg-lime-400 text-slate-950 shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-xl border text-xs font-mono transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-lime-400/20 text-lime-400 border-lime-400/40'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+                title="Grid View"
+              >
+                <Grid className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`p-2 rounded-xl border text-xs font-mono transition-all ${
+                  viewMode === 'table'
+                    ? 'bg-lime-400/20 text-lime-400 border-lime-400/40'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+                title="Table View"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -466,26 +513,35 @@ export function AdminCategoriesTab() {
                 className="group rounded-2xl bg-[#0c101d] border border-slate-800 hover:border-lime-400/40 transition-all flex flex-col overflow-hidden hover:shadow-xl hover:shadow-lime-400/5"
               >
                 {/* Cover Image & Overlays */}
-                <div className="relative h-44 bg-slate-950 overflow-hidden">
+                <div className="relative aspect-[4/5] bg-slate-950 overflow-hidden">
                   <img
                     src={cat.image}
                     alt={cat.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c101d] via-transparent to-black/40" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c101d]/90 via-transparent to-black/30" />
 
                   {/* Icon badge */}
                   <div className="absolute top-3 left-3 w-10 h-10 rounded-xl bg-slate-950/80 backdrop-blur-md border border-slate-700/80 flex items-center justify-center text-xl shadow-lg">
                     {cat.icon || '🏷️'}
                   </div>
 
-                  {/* Optional status badge */}
-                  {cat.badge && (
-                    <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-lime-400/90 text-slate-950 text-[10px] font-mono font-black uppercase tracking-wider shadow">
-                      {cat.badge}
-                    </div>
-                  )}
+                  {/* Status & Badge overlay */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                    {cat.badge && (
+                      <div className="px-2 py-0.5 rounded-md bg-lime-400/90 text-slate-950 text-[10px] font-mono font-black uppercase tracking-wider shadow">
+                        {cat.badge}
+                      </div>
+                    )}
+                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-mono font-black uppercase tracking-wider shadow ${
+                      cat.isActive !== false && cat.status !== 'inactive'
+                        ? 'bg-emerald-500 text-slate-950'
+                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    }`}>
+                      {cat.isActive !== false && cat.status !== 'inactive' ? 'ACTIVE' : 'INACTIVE'}
+                    </span>
+                  </div>
 
                   {/* Slug tag bottom left */}
                   <div className="absolute bottom-2 left-3">
@@ -519,11 +575,31 @@ export function AdminCategoriesTab() {
                       <span>{prodCount} Products</span>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const isAct = cat.isActive !== false && cat.status !== 'inactive';
+                          if (isAct) {
+                            setToggleConfirmCategory(cat);
+                          } else {
+                            toggleCategoryStatus(cat.id, false);
+                          }
+                        }}
+                        className={`px-2 py-1 rounded-lg text-[9px] font-mono font-bold transition-colors cursor-pointer border ${
+                          cat.isActive !== false && cat.status !== 'inactive'
+                            ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'
+                            : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                        }`}
+                        title={cat.isActive !== false && cat.status !== 'inactive' ? 'Deactivate Category' : 'Activate Category'}
+                      >
+                        {cat.isActive !== false && cat.status !== 'inactive' ? 'DEACTIVATE' : 'ACTIVATE'}
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(cat)}
-                        className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors"
+                        className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
                         title="Edit Category"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -551,7 +627,7 @@ export function AdminCategoriesTab() {
                         <button
                           type="button"
                           onClick={() => setDeleteConfirmId(cat.id)}
-                          className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors"
+                          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors cursor-pointer"
                           title="Delete Category"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -577,6 +653,7 @@ export function AdminCategoriesTab() {
                 <th className="py-3 px-4">Preview</th>
                 <th className="py-3 px-4">Category Name</th>
                 <th className="py-3 px-4">Slug / ID</th>
+                <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Badge</th>
                 <th className="py-3 px-4">Products</th>
                 <th className="py-3 px-4 text-right">Actions</th>
@@ -589,7 +666,7 @@ export function AdminCategoriesTab() {
                   <tr key={cat.id} className="hover:bg-slate-900/40 transition-colors">
                     <td className="py-3 px-4">
                       <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden relative">
-                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover object-top" />
                         <span className="absolute bottom-0 right-0 text-xs p-0.5 bg-black/60 rounded">
                           {cat.icon || '🏷️'}
                         </span>
@@ -604,6 +681,15 @@ export function AdminCategoriesTab() {
                       )}
                     </td>
                     <td className="py-3 px-4 text-cyan-300 font-mono">#{cat.slug || cat.id}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                        cat.isActive !== false && cat.status !== 'inactive'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : 'bg-slate-800 text-slate-400 border border-slate-700'
+                      }`}>
+                        {cat.isActive !== false && cat.status !== 'inactive' ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
+                    </td>
                     <td className="py-3 px-4">
                       {cat.badge ? (
                         <span className="px-2 py-0.5 rounded bg-lime-400/20 text-lime-400 border border-lime-400/30 text-[10px] font-bold">
@@ -620,8 +706,26 @@ export function AdminCategoriesTab() {
                       <div className="inline-flex items-center gap-1.5">
                         <button
                           type="button"
+                          onClick={() => {
+                            const isAct = cat.isActive !== false && cat.status !== 'inactive';
+                            if (isAct) {
+                              setToggleConfirmCategory(cat);
+                            } else {
+                              toggleCategoryStatus(cat.id, false);
+                            }
+                          }}
+                          className={`px-2 py-1 rounded text-[9px] font-mono font-bold transition-colors cursor-pointer border ${
+                            cat.isActive !== false && cat.status !== 'inactive'
+                              ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'
+                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                          }`}
+                        >
+                          {cat.isActive !== false && cat.status !== 'inactive' ? 'DEACTIVATE' : 'ACTIVATE'}
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleOpenEditModal(cat)}
-                          className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800"
+                          className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 cursor-pointer"
                           title="Edit"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -648,7 +752,7 @@ export function AdminCategoriesTab() {
                           <button
                             type="button"
                             onClick={() => setDeleteConfirmId(cat.id)}
-                            className="p-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20"
+                            className="p-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -826,7 +930,7 @@ export function AdminCategoriesTab() {
                     <img
                       src={formData.image || PRESET_CATEGORY_IMAGES[0].url}
                       alt="Preview"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-top"
                       onError={(e) => {
                         e.target.src = PRESET_CATEGORY_IMAGES[0].url;
                       }}
@@ -920,6 +1024,24 @@ export function AdminCategoriesTab() {
                 />
               </div>
 
+              {/* Row 5: Visibility Status */}
+              <div>
+                <label className="text-slate-400 uppercase font-bold block mb-1.5">
+                  Storefront Visibility Status *
+                </label>
+                <select
+                  value={formData.isActive ? 'ACTIVE' : 'INACTIVE'}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'ACTIVE' })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-lime-400 focus:outline-none"
+                >
+                  <option value="ACTIVE">ACTIVE (Visible in Storefront navigation & catalogue)</option>
+                  <option value="INACTIVE">INACTIVE (Hidden from Storefront, preserved in database)</option>
+                </select>
+                <span className="text-[10px] text-slate-500 font-sans block mt-1">
+                  When inactive, this category and all products belonging to it will not be discoverable by customers.
+                </span>
+              </div>
+
               {/* Form Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
                 <button
@@ -931,21 +1053,63 @@ export function AdminCategoriesTab() {
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-lime-400 text-slate-950 hover:bg-lime-300 text-xs font-mono font-black shadow-lg shadow-lime-400/20"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-lime-400 text-slate-950 hover:bg-lime-300 text-xs font-mono font-black shadow-lg shadow-lime-400/20 cursor-pointer disabled:opacity-50"
                 >
                   <Check className="w-4 h-4 stroke-[3]" />
-                  <span>{editingCategory ? 'UPDATE CATEGORY' : 'SAVE CATEGORY'}</span>
+                  <span>{isSubmitting ? 'SAVING...' : editingCategory ? 'UPDATE CATEGORY' : 'SAVE CATEGORY'}</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Category Deactivation Confirmation Modal */}
+      {toggleConfirmCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-[#071226]/60 backdrop-blur-xs"
+            onClick={() => setToggleConfirmCategory(null)}
+          />
+          <div className="relative w-full max-w-md rounded-2xl bg-[#0B1020] border border-slate-800 p-6 space-y-4 shadow-2xl z-10 font-mono text-xs">
+            <div className="flex items-center gap-3 text-amber-400">
+              <AlertCircle className="w-6 h-6 shrink-0" />
+              <h3 className="text-base font-black text-white font-display uppercase">
+                Deactivate Category?
+              </h3>
+            </div>
+            <p className="text-slate-400 leading-relaxed font-sans">
+              Deactivating <span className="text-white font-bold">"{toggleConfirmCategory.name}"</span> will immediately hide this category and all its associated products from the public customer storefront navigation, listings, and search results.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => setToggleConfirmCategory(null)}
+                className="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 font-bold border border-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await toggleCategoryStatus(toggleConfirmCategory.id, true);
+                  setToggleConfirmCategory(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black hover:bg-amber-400"
+              >
+                Yes, Deactivate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Image Cropper Modal */}
       {cropImageSrc && (
         <ImageCropperModal
           imageSrc={cropImageSrc}
-          aspectRatio={16 / 9}
+          aspectRatio={4 / 5}
           onCropComplete={(croppedImage) => {
             setFormData((prev) => ({ ...prev, image: croppedImage }));
             setCropImageSrc(null);

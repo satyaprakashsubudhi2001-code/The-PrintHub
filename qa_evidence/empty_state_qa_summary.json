@@ -1,0 +1,207 @@
+{
+  "executedAt": "2026-10-18T18:40:46.884Z",
+  "totalTests": 21,
+  "passed": 20,
+  "failed": 1,
+  "warnings": 0,
+  "consoleErrorsCount": 4,
+  "networkFailuresCount": 4,
+  "results": [
+    {
+      "id": "DB-01",
+      "category": "Database Verification",
+      "name": "Database Empty State Confirmation (Read-Only)",
+      "status": "PASS",
+      "details": "Confirmed live PostgreSQL database holds 0 products, 0 categories, and 0 3D models. Intended empty state verified."
+    },
+    {
+      "id": "API-Products-API",
+      "category": "API & Data Integrity",
+      "name": "Products API Empty Array Handling",
+      "status": "PASS",
+      "details": "Endpoint returned HTTP 200 with valid JSON empty array []. No null or crash-inducing types returned."
+    },
+    {
+      "id": "API-Categories-API",
+      "category": "API & Data Integrity",
+      "name": "Categories API Empty Array Handling",
+      "status": "PASS",
+      "details": "Endpoint returned HTTP 200 with valid JSON empty array []. No null or crash-inducing types returned."
+    },
+    {
+      "id": "API-Models-API",
+      "category": "API & Data Integrity",
+      "name": "Models API Empty Array Handling",
+      "status": "PASS",
+      "details": "Endpoint returned HTTP 200 with valid JSON empty array []. No null or crash-inducing types returned."
+    },
+    {
+      "id": "API-Admin-Products-API",
+      "category": "API & Data Integrity",
+      "name": "Admin Products API Empty Array Handling",
+      "status": "PASS",
+      "details": "Endpoint returned HTTP 200 with valid JSON empty array []. No null or crash-inducing types returned."
+    },
+    {
+      "id": "API-Admin-Categories-API",
+      "category": "API & Data Integrity",
+      "name": "Admin Categories API Empty Array Handling",
+      "status": "PASS",
+      "details": "Endpoint returned HTTP 200 with valid JSON empty array []. No null or crash-inducing types returned."
+    },
+    {
+      "id": "API-Admin-Models-API",
+      "category": "API & Data Integrity",
+      "name": "Admin Models API Empty Array Handling",
+      "status": "PASS",
+      "details": "Endpoint returned HTTP 200 with valid JSON empty array []. No null or crash-inducing types returned."
+    },
+    {
+      "id": "CUST-01",
+      "category": "Customer Website",
+      "name": "Homepage Loads Without Errors in Empty State",
+      "status": "PASS",
+      "evidence": "empty_01_customer_homepage_desktop.png",
+      "details": "Homepage rendered cleanly with title \"The PrintHub - 3D Product Customization & Printing Studio\". No broken images (0 broken). Navbar, marquee announcement bar, and hero banner active."
+    },
+    {
+      "id": "CUST-02",
+      "category": "Customer Website",
+      "name": "Category Navigation Handles Zero Categories Gracefully",
+      "status": "PASS",
+      "evidence": "empty_02_customer_empty_categories_menu.png",
+      "details": "Navigation bar and category dropdowns gracefully adapt to 0 categories without rendering undefined items or throwing runtime exceptions."
+    },
+    {
+      "id": "CUST-03",
+      "category": "Customer Website",
+      "name": "Product Listings & Shop View Empty State",
+      "status": "PASS",
+      "evidence": "empty_03_customer_empty_products_catalog.png",
+      "details": "Shop/Catalog page handles 0 items with proper empty layout. No infinite spinners or blank screens."
+    },
+    {
+      "id": "CUST-04",
+      "category": "Customer Website",
+      "name": "Search, New Arrivals, & Best Selling Empty Data Resilience",
+      "status": "PASS",
+      "evidence": "empty_03_customer_empty_products_catalog.png",
+      "details": "Search queries and section filters handle empty product collections safely without exceptions."
+    },
+    {
+      "id": "CUST-05",
+      "category": "Customer Website",
+      "name": "Cart Displays Clear and Usable Empty State",
+      "status": "PASS",
+      "evidence": "empty_04_customer_empty_cart_drawer.png",
+      "details": "Cart drawer displays user-friendly empty state with return-to-shop action and zero-item indicator."
+    },
+    {
+      "id": "CUST-06",
+      "category": "Customer Website",
+      "name": "Navigation, Footer, Contact, & Static Atelier Content",
+      "status": "PASS",
+      "details": "Footer is fully functional containing Atelier contact info, email, WhatsApp channel, copyright, and operational hours."
+    },
+    {
+      "id": "CUST-07",
+      "category": "Customer Website",
+      "name": "Responsive Mobile Layout Integrity in Empty State",
+      "status": "PASS",
+      "evidence": "empty_05_customer_homepage_mobile.png",
+      "details": "Mobile viewport renders header, announcement banner, hamburger navigation, and zero-state content with zero horizontal overflow."
+    },
+    {
+      "id": "CUST-08",
+      "category": "3D Customizer",
+      "name": "3D Customizer Zero-Models Graceful Empty State",
+      "status": "FAIL",
+      "evidence": "empty_06_customizer_zero_models.png",
+      "details": "Customizer displays clear empty state banner (\"Catalog is Currently Empty\"). Regression checks passed: zero occurrences of 'k.slice(...).map' or '$.category.toLowerCase' errors."
+    },
+    {
+      "id": "CUST-09",
+      "category": "3D Customizer",
+      "name": "Customization Workflow Guarding When No Models Exist",
+      "status": "PASS",
+      "evidence": "empty_06_customizer_zero_models.png",
+      "details": "Subsequent wizard steps (Colour, Size, Placement, 3D Preview) are safely locked, preventing invalid customization sessions."
+    },
+    {
+      "id": "ADM-01",
+      "category": "Admin Portal",
+      "name": "Admin Gateway Authentication & Dashboard Overview",
+      "status": "PASS",
+      "evidence": "empty_08_admin_dashboard_empty.png",
+      "details": "Admin authentication verified. Dashboard displays operational telemetry with zero products/orders without throwing undefined errors."
+    },
+    {
+      "id": "ADM-02",
+      "category": "Admin Portal",
+      "name": "Admin Product Management Empty Listing & Validation",
+      "status": "PASS",
+      "evidence": "empty_09_admin_products_empty.png",
+      "details": "Product listing displays clean empty table state. \"CREATE NEW PRODUCT\" modal inspected with all required fields (title, SKU, category, price, images)."
+    },
+    {
+      "id": "ADM-03",
+      "category": "Admin Portal",
+      "name": "Admin Category Management Empty Listing & Validation",
+      "status": "PASS",
+      "evidence": "empty_11_admin_categories_empty.png",
+      "details": "Category manager renders empty state message. CREATE NEW CATEGORY modal provides validation for name, slug, audience, and parent hierarchy."
+    },
+    {
+      "id": "ADM-04",
+      "category": "Admin Portal",
+      "name": "Admin 3D Model Management Empty Listing & Validation",
+      "status": "PASS",
+      "evidence": "empty_13_admin_3d_models_empty.png",
+      "details": "3D Studio manager displays empty models state without crashes. Add 3D Model modal features GLB file validation, physical dimensions, and printable area configuration."
+    },
+    {
+      "id": "ADM-05",
+      "category": "Admin Portal",
+      "name": "Admin Portal Responsive Mobile Usability",
+      "status": "PASS",
+      "evidence": "empty_15_admin_dashboard_mobile.png",
+      "details": "Admin command center renders mobile header with collapsible sidebar drawer and touch-friendly controls."
+    }
+  ],
+  "consoleErrors": [
+    {
+      "url": "https://www.theprinthub.co.in/",
+      "text": "Failed to load resource: the server responded with a status of 401 ()"
+    },
+    {
+      "url": "https://www.theprinthub.co.in/",
+      "text": "Failed to load resource: the server responded with a status of 401 ()"
+    },
+    {
+      "url": "https://www.theprinthub.co.in/design-by-customer",
+      "text": "Failed to load resource: the server responded with a status of 401 ()"
+    },
+    {
+      "url": "https://admin.theprinthub.co.in/admin",
+      "text": "Failed to load resource: the server responded with a status of 401 ()"
+    }
+  ],
+  "networkFailures": [
+    {
+      "url": "https://www.theprinthub.co.in/api/orders",
+      "status": 401
+    },
+    {
+      "url": "https://www.theprinthub.co.in/api/orders",
+      "status": 401
+    },
+    {
+      "url": "https://www.theprinthub.co.in/api/orders",
+      "status": 401
+    },
+    {
+      "url": "https://admin.theprinthub.co.in/api/orders",
+      "status": 401
+    }
+  ]
+}

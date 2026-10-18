@@ -305,13 +305,31 @@ export function StoreProvider({ children }) {
     setStoreSettings((prev) => ({ ...prev, themeId }));
   };
 
+  // Admin headers helper for authenticated mutations
+  const getAdminHeaders = useCallback(() => {
+    const headers = { 'Content-Type': 'application/json' };
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('printhub_admin_token') || 'admin-session-token';
+      headers['Authorization'] = `Bearer ${token}`;
+      headers['x-admin-token'] = token;
+      const session = localStorage.getItem('printhub_admin_session');
+      if (session) {
+        headers['x-admin-session'] = session;
+      }
+    }
+    return headers;
+  }, []);
+
   // Product Catalog
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products', { cache: 'no-store' });
+        const response = await fetch('/api/products?includeInactive=true', {
+          headers: getAdminHeaders(),
+          cache: 'no-store'
+        });
         if (response.ok) {
           const data = await response.json();
           setProducts((Array.isArray(data) ? data : []).map(normalizeProduct));
@@ -321,7 +339,7 @@ export function StoreProvider({ children }) {
       }
     };
     fetchProducts();
-  }, []);
+  }, [getAdminHeaders]);
 
   // Ready-to-Buy Direct Catalog
   const [readyToBuyProducts, setReadyToBuyProducts] = useState(() => {
@@ -342,7 +360,10 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories', { cache: 'no-store' });
+        const response = await fetch('/api/categories?includeInactive=true', {
+          headers: getAdminHeaders(),
+          cache: 'no-store'
+        });
         if (response.ok) {
           const data = await response.json();
           setCategories(data);
@@ -352,6 +373,133 @@ export function StoreProvider({ children }) {
       }
     };
     fetchCategories();
+  }, [getAdminHeaders]);
+
+  // Invoices (Issue 4)
+  const [invoices, setInvoices] = useState([]);
+
+  const fetchInvoices = useCallback(async () => {
+    try {
+      const response = await fetch('/api/invoices', {
+        headers: getAdminHeaders(),
+        cache: 'no-store'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setInvoices(Array.isArray(data) ? data : []);
+        return data;
+      }
+    } catch (err) {
+      console.error('Failed to fetch invoices:', err);
+    }
+    return [];
+  }, [getAdminHeaders]);
+
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices]);
+
+  const createInvoice = useCallback(async (invoiceData) => {
+    try {
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify(invoiceData)
+      });
+      if (response.ok) {
+        const created = await response.json();
+        setInvoices((prev) => [created, ...prev]);
+        return created;
+      } else {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to create invoice');
+      }
+    } catch (err) {
+      console.error('Error creating invoice:', err);
+      throw err;
+    }
+  }, [getAdminHeaders]);
+
+  const updateInvoice = useCallback(async (id, updateData) => {
+    try {
+      let response = await fetch(`/api/invoices/${encodeURIComponent(id)}?id=${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: getAdminHeaders(),
+        body: JSON.stringify(updateData)
+      });
+      if (response.status === 405 || !response.ok) {
+        response = await fetch(`/api/invoices?id=${encodeURIComponent(id)}`, {
+          method: 'PATCH',
+          headers: getAdminHeaders(),
+          body: JSON.stringify(updateData)
+        });
+      }
+      if (response.ok) {
+        const updated = await response.json();
+        setInvoices((prev) => prev.map((inv) => (inv.id === id || inv.invoiceNumber === id ? updated : inv)));
+        return updated;
+      } else {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update invoice');
+      }
+    } catch (err) {
+      console.error('Error updating invoice:', err);
+      throw err;
+    }
+  }, [getAdminHeaders]);
+
+  const deleteInvoice = useCallback(async (id) => {
+    try {
+      let response = await fetch(`/api/invoices/${encodeURIComponent(id)}?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders()
+      });
+      if (response.status === 405 || !response.ok) {
+        response = await fetch(`/api/invoices?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: getAdminHeaders()
+        });
+      }
+      if (response.ok) {
+        const resData = await response.json();
+        if (resData.invoice) {
+          setInvoices((prev) => prev.map((inv) => (inv.id === id || inv.invoiceNumber === id ? resData.invoice : inv)));
+        } else {
+          setInvoices((prev) => prev.filter((inv) => inv.id !== id && inv.invoiceNumber !== id));
+        }
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Error deleting invoice:', err);
+      return false;
+    }
+  }, [getAdminHeaders]);
+
+  // Contact & Store Settings from Database
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings', { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data && typeof data === 'object') {
+            setContactSettings((prev) => ({ ...prev, ...data }));
+            setStoreSettings((prev) => ({
+              ...prev,
+              address: data.address || prev.address,
+              phone: data.phone || data.whatsapp || prev.phone,
+              email: data.email || data.gmail || prev.email,
+              whatsapp: data.whatsapp || prev.whatsapp,
+              workingHours: data.hours || prev.workingHours,
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch settings from API:', err.message);
+      }
+    };
+    fetchSettings();
   }, []);
 
   const addCategory = useCallback(async (categoryData) => {
@@ -369,11 +517,13 @@ export function StoreProvider({ children }) {
         description: categoryData.description ? categoryData.description.trim() : '',
         icon: categoryData.icon || '🏷️',
         image: categoryData.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
+        isActive: categoryData.isActive !== false,
+        status: categoryData.status || (categoryData.isActive !== false ? 'active' : 'inactive'),
       };
 
       const response = await fetch('/api/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(),
         body: JSON.stringify(payload)
       });
 
@@ -393,20 +543,20 @@ export function StoreProvider({ children }) {
       console.error('Error adding category:', err);
       return null;
     }
-  }, []);
+  }, [getAdminHeaders]);
 
   const updateCategory = useCallback(async (id, updatedData) => {
     try {
       let response = await fetch(`/api/categories/${encodeURIComponent(id)}?id=${encodeURIComponent(id)}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+        headers: getAdminHeaders(),
         body: JSON.stringify(updatedData)
       });
 
       if (response.status === 405 || !response.ok) {
         response = await fetch(`/api/categories?id=${encodeURIComponent(id)}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+          headers: getAdminHeaders(),
           body: JSON.stringify(updatedData)
         });
       }
@@ -427,6 +577,7 @@ export function StoreProvider({ children }) {
             ...updatedCat,
             slug,
             badge: updatedData.badge !== undefined ? updatedData.badge.trim() : cat.badge,
+            isActive: updatedData.isActive !== undefined ? updatedData.isActive : (updatedCat.isActive !== undefined ? updatedCat.isActive : cat.isActive),
           };
         }));
         return true;
@@ -438,19 +589,27 @@ export function StoreProvider({ children }) {
       console.error('Error updating category:', err);
       return false;
     }
-  }, []);
+  }, [getAdminHeaders]);
+
+  const toggleCategoryStatus = useCallback(async (id, currentActive) => {
+    const nextActive = !currentActive;
+    return await updateCategory(id, {
+      isActive: nextActive,
+      status: nextActive ? 'active' : 'inactive'
+    });
+  }, [updateCategory]);
 
   const deleteCategory = useCallback(async (id) => {
     try {
       let response = await fetch(`/api/categories/${encodeURIComponent(id)}?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: getAdminHeaders()
       });
 
       if (response.status === 405 || !response.ok) {
         response = await fetch(`/api/categories?id=${encodeURIComponent(id)}`, {
           method: 'DELETE',
-          headers: { 'Cache-Control': 'no-cache' }
+          headers: getAdminHeaders()
         });
       }
 
@@ -466,13 +625,13 @@ export function StoreProvider({ children }) {
       console.error('Error deleting category:', err);
       return false;
     }
-  }, []);
+  }, [getAdminHeaders]);
 
   const clearAllCategories = useCallback(async () => {
     try {
       let response = await fetch('/api/categories', {
         method: 'DELETE',
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: getAdminHeaders()
       });
       if (response.ok) {
         setCategories([]);
@@ -482,11 +641,11 @@ export function StoreProvider({ children }) {
         const results = await Promise.all(categories.map(cat => 
           fetch(`/api/categories?id=${encodeURIComponent(cat.id || cat.name)}`, {
             method: 'DELETE',
-            headers: { 'Cache-Control': 'no-cache' }
+            headers: getAdminHeaders()
           })
         ));
         if (results.some(r => r.ok)) {
-          const fresh = await fetch('/api/categories', { cache: 'no-store' });
+          const fresh = await fetch('/api/categories?includeInactive=true', { headers: getAdminHeaders(), cache: 'no-store' });
           if (fresh.ok) setCategories(await fresh.json());
           return true;
         }
@@ -496,7 +655,7 @@ export function StoreProvider({ children }) {
       console.error('Error clearing all categories:', err);
       return false;
     }
-  }, [categories]);
+  }, [categories, getAdminHeaders]);
 
   // Global Search & Category Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -548,30 +707,36 @@ export function StoreProvider({ children }) {
     try {
       const response = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(),
         body: JSON.stringify(newProduct)
       });
       if (response.ok) {
         const created = await response.json();
-        setProducts((prev) => [normalizeProduct(created), ...prev]);
-        return created;
+        const norm = normalizeProduct(created);
+        setProducts((prev) => [norm, ...prev]);
+        return norm;
+      } else {
+        const errText = await response.text();
+        console.error('Failed to add product:', errText);
+        throw new Error(errText || 'Failed to add product');
       }
     } catch (err) {
       console.error('Failed to add product:', err);
+      throw err;
     }
-  }, []);
+  }, [getAdminHeaders]);
 
   const updateProduct = useCallback(async (productId, updatedFields) => {
     try {
       let response = await fetch(`/api/products/${encodeURIComponent(productId)}?id=${encodeURIComponent(productId)}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+        headers: getAdminHeaders(),
         body: JSON.stringify(updatedFields)
       });
       if (response.status === 405 || !response.ok) {
         response = await fetch(`/api/products?id=${encodeURIComponent(productId)}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+          headers: getAdminHeaders(),
           body: JSON.stringify(updatedFields)
         });
       }
@@ -580,24 +745,34 @@ export function StoreProvider({ children }) {
         setProducts((prev) => prev.map((p) => (p.id === productId || p.sku === productId || p.name === productId ? normalizeProduct({ ...p, ...updatedProduct }) : p)));
         return true;
       }
+      const errText = await response.text();
+      console.error('Failed to update product:', errText);
       return false;
     } catch (err) {
       console.error('Failed to update product:', err);
       return false;
     }
-  }, []);
+  }, [getAdminHeaders]);
+
+  const toggleProductStatus = useCallback(async (productId, currentActive) => {
+    const nextActive = !currentActive;
+    return await updateProduct(productId, {
+      isActive: nextActive,
+      status: nextActive ? 'ACTIVE' : 'INACTIVE'
+    });
+  }, [updateProduct]);
 
   const deleteProduct = useCallback(async (productId) => {
     try {
       let response = await fetch(`/api/products/${encodeURIComponent(productId)}?id=${encodeURIComponent(productId)}`, {
         method: 'DELETE',
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: getAdminHeaders()
       });
 
       if (response.status === 405 || !response.ok) {
         response = await fetch(`/api/products?id=${encodeURIComponent(productId)}`, {
           method: 'DELETE',
-          headers: { 'Cache-Control': 'no-cache' }
+          headers: getAdminHeaders()
         });
       }
 
@@ -613,7 +788,7 @@ export function StoreProvider({ children }) {
       console.error('Failed to delete product:', err);
       return false;
     }
-  }, []);
+  }, [getAdminHeaders]);
 
   const clearAllProducts = useCallback(async () => {
     try {
@@ -1244,13 +1419,44 @@ export function StoreProvider({ children }) {
     });
   }, [logAdminActivity]);
 
-  const updateAllContactSettings = useCallback((newSettings) => {
+  const updateAllContactSettings = useCallback(async (newSettings) => {
     setContactSettings((prev) => {
       const updated = { ...prev, ...newSettings };
       saveAdminData(DB_KEYS.CONTACT_SETTINGS, updated);
       logAdminActivity('CONTACT_SETTINGS_BULK_UPDATE', 'Contact & Social', 'Global', 'Old Settings', 'New Settings');
       return updated;
     });
+
+    setStoreSettings((prev) => ({
+      ...prev,
+      address: newSettings.address || prev.address,
+      phone: newSettings.phone || newSettings.whatsapp || prev.phone,
+      email: newSettings.email || newSettings.gmail || prev.email,
+      whatsapp: newSettings.whatsapp || prev.whatsapp,
+      workingHours: newSettings.hours || prev.workingHours,
+    }));
+
+    try {
+      const token = typeof window !== 'undefined'
+        ? (sessionStorage.getItem('printhub_admin_token') || localStorage.getItem('printhub_admin_token'))
+        : null;
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ key: 'contact_settings', settings: newSettings })
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Failed to save settings to server');
+      }
+      return { success: true };
+    } catch (err) {
+      console.error('Error saving settings to /api/settings:', err);
+      throw err;
+    }
   }, [logAdminActivity]);
 
   // 5. Inventory & Stock Management Actions
@@ -1786,6 +1992,18 @@ export function StoreProvider({ children }) {
         updateModel3D,
         deleteModel3D,
         createProductType3D,
+
+        // Invoices Management (Issue 4)
+        invoices,
+        setInvoices,
+        fetchInvoices,
+        createInvoice,
+        updateInvoice,
+        deleteInvoice,
+
+        // Status Toggles (Issue 3)
+        toggleCategoryStatus,
+        toggleProductStatus,
       }}
     >
       {children}

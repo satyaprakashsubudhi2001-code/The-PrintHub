@@ -44,7 +44,8 @@ model Product {
   basePrice        Float
   salePrice        Float?
   costPrice        Float           @default(0)
-  status           String          @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
+  status           String          @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED, INACTIVE
+  isActive         Boolean         @default(true)
   isCustomizable   Boolean         @default(true)
   defaultColor     String?
   defaultSize      String?
@@ -117,19 +118,20 @@ model Order {
   notes         String?
   source        String      @default("ONLINE") // ONLINE, MANUAL, WHATSAPP
   items         OrderItem[]
+  invoices      Invoice[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
 
 model OrderItem {
-  id            String   @id @default(uuid())
-  orderId       String
-  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId     String
-  product       Product  @relation(fields: [productId], references: [id])
-  quantity      Int
-  unitPrice     Float
-  unitCost      Float    @default(0)
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Float
+  unitCost   Float    @default(0)
   totalPrice    Float
   customization String?  // JSON snapshot of 3D customization, modelId, modelVersion, artworkUrls, placements, previewImage, printFees
   createdAt     DateTime @default(now())
@@ -248,3 +250,52 @@ model ProductType3D {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Invoice {
+  id             String    @id @default(uuid())
+  invoiceNumber  String    @unique // Unique INV-YYYY-XXXXX
+  orderId        String?
+  order          Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  status         String    @default("ISSUED") // DRAFT, ISSUED, CANCELLED
+  invoiceDate    DateTime  @default(now())
+  dueDate        DateTime?
+
+  // Customer Snapshot
+  customerName   String
+  customerEmail  String?
+  customerPhone  String?
+  billingAddress String?
+
+  // Store Snapshot
+  storeName      String    @default("The PrintHub")
+  storeAddress   String?
+  storePhone     String?
+  storeEmail     String?
+  storeGstin     String?   @default("06AAACT1984Q1Z8")
+
+  // Financials
+  subtotal       Float     @default(0)
+  discount       Float     @default(0)
+  shippingFee    Float     @default(0)
+  taxableAmount  Float     @default(0)
+  cgst           Float     @default(0)
+  sgst           Float     @default(0)
+  igst           Float     @default(0)
+  totalTax       Float     @default(0)
+  grandTotal     Float     @default(0)
+
+  // Payment Details
+  paymentStatus  String    @default("PAID") // PAID, UNPAID, PARTIAL
+  paymentMethod  String?   // UPI, CARD, NETBANKING, COD
+  paymentRef     String?
+
+  // Items Snapshot stored as JSON string
+  itemsJson      String    // [{ sNo, description, hsnCode, quantity, unitPrice, amount }]
+
+  // Audit / Revision Tracking
+  notes          String?
+  historyJson    String?   // Revision log JSON string
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+

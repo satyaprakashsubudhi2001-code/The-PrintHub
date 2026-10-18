@@ -66,12 +66,21 @@ export function ProductCard({ product }) {
   const comparePrice = product.compareAtPrice;
   const rating = product.rating || 4.8;
   const reviews = product.reviewsCount || product.reviewCount || 120;
-  const imageUrl =
-    product.image ||
-    (Array.isArray(product.images) && product.images[0]) ||
-    product.previewImage ||
-    product.thumbnail ||
-    '';
+  
+  const getCleanImageUrl = () => {
+    if (typeof product.image === 'string' && product.image.trim().length > 0 && !product.image.startsWith('blob:')) {
+      return product.image.trim();
+    }
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      const primary = product.images.find(img => typeof img === 'object' && img?.isPrimary && !img?.url?.startsWith('blob:'));
+      if (primary?.url) return primary.url;
+      const firstValid = product.images.map(img => (typeof img === 'string' ? img : img?.url)).find(url => typeof url === 'string' && url.trim().length > 0 && !url.startsWith('blob:'));
+      if (firstValid) return firstValid;
+    }
+    return product.previewImage || product.thumbnail || '/logo-mark-symbol.png';
+  };
+
+  const imageUrl = getCleanImageUrl();
 
   return (
     <div
@@ -95,6 +104,10 @@ export function ProductCard({ product }) {
         <img
           src={imageUrl}
           alt={product.name}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = '/logo-mark-symbol.png';
+          }}
           className="w-full h-full object-contain transition-transform duration-200 ease-out group-hover:scale-[1.03]"
           style={{
             objectFit: 'contain',

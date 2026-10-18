@@ -62,3 +62,53 @@ export function normalizeCategory(category) {
   }
   return String(category).trim() || 'Apparel';
 }
+
+export function normalizeProduct(p) {
+  if (!p) return p;
+  const rawCat = normalizeCategory(p.category);
+
+  let imageList = [];
+  if (Array.isArray(p.images) && p.images.length > 0) {
+    imageList = p.images
+      .map((img) => (typeof img === 'string' ? img : (img?.url || '')))
+      .filter((url) => typeof url === 'string' && url.trim().length > 0 && !url.startsWith('blob:'));
+  } else if (typeof p.image === 'string' && p.image.trim().length > 0 && !p.image.startsWith('blob:')) {
+    imageList = [p.image.trim()];
+  }
+
+  let primaryImage = '';
+  if (Array.isArray(p.images) && p.images.length > 0) {
+    const primaryObj = p.images.find(img => typeof img === 'object' && img?.isPrimary && !img?.url?.startsWith('blob:'));
+    if (primaryObj?.url) primaryImage = primaryObj.url;
+  }
+  if (!primaryImage && imageList.length > 0) {
+    primaryImage = imageList[0];
+  }
+  if (!primaryImage && typeof p.image === 'string' && p.image.trim().length > 0 && !p.image.startsWith('blob:')) {
+    primaryImage = p.image.trim();
+  }
+  if (!primaryImage) {
+    primaryImage = p.previewImage || p.thumbnail || '/logo-mark-symbol.png';
+  }
+
+  if (imageList.length === 0 && primaryImage) {
+    imageList = [primaryImage];
+  }
+
+  const rawStatus = (p.status || '').toUpperCase();
+  const isCurrentlyActive = p.isActive !== false && rawStatus !== 'INACTIVE' && rawStatus !== 'ARCHIVED';
+
+  return {
+    ...p,
+    category: rawCat,
+    categoryName: rawCat,
+    categoryObj: typeof p.category === 'object' ? p.category : null,
+    image: primaryImage,
+    images: imageList,
+    colors: safeParseColors(p.colors),
+    sizes: safeParseSizes(p.sizes),
+    status: isCurrentlyActive ? 'ACTIVE' : 'INACTIVE',
+    isActive: isCurrentlyActive
+  };
+}
+

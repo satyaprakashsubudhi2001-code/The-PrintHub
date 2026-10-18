@@ -37,9 +37,18 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
     navigateTo,
   } = useStore();
 
-  const [activeImage, setActiveImage] = useState(
-    product?.images?.[0] || product?.image || '/logo-mark-symbol.png'
-  );
+  const resolveInitialImage = (prod) => {
+    if (typeof prod?.image === 'string' && prod.image.trim().length > 0 && !prod.image.startsWith('blob:')) {
+      return prod.image.trim();
+    }
+    if (Array.isArray(prod?.images) && prod.images.length > 0) {
+      const firstValid = prod.images.map(img => (typeof img === 'string' ? img : img?.url)).find(url => typeof url === 'string' && url.trim().length > 0 && !url.startsWith('blob:'));
+      if (firstValid) return firstValid;
+    }
+    return prod?.previewImage || '/logo-mark-symbol.png';
+  };
+
+  const [activeImage, setActiveImage] = useState(() => resolveInitialImage(product));
   const [selectedColor, setSelectedColor] = useState(
     product?.colors?.[0] || { name: 'Standard', hex: '#183630' }
   );
@@ -49,7 +58,7 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    setActiveImage(product?.images?.[0] || product?.image || '/logo-mark-symbol.png');
+    setActiveImage(resolveInitialImage(product));
     setSelectedColor(product?.colors?.[0] || { name: 'Standard', hex: '#183630' });
     setSelectedSize(product?.defaultSize || product?.sizes?.[0] || 'L');
     setQuantity(1);
@@ -144,6 +153,10 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
               <img
                 src={activeImage}
                 alt={product.name}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/logo-mark-symbol.png';
+                }}
                 className="w-full h-full object-contain transition-transform duration-300"
                 style={{
                   objectFit: 'contain',
@@ -189,20 +202,29 @@ export function ProductDetailView({ product, onBack, onSelectRelated }) {
             {/* Thumbnail Strip */}
             {product.images && product.images.length > 1 && (
               <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
-                {product.images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setActiveImage(img)}
-                    className={`w-18 h-18 rounded-2xl border-2 flex items-center justify-center p-1 shrink-0 transition-all cursor-pointer ${
-                      activeImage === img
-                        ? 'border-[#183630] shadow-[0_0_12px_rgba(184,169,143,0.45)]'
-                        : 'border-[#B8A98F]/50 bg-[#E5DAC9] opacity-80 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-contain" />
-                  </button>
-                ))}
+                {product.images.map((imgItem, idx) => {
+                  const imgUrl = typeof imgItem === 'string' ? imgItem : imgItem?.url;
+                  if (!imgUrl || imgUrl.startsWith('blob:')) return null;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveImage(imgUrl)}
+                      className={`w-18 h-18 rounded-2xl border-2 flex items-center justify-center p-1 shrink-0 transition-all cursor-pointer ${
+                        activeImage === imgUrl
+                          ? 'border-[#183630] shadow-[0_0_12px_rgba(184,169,143,0.45)]'
+                          : 'border-[#B8A98F]/50 bg-[#E5DAC9] opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt=""
+                        onError={(e) => { e.currentTarget.src = '/logo-mark-symbol.png'; }}
+                        className="w-full h-full object-contain"
+                      />
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>

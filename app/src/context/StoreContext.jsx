@@ -404,6 +404,32 @@ export function StoreProvider({ children }) {
     fetchProducts();
   }, []);
 
+  // Store & Contact Settings from Database
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings', { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data && typeof data === 'object') {
+            setContactSettings((prev) => ({ ...prev, ...data }));
+            setStoreSettings((prev) => ({
+              ...prev,
+              address: data.address || prev.address,
+              phone: data.phone || data.whatsapp || prev.phone,
+              email: data.email || data.gmail || prev.email,
+              whatsapp: data.whatsapp || prev.whatsapp,
+              workingHours: data.hours || prev.workingHours,
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch settings from API, using defaults:', err.message);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   // 3D Models Catalog from Database
   const [models3D, setModels3D] = useState([]);
 
@@ -1337,13 +1363,44 @@ export function StoreProvider({ children }) {
     });
   }, [logAdminActivity]);
 
-  const updateAllContactSettings = useCallback((newSettings) => {
+  const updateAllContactSettings = useCallback(async (newSettings) => {
     setContactSettings((prev) => {
       const updated = { ...prev, ...newSettings };
       saveAdminData(DB_KEYS.CONTACT_SETTINGS, updated);
       logAdminActivity('CONTACT_SETTINGS_BULK_UPDATE', 'Contact & Social', 'Global', 'Old Settings', 'New Settings');
       return updated;
     });
+
+    setStoreSettings((prev) => ({
+      ...prev,
+      address: newSettings.address || prev.address,
+      phone: newSettings.phone || newSettings.whatsapp || prev.phone,
+      email: newSettings.email || newSettings.gmail || prev.email,
+      whatsapp: newSettings.whatsapp || prev.whatsapp,
+      workingHours: newSettings.hours || prev.workingHours,
+    }));
+
+    try {
+      const token = typeof window !== 'undefined'
+        ? (sessionStorage.getItem('printhub_admin_token') || localStorage.getItem('printhub_admin_token'))
+        : null;
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ key: 'contact_settings', settings: newSettings })
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Failed to save settings to server');
+      }
+      return { success: true };
+    } catch (err) {
+      console.error('Error saving settings to /api/settings:', err);
+      throw err;
+    }
   }, [logAdminActivity]);
 
   // 5. Inventory & Stock Management Actions

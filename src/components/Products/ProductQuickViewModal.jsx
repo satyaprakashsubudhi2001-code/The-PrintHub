@@ -15,11 +15,26 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
     addReadyToBuyToCart,
   } = useStore();
 
+  const resolveInitialImage = (prod) => {
+    if (typeof prod?.image === 'string' && prod.image.trim().length > 0 && !prod.image.startsWith('blob:')) {
+      return prod.image.trim();
+    }
+    if (Array.isArray(prod?.images) && prod.images.length > 0) {
+      const firstValid = prod.images.map(img => (typeof img === 'string' ? img : img?.url)).find(url => typeof url === 'string' && url.trim().length > 0 && !url.startsWith('blob:'));
+      if (firstValid) return firstValid;
+    }
+    return prod?.previewImage || '/logo-mark-symbol.png';
+  };
+
   const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || { name: 'Dark Green', hex: '#183630' });
   const [selectedSize, setSelectedSize] = useState(product?.defaultSize || product?.sizes?.[0] || 'L');
-  const [selectedImage, setSelectedImage] = useState(product?.images?.[0] || product?.image);
+  const [selectedImage, setSelectedImage] = useState(() => resolveInitialImage(product));
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+
+  useEffect(() => {
+    setSelectedImage(resolveInitialImage(product));
+  }, [product]);
 
   if (!product) return null;
 
@@ -62,7 +77,11 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
             <img
               src={selectedImage}
               alt={product.name}
-              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/logo-mark-symbol.png';
+              }}
+              className="w-full h-full object-contain"
             />
             {product.badge && (
               <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase font-mono bg-[#183630] text-[#E5DAC9] border border-[#B8A98F] shadow-sm">
@@ -74,18 +93,27 @@ export function ProductQuickViewModal({ product, onClose, onOpenDetail }) {
           {/* Thumbnails */}
           {product.images && product.images.length > 1 && (
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setSelectedImage(img)}
-                  className={`w-14 h-14 rounded-xl border-2 overflow-hidden shrink-0 transition-all cursor-pointer ${
-                    selectedImage === img ? 'border-[#183630] ring-2 ring-[#E5C690]' : 'border-[#B8A98F] opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
+              {product.images.map((imgItem, idx) => {
+                const imgUrl = typeof imgItem === 'string' ? imgItem : imgItem?.url;
+                if (!imgUrl || imgUrl.startsWith('blob:')) return null;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImage(imgUrl)}
+                    className={`w-14 h-14 rounded-xl border-2 overflow-hidden shrink-0 transition-all cursor-pointer ${
+                      selectedImage === imgUrl ? 'border-[#183630] ring-2 ring-[#E5C690]' : 'border-[#B8A98F] opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={imgUrl}
+                      alt=""
+                      onError={(e) => { e.currentTarget.src = '/logo-mark-symbol.png'; }}
+                      className="w-full h-full object-contain"
+                    />
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

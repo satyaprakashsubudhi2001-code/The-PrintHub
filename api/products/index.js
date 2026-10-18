@@ -1,28 +1,27 @@
 import prisma from '../_lib/prisma.js';
 import { verifyAdmin } from '../_lib/auth.js';
-import { safeParseColors, safeParseSizes, normalizeCategory } from '../_lib/normalize.js';
+import { safeParseColors, safeParseSizes, normalizeCategory, normalizeProduct } from '../_lib/normalize.js';
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   if (req.method === 'GET') {
     try {
+      const includeInactive = req.query.includeInactive === 'true' || req.query.admin === 'true';
+      const whereClause = includeInactive
+        ? {}
+        : {
+            status: 'ACTIVE',
+            isActive: true,
+            category: { isActive: true }
+          };
+
       const products = await prisma.product.findMany({
-        where: { status: 'ACTIVE' },
+        where: whereClause,
         include: { category: true, images: { orderBy: { sortOrder: 'asc' } }, inventory: true },
         orderBy: { createdAt: 'desc' }
       });
-      const normalizedProducts = products.map((p) => {
-        const catName = normalizeCategory(p.category);
-        return {
-          ...p,
-          category: catName,
-          categoryName: catName,
-          categoryObj: typeof p.category === 'object' ? p.category : null,
-          colors: safeParseColors(p.colors),
-          sizes: safeParseSizes(p.sizes)
-        };
-      });
+      const normalizedProducts = products.map(normalizeProduct);
       res.status(200).json(normalizedProducts);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -36,7 +35,7 @@ export default async function handler(req, res) {
       // Auto-resolve or create categoryId if only category name is provided
       let categoryId = productData.categoryId;
       if (!categoryId && productData.category) {
-        const catName = productData.category.trim();
+        const catName = (typeof productData.category === 'object' ? productData.category.name : productData.category).trim();
         let cat = await prisma.category.findFirst({
           where: {
             OR: [
@@ -51,7 +50,8 @@ export default async function handler(req, res) {
             data: {
               name: catName,
               audience: productData.audience || 'UNISEX',
-              icon: '🏷️'
+              icon: '🏷️',
+              isActive: true
             }
           });
         }
@@ -65,13 +65,17 @@ export default async function handler(req, res) {
       // Normalize images input
       let imageCreate = undefined;
       if (Array.isArray(images) && images.length > 0) {
-        imageCreate = {
-          create: images.map((img, idx) => ({
-            url: typeof img === 'string' ? img : (img.url || ''),
+        const cleanList = images
+          .map((img, idx) => ({
+            url: typeof img === 'string' ? img : (img?.url || ''),
             sortOrder: idx,
             isPrimary: idx === 0
           }))
-        };
+          .filter(img => img.url && typeof img.url === 'string' && !img.url.startsWith('blob:'));
+
+        if (cleanList.length > 0) {
+          imageCreate = { create: cleanList };
+        }
       }
 
       const inventoryCreate = inventory ? {
@@ -82,6 +86,8 @@ export default async function handler(req, res) {
         }
       } : undefined;
 
+      const isProdActive = productData.isActive !== false && productData.status !== 'INACTIVE';
+
       const product = await prisma.product.create({
         data: {
           name: productData.name || 'Untitled Product',
@@ -90,9 +96,10 @@ export default async function handler(req, res) {
           categoryId: categoryId || (await prisma.category.findFirst())?.id,
           description: productData.description || '',
           basePrice: Number(productData.basePrice || productData.price) || 0,
-          salePrice: productData.compareAtPrice ? Number(productData.compareAtPrice) : null,
+          salePrice: (productData.salePrice || productData.compareAtPrice) ? Number(productData.salePrice || productData.compareAtPrice) : null,
           costPrice: Number(productData.costPrice) || 0,
-          status: 'ACTIVE',
+          status: isProdActive ? 'ACTIVE' : 'INACTIVE',
+          isActive: isProdActive,
           isCustomizable: productData.isCustomizable !== false,
           defaultColor: productData.defaultColor || '#18181b',
           defaultSize: productData.defaultSize || 'L',
@@ -102,18 +109,10 @@ export default async function handler(req, res) {
           images: imageCreate,
           inventory: inventoryCreate
         },
-        include: { images: true, inventory: true, category: true }
+        include: { images: { orderBy: { sortOrder: 'asc' } }, inventory: true, category: true }
       });
 
-      const catName = normalizeCategory(product.category);
-      res.status(201).json({
-        ...product,
-        category: catName,
-        categoryName: catName,
-        categoryObj: typeof product.category === 'object' ? product.category : null,
-        colors: safeParseColors(product.colors),
-        sizes: safeParseSizes(product.sizes)
-      });
+      res.status(201).json(normalizeProduct(product));
     } catch (err) {
       console.error('Failed to create product in DB:', err);
       res.status(400).json({ error: err.message });
@@ -139,29 +138,99 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Product not found' });
       }
 
-      const { images, inventory, id, ...productData } = req.body;
-      if (productData.colors !== undefined) {
-        productData.colors = JSON.stringify(safeParseColors(productData.colors));
+      const { images, inventory, id, category, categoryKey, printAreas, defaultPrintArea, tags, stock, price, compareAtPrice, ...rawProductData } = req.body;
+
+      // Resolve categoryId if category name or ID is changed
+      let categoryId = rawProductData.categoryId;
+      if (category) {
+        const catName = (typeof category === 'object' ? category.name : category).trim();
+        let cat = await prisma.category.findFirst({
+          where: {
+            OR: [
+              { id: catName },
+              { name: { equals: catName, mode: 'insensitive' } }
+            ]
+          }
+        });
+        if (cat) categoryId = cat.id;
       }
-      if (productData.sizes !== undefined) {
-        productData.sizes = JSON.stringify(safeParseSizes(productData.sizes));
+
+      // Build safe update payload containing only scalar columns on Product model
+      const updateData = {};
+      if (rawProductData.name !== undefined) updateData.name = rawProductData.name;
+      if (rawProductData.sku !== undefined) updateData.sku = rawProductData.sku;
+      if (rawProductData.audience !== undefined) updateData.audience = rawProductData.audience;
+      if (rawProductData.description !== undefined) updateData.description = rawProductData.description;
+      if (rawProductData.basePrice !== undefined || price !== undefined) {
+        updateData.basePrice = Number(rawProductData.basePrice ?? price) || 0;
+      }
+      if (rawProductData.salePrice !== undefined || compareAtPrice !== undefined) {
+        updateData.salePrice = Number(rawProductData.salePrice ?? compareAtPrice) || null;
+      }
+      if (rawProductData.costPrice !== undefined) updateData.costPrice = Number(rawProductData.costPrice) || 0;
+      if (rawProductData.status !== undefined) {
+        updateData.status = rawProductData.status;
+        updateData.isActive = rawProductData.status === 'ACTIVE';
+      }
+      if (rawProductData.isActive !== undefined) {
+        updateData.isActive = Boolean(rawProductData.isActive);
+        updateData.status = updateData.isActive ? 'ACTIVE' : 'INACTIVE';
+      }
+      if (rawProductData.isCustomizable !== undefined) updateData.isCustomizable = Boolean(rawProductData.isCustomizable);
+      if (rawProductData.defaultColor !== undefined) updateData.defaultColor = rawProductData.defaultColor;
+      if (rawProductData.defaultSize !== undefined) updateData.defaultSize = rawProductData.defaultSize;
+      if (rawProductData.colors !== undefined) updateData.colors = JSON.stringify(safeParseColors(rawProductData.colors));
+      if (rawProductData.sizes !== undefined) updateData.sizes = JSON.stringify(safeParseSizes(rawProductData.sizes));
+      if (rawProductData.features !== undefined) updateData.features = JSON.stringify(rawProductData.features);
+      if (categoryId) updateData.categoryId = categoryId;
+
+      // Handle updating ProductImage records
+      if (Array.isArray(images)) {
+        await prisma.productImage.deleteMany({
+          where: { productId: existing.id }
+        });
+        const cleanImages = images
+          .map((img, idx) => ({
+            productId: existing.id,
+            url: typeof img === 'string' ? img : (img?.url || ''),
+            sortOrder: idx,
+            isPrimary: idx === 0
+          }))
+          .filter(img => img.url && typeof img.url === 'string' && !img.url.startsWith('blob:'));
+
+        if (cleanImages.length > 0) {
+          await prisma.productImage.createMany({
+            data: cleanImages
+          });
+        }
+      }
+
+      // Handle inventory / stock update
+      const newStock = stock !== undefined ? Number(stock) : (inventory?.quantity !== undefined ? Number(inventory.quantity) : undefined);
+      if (newStock !== undefined) {
+        await prisma.inventory.upsert({
+          where: { productId: existing.id },
+          create: {
+            productId: existing.id,
+            sku: `${existing.sku}-INV`,
+            quantity: newStock,
+            minLevel: 10
+          },
+          update: {
+            quantity: newStock
+          }
+        });
       }
 
       const product = await prisma.product.update({
         where: { id: existing.id },
-        data: productData,
-        include: { images: true, inventory: true, category: true }
+        data: updateData,
+        include: { images: { orderBy: { sortOrder: 'asc' } }, inventory: true, category: true }
       });
-      const catName = normalizeCategory(product.category);
-      res.status(200).json({
-        ...product,
-        category: catName,
-        categoryName: catName,
-        categoryObj: typeof product.category === 'object' ? product.category : null,
-        colors: safeParseColors(product.colors),
-        sizes: safeParseSizes(product.sizes)
-      });
+
+      res.status(200).json(normalizeProduct(product));
     } catch (err) {
+      console.error('Failed to update product in DB:', err);
       res.status(400).json({ error: err.message });
     }
   } else if (req.method === 'DELETE') {

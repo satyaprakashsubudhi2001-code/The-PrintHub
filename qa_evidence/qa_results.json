@@ -1,0 +1,67 @@
+[
+  {
+    "item": "Customer Website Loads without Critical JavaScript Errors",
+    "status": "Passed with warnings",
+    "details": "Failed to load resource: the server responded with a status of 401 ()"
+  },
+  {
+    "item": "3D Customizer Accessible Through Navigation",
+    "status": "Passed",
+    "details": "Customizer loaded successfully with product catalog"
+  },
+  {
+    "item": "T-Shirt 3D Model Loads, Renders Shape, and Rotates",
+    "status": "Passed",
+    "details": "Loaded tshirt.glb (159KB), rendered with orbit controls and responsive lighting"
+  },
+  {
+    "item": "Shirt 3D Model Loads and Renders Correct Shape",
+    "status": "Passed",
+    "details": "Loaded shirt.glb (116KB), verified collar and button placket structure"
+  },
+  {
+    "item": "Mug 3D Model Loads and Displays Cylindrical Shape",
+    "status": "Passed",
+    "details": "Loaded mug.glb (52KB), verified handle and 360 wrap printable area"
+  },
+  {
+    "item": "Mouse Pad 3D Model Loads and Displays Printable Top Surface",
+    "status": "Passed",
+    "details": "Loaded mousepad.glb (113KB), verified chamfered rubber base and top cloth layer"
+  },
+  {
+    "item": "PNG/JPG Artwork Upload and Visibly Mapped onto 3D Mesh Surface",
+    "status": "Passed",
+    "details": "Uploaded PNG artwork, dynamic canvas texture applied directly to model mesh with color customization"
+  },
+  {
+    "item": "2D Layout and 3D View Consistency and View Toggle",
+    "status": "Passed",
+    "details": "Artwork dimensions and placements match consistently across 2D boundary and 3D mesh"
+  },
+  {
+    "item": "Customized Product Added to Cart with Preserved Customization Metadata",
+    "status": "Passed",
+    "details": "Saved customization captured with modelId, colors, placements, and pricing snapshot (UI verified)"
+  },
+  {
+    "item": "Customization Details Intact After Page Refresh",
+    "status": "Passed",
+    "details": "Cart state and customized specifications persisted through page reload"
+  },
+  {
+    "item": "Admin 3D Studio Tab Accessible and Active Models Displayed",
+    "status": "Passed",
+    "details": "Admin dashboard renders 4 core models (T Shirt, Shirt, Mug, Mouse Pad) with status, actions, and pricing"
+  },
+  {
+    "item": "Admin Add/Edit Model Interface with Printable Area Configuration",
+    "status": "Passed",
+    "details": "Add Model modal provides model name, product type, dimensions, color swatches, printable area coordinates, and GLB upload"
+  },
+  {
+    "item": "Admin 3D Model Preview & Inspection Modal",
+    "status": "Passed",
+    "details": "Interactive Three.js canvas in admin modal allows 360 inspection prior to publishing"
+  }
+]

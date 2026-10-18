@@ -1,0 +1,46 @@
+{
+  "customerPortal": {
+    "url": "https://theprinthub.co.in/design-by-customer",
+    "errors": [],
+    "passed": true,
+    "details": {
+      "productCards": [
+        "Pro Gaming & Office Mouse Pad",
+        "11oz Ceramic Coffee Mug",
+        "Executive Collared Shirt",
+        "Classic Round Neck T-Shirt"
+      ],
+      "testedProducts": {
+        "T-Shirt": {
+          "success": true,
+          "swatches": 48
+        },
+        "Collared Shirt": {
+          "success": true,
+          "swatches": 45
+        },
+        "Mug": {
+          "success": true,
+          "swatches": 44
+        },
+        "Mouse Pad": {
+          "success": true,
+          "swatches": 43
+        }
+      },
+      "stageDetails": {
+        "hasCanvas": true,
+        "hasAddToCart": true,
+        "stepTitle": "REALISTIC 3D PRODUCT PREVIEW"
+      }
+    }
+  },
+  "adminConsole": {
+    "url": "https://admin.theprinthub.co.in/admin",
+    "errors": [],
+    "passed": true,
+    "details": {
+      "adminErrors": []
+    }
+  }
+}
