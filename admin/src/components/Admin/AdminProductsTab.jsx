@@ -652,8 +652,65 @@ export function AdminProductsTab({ onNavigateToCategories }) {
     });
   }, [products, selectedCategory, searchQuery, statusFilter]);
 
+  // Alert notification banner for product actions
+  const [productAlert, setProductAlert] = useState(null);
+
+  // Handle delete product with confirmation dialog and safety check
+  const handleDeleteProduct = async (prod) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${prod.name}"?\nIf this product is associated with historical orders or requests, it will be safely archived instead to protect business data.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await deleteProduct(prod.id);
+      if (res && res.success) {
+        if (res.archived) {
+          setProductAlert({
+            type: 'info',
+            text: res.message || `Product "${prod.name}" is referenced by past records and was safely ARCHIVED.`
+          });
+        } else {
+          setProductAlert({
+            type: 'success',
+            text: `Product "${prod.name}" deleted successfully.`
+          });
+        }
+      } else {
+        setProductAlert({
+          type: 'error',
+          text: (res && res.error) || 'Failed to delete product.'
+        });
+      }
+    } catch (err) {
+      setProductAlert({ type: 'error', text: err.message || 'Error deleting product' });
+    } finally {
+      setTimeout(() => setProductAlert(null), 5000);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in select-none">
+      {productAlert && (
+        <div
+          className={`p-4 rounded-2xl flex items-center justify-between gap-3 text-xs font-mono font-bold border transition-all ${
+            productAlert.type === 'success'
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+              : productAlert.type === 'info'
+              ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+              : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+          }`}
+        >
+          <span>{productAlert.text}</span>
+          <button
+            type="button"
+            onClick={() => setProductAlert(null)}
+            className="text-slate-400 hover:text-white cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {/* =========================================================================
          1. TOP HEADER & METRICS
          ========================================================================= */}
@@ -1019,7 +1076,7 @@ export function AdminProductsTab({ onNavigateToCategories }) {
 
                     <button
                       type="button"
-                      onClick={() => deleteProduct(prod.id)}
+                      onClick={() => handleDeleteProduct(prod)}
                       className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors cursor-pointer"
                       title="Delete Product"
                     >

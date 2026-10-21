@@ -35,9 +35,11 @@ import {
   ChevronDown,
   Rotate3d,
   ShoppingBag,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { SAMPLE_ARTWORKS } from '../../constants/presets';
+import { DEFAULT_PRESET_PRODUCTS } from '../../constants/products';
 import { InteractiveMockupStage } from '../MockupStudio/InteractiveMockupStage';
 import { PlacementDiagram } from '../MockupStudio/PlacementDiagram';
 import { PlacementHelpModal } from '../MockupStudio/PlacementHelpModal';
@@ -77,9 +79,28 @@ export function DesignByCustomerView() {
     loadDraft,
     clearDraft,
     themeMode,
+    categories = [],
+    fetchCategories,
+    fetchProducts,
+    fetchModels3D,
   } = useStore();
 
   const isLight = themeMode === 'light';
+
+  // Automatically fetch latest categories, products, and 3D models when opening 3D Studio
+  useEffect(() => {
+    if (typeof fetchCategories === 'function') fetchCategories();
+    if (typeof fetchProducts === 'function') fetchProducts();
+    if (typeof fetchModels3D === 'function') fetchModels3D();
+  }, [fetchCategories, fetchProducts, fetchModels3D]);
+
+  // Active customer-facing categories
+  const activeCategories = useMemo(() => {
+    return (categories || []).filter((c) => c.isActive !== false && c.status !== 'inactive');
+  }, [categories]);
+
+  // Selected Category filter state in 3D Studio (default: 'ALL')
+  const [selectedCategoryId, setSelectedCategoryId] = useState('ALL');
 
   // Wizard Step: 1 (Product) | 2 (Color) | 3 (Size) | 4 (Placement) | 5 (Upload & Design) | 6 (Realistic Preview) | 7 (Submit Request)
   const [currentStep, setCurrentStep] = useState(1);
@@ -113,7 +134,10 @@ export function DesignByCustomerView() {
   const fileInputRef = useRef(null);
 
   // Combined list of customizable items: 3D models from database take premier position
-  const activeProducts = (products || []).filter((p) => p.status !== 'inactive' && p.status !== 'ARCHIVED');
+  const activeProducts = (products || []).filter(
+    (p) => p.isActive !== false && (p.status || '').toUpperCase() !== 'INACTIVE' && (p.status || '').toUpperCase() !== 'ARCHIVED'
+  );
+
   const allCustomizableItems = useMemo(() => {
     const models = formatted3DModels || [];
     // Include catalog products that aren't already represented by a 3D model
@@ -123,7 +147,89 @@ export function DesignByCustomerView() {
     return [...models, ...nonModelProducts];
   }, [formatted3DModels, activeProducts]);
 
-  const activeProduct = customizerProduct || (allCustomizableItems.length > 0 ? allCustomizableItems[0] : null);
+  // Dynamic Category-Item Association Logic
+  const isItemInCategory = useCallback((item, cat) => {
+    if (!item || !cat) return false;
+
+    // 1. Direct Category ID match (UUID or string)
+    if (item.categoryId && (item.categoryId === cat.id || String(item.categoryId).toLowerCase() === String(cat.id).toLowerCase())) {
+      return true;
+    }
+
+    // 2. 3D Model linked product categoryId match
+    if (item.product?.categoryId && (item.product.categoryId === cat.id || String(item.product.categoryId).toLowerCase() === String(cat.id).toLowerCase())) {
+      return true;
+    }
+
+    // 3. Category ID inside item.category if category was object
+    if (typeof item.category === 'object' && item.category !== null) {
+      if (item.category.id && (item.category.id === cat.id || String(item.category.id).toLowerCase() === String(cat.id).toLowerCase())) {
+        return true;
+      }
+    }
+
+    // 4. Exact Category Name match (case-insensitive)
+    const catNameLower = (cat.name || '').trim().toLowerCase();
+    if (!catNameLower) return false;
+
+    const itemCatName = (
+      item.categoryName ||
+      (typeof item.category === 'string' ? item.category : item.category?.name) ||
+      item.product?.category?.name ||
+      item.productType ||
+      ''
+    ).trim().toLowerCase();
+
+    if (itemCatName && (itemCatName === catNameLower || itemCatName.includes(catNameLower) || catNameLower.includes(itemCatName))) {
+      return true;
+    }
+
+    // 5. Slug / Key match
+    const catSlug = (cat.slug || cat.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const itemSlug = (item.categoryKey || itemCatName || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    if (catSlug && itemSlug && (catSlug === itemSlug || itemSlug.includes(catSlug) || catSlug.includes(itemSlug))) {
+      return true;
+    }
+
+    return false;
+  }, []);
+
+  // Compute product counts for each active category
+  const categoryItemCounts = useMemo(() => {
+    const counts = {};
+    for (const cat of activeCategories) {
+      counts[cat.id] = (allCustomizableItems || []).filter((item) => isItemInCategory(item, cat)).length;
+      if (cat.name) {
+        counts[cat.name] = counts[cat.id];
+      }
+    }
+    return counts;
+  }, [activeCategories, allCustomizableItems, isItemInCategory]);
+
+  // Filter customizable items based on selected category in 3D Studio
+  const displayCustomizableItems = useMemo(() => {
+    if (!selectedCategoryId || selectedCategoryId === 'ALL') {
+      return allCustomizableItems;
+    }
+    const targetCat = activeCategories.find(
+      (c) => c.id === selectedCategoryId || c.name === selectedCategoryId || (c.slug && c.slug === selectedCategoryId)
+    );
+    if (!targetCat) {
+      return allCustomizableItems;
+    }
+    return allCustomizableItems.filter((item) => isItemInCategory(item, targetCat));
+  }, [allCustomizableItems, selectedCategoryId, activeCategories, isItemInCategory]);
+
+  const selectedCategoryObj = useMemo(() => {
+    if (!selectedCategoryId || selectedCategoryId === 'ALL') return null;
+    return (
+      activeCategories.find(
+        (c) => c.id === selectedCategoryId || c.name === selectedCategoryId || (c.slug && c.slug === selectedCategoryId)
+      ) || null
+    );
+  }, [selectedCategoryId, activeCategories]);
+
+  const activeProduct = customizerProduct || (allCustomizableItems.length > 0 ? allCustomizableItems[0] : (DEFAULT_PRESET_PRODUCTS?.[0] || null));
 
   // Available print areas for this product based on size and physical calibration
   const availablePrintAreas = useMemo(() => {
@@ -1018,10 +1124,8 @@ I would like to discuss this design with The PrintHub team.`;
     );
   }
 
-  // =========================================================================
-  // ZERO-STATE: NO PRODUCTS IN CATALOG
-  // =========================================================================
-  if (!activeProduct) {
+  // Guard only for steps beyond Step 1 if no product is selected
+  if (!activeProduct && currentStep > 1) {
     return (
       <div className="min-h-screen bg-[#E5DAC9] text-[#183630] py-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center animate-in fade-in">
         <div className="w-full max-w-lg rounded-3xl bg-[#E5DAC9] border border-[#B8A98F]/50 shadow-xl p-8 sm:p-12 text-center space-y-5">
@@ -1029,24 +1133,18 @@ I would like to discuss this design with The PrintHub team.`;
             <Box className="w-8 h-8" />
           </div>
           <h2 className="text-xl sm:text-2xl font-black font-display uppercase tracking-tight text-[#183630]">
-            No Customizable Blanks Available
+            No Product Selected
           </h2>
           <p className="text-xs text-[#183630]/80 leading-relaxed max-w-sm mx-auto">
-            The 3D Customizer currently has no active merchandise blanks. Create products in the Admin Command Center to begin customizing in 3D.
+            Please choose a blank product style from Step 1 to begin customizing in 3D.
           </p>
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="pt-2 flex items-center justify-center">
             <button
-              onClick={() => navigateTo('home')}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-[#B8A98F]/60 hover:border-[#183630] text-xs font-mono font-bold transition-colors cursor-pointer text-[#183630]"
+              onClick={() => setCurrentStep(1)}
+              className="px-6 py-2.5 rounded-xl bg-[#183630] text-[#E5DAC9] hover:text-[#E5C690] border border-[#B8A98F] text-xs font-mono font-bold transition-colors cursor-pointer"
             >
-              Return to Storefront
+              Choose Product in Step 1 →
             </button>
-            <a
-              href="https://admin.theprinthub.co.in"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#E5C690] hover:bg-[#d9b87c] text-[#183630] text-xs font-mono font-black shadow-md transition-all cursor-pointer text-center"
-            >
-              + Add Product in Admin
-            </a>
           </div>
         </div>
       </div>
@@ -1125,10 +1223,78 @@ I would like to discuss this design with The PrintHub team.`;
             </p>
           </div>
 
-          {/* Products Grid / Empty State */}
-          {allCustomizableItems.length > 0 ? (
+          {/* Dynamic Category Filter Tabs */}
+          {activeCategories.length > 0 && (
+            <div className="p-3.5 sm:p-4 rounded-2xl border border-[#B8A98F]/50 bg-[#E5DAC9] shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] font-bold text-[#183630]/75 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-[#183630]" />
+                  <span>STUDIO CATEGORIES:</span>
+                </span>
+                <span className="text-[11px] font-mono text-[#183630]/70">
+                  Showing {displayCustomizableItems.length} of {allCustomizableItems.length} blanks
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategoryId('ALL')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                    selectedCategoryId === 'ALL'
+                      ? 'bracket-selected-dark text-[#E5C690] font-black shadow-xs'
+                      : 'bg-[#E5DAC9] border border-[#B8A98F]/60 hover:border-[#183630] text-[#183630]/85 hover:bg-[#183630]/5'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>All Blanks & Styles</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                      selectedCategoryId === 'ALL'
+                        ? 'bg-[#E5C690]/20 text-[#E5C690]'
+                        : 'bg-[#183630]/10 text-[#183630]'
+                    }`}
+                  >
+                    {allCustomizableItems.length}
+                  </span>
+                </button>
+
+                {activeCategories.map((cat) => {
+                  const isSelected = selectedCategoryId === cat.id || selectedCategoryId === cat.name;
+                  const catCount = categoryItemCounts[cat.id] || 0;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setSelectedCategoryId(cat.id)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bracket-selected-dark text-[#E5C690] font-black shadow-xs'
+                          : 'bg-[#E5DAC9] border border-[#B8A98F]/60 hover:border-[#183630] text-[#183630]/85 hover:bg-[#183630]/5'
+                      }`}
+                    >
+                      {cat.icon && <span className="text-sm leading-none">{cat.icon}</span>}
+                      <span>{cat.name}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                          isSelected
+                            ? 'bg-[#E5C690]/20 text-[#E5C690]'
+                            : 'bg-[#183630]/10 text-[#183630]'
+                        }`}
+                      >
+                        {catCount}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Products Grid / Category Empty State / General Empty State */}
+          {displayCustomizableItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {allCustomizableItems.map((prod) => {
+              {displayCustomizableItems.map((prod) => {
                 const prodColors = safeParseColors(prod.colors);
 
                 return (
@@ -1205,6 +1371,27 @@ I would like to discuss this design with The PrintHub team.`;
                 );
               })}
             </div>
+          ) : selectedCategoryId !== 'ALL' ? (
+            <div className="p-12 text-center rounded-3xl border border-[#B8A98F]/40 bg-[#E5DAC9] shadow-sm space-y-4">
+              <Box className="w-12 h-12 text-[#183630]/50 mx-auto" />
+              <div className="space-y-1">
+                <h3 className="text-base font-bold font-display text-[#183630]">
+                  No Products Found in {selectedCategoryObj?.name || 'this Category'}
+                </h3>
+                <p className="text-xs text-[#183630]/80 max-w-sm mx-auto">
+                  There are currently no active customizable blank products assigned to this category. Select another category or browse all available studio blanks.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategoryId('ALL')}
+                  className="px-5 py-2.5 rounded-full bg-[#183630] hover:bg-[#183630]/90 text-[#E5DAC9] hover:text-[#E5C690] border border-[#B8A98F] font-bold text-xs uppercase tracking-wider font-display transition-all shadow-md cursor-pointer"
+                >
+                  View All Custom Blanks ({allCustomizableItems.length})
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="p-12 text-center rounded-3xl border border-[#B8A98F]/40 bg-[#E5DAC9] shadow-sm space-y-4">
               <Box className="w-12 h-12 text-[#183630]/50 mx-auto" />
@@ -1225,7 +1412,7 @@ I would like to discuss this design with The PrintHub team.`;
                 </a>
                 <button
                   type="button"
-                  onClick={() => handleSelectProduct(DEFAULT_PRESET_PRODUCTS[0])}
+                  onClick={() => handleSelectProduct(DEFAULT_PRESET_PRODUCTS?.[0] || allCustomizableItems?.[0])}
                   className="px-5 py-2.5 rounded-full bg-[#E5C690] hover:bg-[#d9b87c] text-[#183630] font-black text-xs uppercase tracking-wider font-display transition-all"
                 >
                   Use Standard 3D Studio Canvas →

@@ -97,9 +97,11 @@ export function normalizeProduct(p) {
 
   const rawStatus = (p.status || '').toUpperCase();
   const isCurrentlyActive = p.isActive !== false && rawStatus !== 'INACTIVE' && rawStatus !== 'ARCHIVED';
+  const categoryId = p.categoryId || (typeof p.category === 'object' && p.category !== null ? p.category.id : null) || null;
 
   return {
     ...p,
+    categoryId,
     category: rawCat,
     categoryName: rawCat,
     categoryObj: typeof p.category === 'object' ? p.category : null,

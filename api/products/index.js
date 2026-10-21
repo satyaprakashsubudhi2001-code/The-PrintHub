@@ -252,18 +252,41 @@ export default async function handler(req, res) {
           return res.status(200).json({ success: true, message: 'Product already deleted or not found' });
         }
 
-        try {
-          await prisma.product.delete({
-            where: { id: existing.id }
-          });
-        } catch (delErr) {
+        // Check if referenced by order items or design requests
+        const orderItemsCount = await prisma.orderItem.count({ where: { productId: existing.id } });
+        const designRequestsCount = await prisma.designRequest.count({ where: { productId: existing.id } });
+
+        if (orderItemsCount > 0 || designRequestsCount > 0) {
           await prisma.product.update({
             where: { id: existing.id },
-            data: { status: 'ARCHIVED' }
+            data: { status: 'ARCHIVED', isActive: false }
+          });
+          return res.status(200).json({
+            success: true,
+            archived: true,
+            message: `Product "${existing.name}" is referenced by past orders/requests and was safely ARCHIVED.`
           });
         }
 
-        return res.status(200).json({ success: true, message: 'Product deleted successfully' });
+        // Safe to hard delete: Clean up dependent records first
+        await prisma.customModel3D.updateMany({
+          where: { productId: existing.id },
+          data: { productId: null }
+        });
+
+        await prisma.inventory.deleteMany({
+          where: { productId: existing.id }
+        });
+
+        await prisma.productImage.deleteMany({
+          where: { productId: existing.id }
+        });
+
+        await prisma.product.delete({
+          where: { id: existing.id }
+        });
+
+        return res.status(200).json({ success: true, message: `Product "${existing.name}" deleted successfully` });
       }
 
       // Bulk clear all products

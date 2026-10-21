@@ -1,5 +1,4 @@
 import { signAdminToken, verifyAdmin, COOKIE_NAME } from '../_lib/auth.js';
-import { serialize } from 'cookie';
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -58,13 +57,8 @@ export default async function handler(req, res) {
       return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
 
-    const cookieString = serialize(COOKIE_NAME, '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: -1,
-    });
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieString = `${COOKIE_NAME}=; Path=/; Max-Age=-1; HttpOnly; SameSite=Lax${isProd ? '; Secure' : ''}`;
 
     res.setHeader('Set-Cookie', cookieString);
     return res.status(200).json({ success: true, message: 'Logged out successfully' });

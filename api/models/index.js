@@ -28,7 +28,11 @@ export default async function handler(req, res) {
           where: { id: modelId },
           include: {
             printableAreas: { orderBy: { sortOrder: 'asc' } },
-            product: true
+            product: {
+              include: {
+                category: true
+              }
+            }
           }
         });
         if (!model) {
@@ -64,7 +68,11 @@ export default async function handler(req, res) {
         where: whereCondition,
         include: {
           printableAreas: { orderBy: { sortOrder: 'asc' } },
-          product: true
+          product: {
+            include: {
+              category: true
+            }
+          }
         },
         orderBy: { createdAt: 'desc' }
       });

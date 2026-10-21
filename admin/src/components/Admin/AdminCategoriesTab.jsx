@@ -273,14 +273,62 @@ export function AdminCategoriesTab() {
     }
   };
 
+  // Alert notification banner for category actions
+  const [categoryAlert, setCategoryAlert] = useState(null);
+
   // Handle delete category
-  const handleDeleteCategory = (catId) => {
-    deleteCategory(catId);
-    setDeleteConfirmId(null);
+  const handleDeleteCategory = async (catId) => {
+    const targetCat = categories.find((c) => c.id === catId);
+    try {
+      const res = await deleteCategory(catId);
+      if (res && res.success) {
+        if (res.deactivated) {
+          setCategoryAlert({
+            type: 'info',
+            text: res.message || `Category "${targetCat?.name || catId}" has products and was safely DEACTIVATED.`
+          });
+        } else {
+          setCategoryAlert({
+            type: 'success',
+            text: `Category "${targetCat?.name || catId}" deleted successfully.`
+          });
+        }
+      } else {
+        setCategoryAlert({
+          type: 'error',
+          text: (res && res.error) || 'Failed to delete category.'
+        });
+      }
+    } catch (err) {
+      setCategoryAlert({ type: 'error', text: err.message || 'Error deleting category' });
+    } finally {
+      setDeleteConfirmId(null);
+      setTimeout(() => setCategoryAlert(null), 5000);
+    }
   };
 
   return (
     <div className="space-y-8 animate-in fade-in select-none">
+      {categoryAlert && (
+        <div
+          className={`p-4 rounded-2xl flex items-center justify-between gap-3 text-xs font-mono font-bold border transition-all ${
+            categoryAlert.type === 'success'
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+              : categoryAlert.type === 'info'
+              ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+              : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+          }`}
+        >
+          <span>{categoryAlert.text}</span>
+          <button
+            type="button"
+            onClick={() => setCategoryAlert(null)}
+            className="text-slate-400 hover:text-white cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {/* =========================================================================
          1. TOP TOOLBAR & CONTROLS
          ========================================================================= */}

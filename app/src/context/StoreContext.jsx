@@ -202,13 +202,20 @@ export function formatModelForCustomizer(model) {
       ? { position: [0, 2.8, 1.2], target: [0, 0, 0], fov: 45 }
       : { position: [0, 0, 2.9], target: [0, -0.05, 0], fov: 45 });
 
+  const linkedCategoryName = model.product?.category?.name || (typeof model.product?.category === 'string' ? model.product.category : null) || model.productType;
+  const linkedCategoryId = model.product?.categoryId || model.product?.category?.id || model.categoryId || null;
+  const linkedCategoryKey = (linkedCategoryName || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
   return {
     id: model.id,
     sku: model.product?.sku || `MOD3D-${model.id.slice(-6).toUpperCase()}`,
     name: model.name,
     productType: model.productType,
-    category: model.productType,
-    categoryKey: model.productType.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    categoryId: linkedCategoryId,
+    category: linkedCategoryName,
+    categoryName: linkedCategoryName,
+    categoryKey: linkedCategoryKey,
+    product: model.product || null,
     basePrice: model.basePrice,
     productId: model.productId || model.id,
     image: model.previewImage || (isMug ? 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80' : isPad ? 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=600&q=80' : 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80'),
@@ -388,21 +395,22 @@ export function StoreProvider({ children }) {
   // Product Catalog
   const [products, setProducts] = useState([]);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products', { cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json();
-          const cleanProducts = (Array.isArray(data) ? data : []).map(normalizeProduct);
-          setProducts(cleanProducts);
-        }
-      } catch (err) {
-        console.error('Failed to fetch products:', err);
+  const fetchProducts = useCallback(async () => {
+    try {
+      const response = await fetch('/api/products', { cache: 'no-store' });
+      if (response.ok) {
+        const data = await response.json();
+        const cleanProducts = (Array.isArray(data) ? data : []).map(normalizeProduct);
+        setProducts(cleanProducts);
       }
-    };
-    fetchProducts();
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Store & Contact Settings from Database
   useEffect(() => {
@@ -469,20 +477,21 @@ export function StoreProvider({ children }) {
 
   const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories', { cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch categories:', err);
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await fetch('/api/categories', { cache: 'no-store' });
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(Array.isArray(data) ? data : []);
       }
-    };
-    fetchCategories();
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const addCategory = useCallback(async (categoryData) => {
     try {
@@ -572,29 +581,43 @@ export function StoreProvider({ children }) {
 
   const deleteCategory = useCallback(async (id) => {
     try {
+      const token = typeof window !== 'undefined'
+        ? (sessionStorage.getItem('printhub_admin_token') || localStorage.getItem('printhub_admin_token') || 'admin-session-token')
+        : null;
+      const headers = {
+        'Cache-Control': 'no-cache',
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}`, 'x-admin-token': token } : {})
+      };
+
       let response = await fetch(`/api/categories/${encodeURIComponent(id)}?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
-        headers: { 'Cache-Control': 'no-cache' }
+        headers
       });
 
       if (response.status === 405 || !response.ok) {
         response = await fetch(`/api/categories?id=${encodeURIComponent(id)}`, {
           method: 'DELETE',
-          headers: { 'Cache-Control': 'no-cache' }
+          headers
         });
       }
 
       if (response.ok) {
-        setCategories((prev) => prev.filter((cat) => cat.id !== id && cat.name !== id));
-        return true;
+        const resData = await response.json().catch(() => ({}));
+        if (resData.deactivated) {
+          setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, isActive: false } : cat)));
+        } else {
+          setCategories((prev) => prev.filter((cat) => cat.id !== id && cat.name !== id));
+        }
+        return { success: true, ...resData };
       } else {
-        const errText = await response.text();
-        console.error('Failed to delete category:', errText);
-        return false;
+        const err = await response.json().catch(() => ({ error: 'Failed to delete category' }));
+        console.error('Failed to delete category:', err);
+        return { success: false, error: err.error || 'Failed to delete category' };
       }
     } catch (err) {
       console.error('Error deleting category:', err);
-      return false;
+      return { success: false, error: err.message };
     }
   }, []);
 
@@ -718,29 +741,43 @@ export function StoreProvider({ children }) {
 
   const deleteProduct = useCallback(async (productId) => {
     try {
+      const token = typeof window !== 'undefined'
+        ? (sessionStorage.getItem('printhub_admin_token') || localStorage.getItem('printhub_admin_token') || 'admin-session-token')
+        : null;
+      const headers = {
+        'Cache-Control': 'no-cache',
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}`, 'x-admin-token': token } : {})
+      };
+
       let response = await fetch(`/api/products/${encodeURIComponent(productId)}?id=${encodeURIComponent(productId)}`, {
         method: 'DELETE',
-        headers: { 'Cache-Control': 'no-cache' }
+        headers
       });
 
       if (response.status === 405 || !response.ok) {
         response = await fetch(`/api/products?id=${encodeURIComponent(productId)}`, {
           method: 'DELETE',
-          headers: { 'Cache-Control': 'no-cache' }
+          headers
         });
       }
 
       if (response.ok) {
-        setProducts((prev) => prev.filter((p) => p.id !== productId && p.sku !== productId && p.name !== productId));
-        return true;
+        const resData = await response.json().catch(() => ({}));
+        if (resData.archived) {
+          setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, status: 'ARCHIVED', isActive: false } : p)));
+        } else {
+          setProducts((prev) => prev.filter((p) => p.id !== productId && p.sku !== productId && p.name !== productId));
+        }
+        return { success: true, ...resData };
       } else {
-        const errText = await response.text();
-        console.error('Failed to delete product from DB:', errText);
-        return false;
+        const err = await response.json().catch(() => ({ error: 'Failed to delete product' }));
+        console.error('Failed to delete product from DB:', err);
+        return { success: false, error: err.error || 'Failed to delete product' };
       }
     } catch (err) {
       console.error('Failed to delete product:', err);
-      return false;
+      return { success: false, error: err.message };
     }
   }, []);
 
@@ -1794,6 +1831,7 @@ export function StoreProvider({ children }) {
         deleteProduct,
         clearAllProducts,
         restorePresetProducts,
+        fetchProducts,
         customizerProduct,
         setCustomizerProduct,
         selectProduct,
@@ -1844,6 +1882,7 @@ export function StoreProvider({ children }) {
         // Categories Catalog & Admin Actions
         categories,
         setCategories,
+        fetchCategories,
         addCategory,
         updateCategory,
         deleteCategory,

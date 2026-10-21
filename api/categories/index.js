@@ -93,15 +93,21 @@ export default async function handler(req, res) {
           return res.status(200).json({ success: true, message: 'Category already deleted or not found' });
         }
 
-        try {
-          await prisma.category.delete({ where: { id: existing.id } });
-        } catch (relErr) {
+        const productsCount = await prisma.product.count({ where: { categoryId: existing.id } });
+        if (productsCount > 0) {
           await prisma.category.update({
             where: { id: existing.id },
             data: { isActive: false }
           });
+          return res.status(200).json({
+            success: true,
+            deactivated: true,
+            message: `Category "${existing.name}" has ${productsCount} product(s) linked and was safely DEACTIVATED to preserve product catalog integrity.`
+          });
         }
-        return res.status(200).json({ success: true, message: 'Category deleted successfully' });
+
+        await prisma.category.delete({ where: { id: existing.id } });
+        return res.status(200).json({ success: true, message: `Category "${existing.name}" deleted successfully` });
       }
 
       // Bulk clear all categories

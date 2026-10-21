@@ -309,7 +309,7 @@ export function StoreProvider({ children }) {
   const getAdminHeaders = useCallback(() => {
     const headers = { 'Content-Type': 'application/json' };
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('printhub_admin_token') || 'admin-session-token';
+      const token = sessionStorage.getItem('printhub_admin_token') || localStorage.getItem('printhub_admin_token') || 'admin-session-token';
       headers['Authorization'] = `Bearer ${token}`;
       headers['x-admin-token'] = token;
       const session = localStorage.getItem('printhub_admin_session');
@@ -614,16 +614,21 @@ export function StoreProvider({ children }) {
       }
 
       if (response.ok) {
-        setCategories((prev) => prev.filter((cat) => cat.id !== id && cat.name !== id));
-        return true;
+        const resData = await response.json();
+        if (resData.deactivated) {
+          setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, isActive: false } : cat)));
+        } else {
+          setCategories((prev) => prev.filter((cat) => cat.id !== id && cat.name !== id));
+        }
+        return { success: true, ...resData };
       } else {
-        const errText = await response.text();
-        console.error('Failed to delete category:', errText);
-        return false;
+        const err = await response.json().catch(() => ({ error: 'Failed to delete category' }));
+        console.error('Failed to delete category:', err);
+        return { success: false, error: err.error || 'Failed to delete category' };
       }
     } catch (err) {
       console.error('Error deleting category:', err);
-      return false;
+      return { success: false, error: err.message };
     }
   }, [getAdminHeaders]);
 
@@ -777,16 +782,21 @@ export function StoreProvider({ children }) {
       }
 
       if (response.ok) {
-        setProducts((prev) => prev.filter((p) => p.id !== productId && p.sku !== productId && p.name !== productId));
-        return true;
+        const resData = await response.json();
+        if (resData.archived) {
+          setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, status: 'ARCHIVED', isActive: false } : p)));
+        } else {
+          setProducts((prev) => prev.filter((p) => p.id !== productId && p.sku !== productId && p.name !== productId));
+        }
+        return { success: true, ...resData };
       } else {
-        const errText = await response.text();
-        console.error('Failed to delete product from DB:', errText);
-        return false;
+        const err = await response.json().catch(() => ({ error: 'Failed to delete product' }));
+        console.error('Failed to delete product from DB:', err);
+        return { success: false, error: err.error || 'Failed to delete product' };
       }
     } catch (err) {
       console.error('Failed to delete product:', err);
-      return false;
+      return { success: false, error: err.message };
     }
   }, [getAdminHeaders]);
 
@@ -1011,6 +1021,8 @@ export function StoreProvider({ children }) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('printhub_admin_session', JSON.stringify(authorizedUser));
         localStorage.setItem('printhub_admin_session', JSON.stringify(authorizedUser));
+        sessionStorage.setItem('printhub_admin_token', 'admin-session-token');
+        localStorage.setItem('printhub_admin_token', 'admin-session-token');
       }
       return { success: true };
     }
@@ -1181,7 +1193,7 @@ export function StoreProvider({ children }) {
   const getAdminAuthHeaders = useCallback(() => {
     const headers = { 'Content-Type': 'application/json' };
     if (typeof window !== 'undefined') {
-      const token = sessionStorage.getItem('printhub_admin_token') || localStorage.getItem('printhub_admin_token');
+      const token = sessionStorage.getItem('printhub_admin_token') || localStorage.getItem('printhub_admin_token') || 'admin-session-token';
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
         headers['x-admin-token'] = token;
