@@ -411,3 +411,38 @@ button, a, [role="button"] {
   -webkit-overflow-scrolling: touch;
 }
 
+/* =========================================================================
+   A4 TAX INVOICE PRINT & PDF GENERATION STYLES
+   ========================================================================= */
+@media print {
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #printable-tax-invoice,
+  #printable-tax-invoice * {
+    visibility: visible;
+  }
+  #printable-tax-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 12mm 15mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+}
+
